@@ -1,0 +1,58 @@
+package views
+
+templ Base(child templ.Component) {
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width"/>
+			<link rel="stylesheet" href="/static/styles/global.css"/>
+			<link rel="icon" type="image/png" href="/static/logo_trans.png"/>
+			<link rel="stylesheet" href="/static/styles/material-symbols.css"/>
+			<link rel="stylesheet" href="/static/styles/tailwind.css"/>
+			<title>Liphium Magic Panel</title>
+		</head>
+		<body>
+			@child
+		</body>
+		<style>
+
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      width: 100%;
+      background-color: var(--background);
+      color: var(--text);
+    }
+
+    @font-face {
+      font-family: "Inter";
+      src: url("/static/fonts/Inter.ttf") format("truetype");
+    }
+
+    @font-face {
+      font-family: "Pixel";
+      src: url("/static/fonts//Pixel.ttf") format("truetype");
+    }
+
+    :root {
+      --text: #e5f5eb;
+      --middle-text: #b5c4bb;
+      --sec-text: #909d95;
+      --background: #04090c;
+      --background2: #17232c;
+      --header-bg: #2a56926e;
+      --secondary-action: #1d2c30;
+      --primary: #084a61;
+      --secondary: #2b5152;
+      --accent: #4ed6f1;
+      --gradient-2: #4e6ff1;
+      --gradient-shadow: #762adacf;
+      --accent-shadow: #7aa0d142;
+    }
+  </style>
+	</html>
+}

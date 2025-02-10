@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tailwindcss build -o internal/static/css/tailwind.css --minify"
+    "build": "tailwindcss build -o static/styles/tailwind.css"
   },
   "keywords": [],
   "author": "",
