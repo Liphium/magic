@@ -7,16 +7,16 @@ import (
 )
 
 type Preview struct {
-	Forge         uuid.UUID // Forge the preview belongs to (only one possible per Forge)
-	Configuration uuid.UUID // Configuration of the preview that will be used for all environments spun up
+	Forge         uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Configuration uuid.UUID `gorm:"type:uuid;index"`
 
 	Created time.Time
 	Updated time.Time
 }
 
 type EnvironmentConfiguration struct {
-	ID           uuid.UUID
-	Preview      uuid.UUID
+	ID           uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Preview      uuid.UUID `gorm:"type:uuid;index"`
 	BuildCommand string
 	StartCommand string
 
@@ -24,9 +24,9 @@ type EnvironmentConfiguration struct {
 }
 
 type ConfigurationVariable struct {
-	ID            uuid.UUID
-	Configuration uuid.UUID
-	Name          string
+	ID            uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Configuration uuid.UUID `gorm:"type:uuid;index"`
+	Name          string    `gorm:"index"`
 	Type          string
 	Value         string
 
@@ -34,9 +34,9 @@ type ConfigurationVariable struct {
 }
 
 type ServiceConfiguration struct {
-	ID            uuid.UUID
-	Configuration uuid.UUID
-	Type          string
+	ID            uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Configuration uuid.UUID `gorm:"type:uuid;index"`
+	Type          string    `gorm:"index"`
 	Version       uint
 	Mappings      string
 
@@ -44,21 +44,21 @@ type ServiceConfiguration struct {
 }
 
 type Environment struct {
-	ID            uuid.UUID
-	Preview       uuid.UUID // Forge ID because the Preview also belongs to the Forge
-	Build         uuid.UUID
-	Configuration uuid.UUID // Configuration used to build the environment
-	Node          uuid.UUID
-	Status        uint
+	ID            uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Preview       uuid.UUID `gorm:"type:uuid;index"`
+	Build         uuid.UUID `gorm:"type:uuid;index"`
+	Configuration uuid.UUID `gorm:"type:uuid;index"`
+	Node          uuid.UUID `gorm:"type:uuid;index"`
+	Status        uint      `gorm:"index"`
 
 	Created time.Time
 	Updated time.Time
 }
 
 type EnvironmentFile struct {
-	ID          uuid.UUID
-	Environment uuid.UUID
-	Asset       uuid.UUID
+	ID          uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Environment uuid.UUID `gorm:"type:uuid;index"`
+	Asset       uuid.UUID `gorm:"type:uuid;index"`
 
 	Created time.Time
 	Updated time.Time

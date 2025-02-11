@@ -14,5 +14,4 @@ func InitializeRoutes(router fiber.Router) {
 	router.Get("/", func(c *fiber.Ctx) error {
 		return views.Render(c, views.Home())
 	})
-
 }

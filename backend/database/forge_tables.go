@@ -7,37 +7,37 @@ import (
 )
 
 type Forge struct {
-	ID         uuid.UUID
-	Project    uuid.UUID // Project the Forge was created in
-	Label      string
-	Repository string // Link to the repository
+	ID         uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Project    uuid.UUID `gorm:"type:uuid;index"`
+	Label      string    `gorm:"index"`
+	Repository string
 
 	Created time.Time
 	Updated time.Time
 }
 
 type Build struct {
-	ID     uuid.UUID
-	Forge  uuid.UUID
-	Target uuid.UUID
-	Value  string // Could be something like the PR id when on a PR target
+	ID     uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Forge  uuid.UUID `gorm:"type:uuid;index"`
+	Target uuid.UUID `gorm:"type:uuid;index"`
+	Value  string
 
 	Created time.Time
 }
 
 type Asset struct {
-	ID           uuid.UUID
-	Build        uuid.UUID
-	Architecture string
-	Path         string // URL in the CDN
+	ID           uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Build        uuid.UUID `gorm:"type:uuid;index"`
+	Architecture string    `gorm:"index"`
+	Path         string
 
 	Created time.Time
 }
 
 type Target struct {
-	ID    uuid.UUID
-	Forge uuid.UUID
-	Type  string
+	ID    uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Forge uuid.UUID `gorm:"type:uuid;index"`
+	Type  string    `gorm:"index"`
 	Value string
 
 	Created time.Time
