@@ -5,7 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Liphium/magic/backend/views"
+	"github.com/Liphium/magic/backend/database"
+	"github.com/Liphium/magic/backend/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -30,6 +31,9 @@ func main() {
 		log.Println("Listening on 0.0.0.0, you can specify something different by using the MAGIC_LISTEN environment variable..")
 	}
 
+	// Connect to the database
+	database.Connect()
+
 	// Start fiber
 	app := setupApp()
 	if err := app.Listen(fmt.Sprintf("%s:%s", listen, port)); err != nil {
@@ -42,12 +46,8 @@ func setupApp() *fiber.App {
 	app.Use(logger.New())
 	app.Use(cors.New())
 
-	// Serve the static files for the frontend
-	app.Static("/static/", "./static")
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return views.Render(c, views.Home())
-	})
+	// Initialize the router
+	app.Route("/", routes.InitializeRoutes)
 
 	return app
 }

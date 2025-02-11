@@ -554,33 +554,16 @@ video {
   display: none;
 }
 
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.mt-0 {
-  margin-top: 0px;
-}
-
 .flex {
   display: flex;
-}
-
-.h-32 {
-  height: 8rem;
 }
 
 .h-screen {
   height: 100vh;
 }
 
-.w-32 {
-  width: 8rem;
-}
-
-.max-w-\[70rem\] {
-  max-width: 70rem;
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .flex-col {
@@ -595,20 +578,46 @@ video {
   justify-content: center;
 }
 
-.gap-8 {
-  gap: 2rem;
+.gap-6 {
+  gap: 1.5rem;
 }
 
-.p-8 {
-  padding: 2rem;
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.border-2 {
+  border-width: 2px;
+}
+
+.border-dotted {
+  border-style: dotted;
+}
+
+.border-transparent {
+  border-color: transparent;
+}
+
+.bg-background2 {
+  background-color: var(--background2);
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .text-center {
   text-align: center;
-}
-
-.font-inter {
-  font-family: Inter, sans-serif;
 }
 
 .font-pixel {
@@ -620,35 +629,34 @@ video {
   line-height: 2.5rem;
 }
 
-.text-xl {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-}
-
 .font-extrabold {
   font-weight: 800;
 }
 
-.leading-\[1\.1\] {
-  line-height: 1.1;
+.text-text {
+  color: var(--text);
 }
 
-.text-sec-text {
-  color: var(--sec-text);
+.no-underline {
+  text-decoration-line: none;
 }
 
-@media not all and (min-width: 1024px) {
-  .max-lg\:px-0 {
-    padding-left: 0px;
-    padding-right: 0px;
-  }
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
-@media (min-width: 768px) {
-  .md\:text-4xl {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
-  }
+.duration-200 {
+  transition-duration: 200ms;
+}
+
+.ease-in-out {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover\:border-accent:hover {
+  border-color: var(--accent);
 }
 
 @media (min-width: 1024px) {
@@ -659,5 +667,9 @@ video {
   .lg\:text-5xl {
     font-size: 3rem;
     line-height: 1;
+  }
+
+  .lg\:leading-\[1\.2\] {
+    line-height: 1.2;
   }
 }

@@ -8,6 +8,8 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/Liphium/magic/backend/views/components"
+
 func Home() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,7 +31,15 @@ func Home() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col p-8 gap-8 max-lg:px-0 max-w-[70rem] mx-auto h-screen\"><div class=\"flex items-center justify-center gap-8\"><img class=\"w-32 h-32\" src=\"/static/logo_trans.png\" alt=\"Logo\"><h1 class=\" leading-[1.1] text-center lg:text-left lg:text-5xl md:text-4xl text-4xl font-pixel font-extrabold\">The modern staging environment for <span class=\"hero-gradient\">everyone</span>.</h1></div><p class=\"mt-0 font-inter text-center text-sec-text text-xl\">Liphium Magic allows you to build and preview any kind of application in a staging environment. Yes, even UDP, TCP and WebRTC ones. Run them just like in production by attaching real databases and more. That's Magic.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col items-center justify-center h-screen gap-6\"><div class=\"flex items-center justify-center\"><h1 class=\"text-center lg:text-left lg:text-5xl lg:leading-[1.2] text-4xl font-pixel font-extrabold hero-gradient\">Liphium Magic</h1></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.LinkButtonPrimary("Sign in with GitHub", "https://github.com").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

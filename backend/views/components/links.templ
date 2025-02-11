@@ -1,0 +1,21 @@
+package components
+
+templ LinkButton(label string, url templ.SafeURL) {
+	<a
+		href={ url }
+		class="bg-background2 text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer 
+        text-center transition-all duration-200 ease-in-out no-underline hover:border-accent"
+	>
+		{ label }
+	</a>
+}
+
+templ LinkButtonPrimary(label string, url templ.SafeURL) {
+	<a
+		href={ url }
+		class="bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer 
+        text-center transition-all duration-200 ease-in-out no-underline hover:border-accent"
+	>
+		{ label }
+	</a>
+}
