@@ -10,8 +10,8 @@ type Preview struct {
 	Forge         uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	Configuration uuid.UUID `gorm:"type:uuid;index"`
 
-	Created time.Time
-	Updated time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type EnvironmentConfiguration struct {
@@ -20,7 +20,7 @@ type EnvironmentConfiguration struct {
 	BuildCommand string
 	StartCommand string
 
-	Created time.Time
+	CreatedAt time.Time
 }
 
 type ConfigurationVariable struct {
@@ -29,8 +29,6 @@ type ConfigurationVariable struct {
 	Name          string    `gorm:"index"`
 	Type          string
 	Value         string
-
-	Created time.Time
 }
 
 type ServiceConfiguration struct {
@@ -39,8 +37,6 @@ type ServiceConfiguration struct {
 	Type          string    `gorm:"index"`
 	Version       uint
 	Mappings      string
-
-	Created time.Time
 }
 
 type Environment struct {
@@ -51,15 +47,12 @@ type Environment struct {
 	Node          uuid.UUID `gorm:"type:uuid;index"`
 	Status        uint      `gorm:"index"`
 
-	Created time.Time
-	Updated time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type EnvironmentFile struct {
 	ID          uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	Environment uuid.UUID `gorm:"type:uuid;index"`
 	Asset       uuid.UUID `gorm:"type:uuid;index"`
-
-	Created time.Time
-	Updated time.Time
 }

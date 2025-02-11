@@ -11,13 +11,13 @@ import (
 )
 
 // Logger for the database
-var logger = log.New(os.Stdout, "database ", 0)
+var logger = log.New(os.Stdout, "database: ", 0)
 
 // The connection to the database
 var DBConn *gorm.DB
 
 func Connect() {
-	url := "host=" + os.Getenv("DB_HOST") + " user=" + os.Getenv("DB_USER") + " password=" + os.Getenv("DB_PASSWORD") + " dbname=" + os.Getenv("DB_DATABASE") + " port=" + os.Getenv("DB_PORT")
+	url := "host=" + os.Getenv("MAGIC_DB_HOST") + " user=" + os.Getenv("MAGIC_DB_USERNAME") + " password=" + os.Getenv("MAGIC_DB_PASSWORD") + " dbname=" + os.Getenv("MAGIC_DB_NAME") + " port=" + os.Getenv("MAGIC_DB_PORT")
 
 	db, err := gorm.Open(postgres.Open(url), &gorm.Config{
 		Logger: gormlog.Default.LogMode(gormlog.Warn),
@@ -41,6 +41,28 @@ func Connect() {
 	}
 
 	// Migrate the schema
+	if err := db.AutoMigrate(
+		&Account{},
+		&Rank{},
+		&Session{},
+		&Project{},
+
+		&Forge{},
+		&Build{},
+		&Asset{},
+		&Target{},
+
+		&Preview{},
+		&EnvironmentConfiguration{},
+		&ConfigurationVariable{},
+		&ServiceConfiguration{},
+		&Environment{},
+		&EnvironmentFile{},
+
+		&Node{},
+	); err != nil {
+		logger.Fatal("Something went wrong during the migration.", err)
+	}
 
 	// Assign the database to the global variable
 	DBConn = db
@@ -52,11 +74,34 @@ func Connect() {
 // Create the default account
 func CreateDefaultAccount() {
 	username := os.Getenv("MAGIC_DEFAULT_USERNAME")
-	password := os.Getenv("MAGIC_DEFAULT_PASSWORD")
 
 	// Make sure the default user is set
-	if username == "" || password == "" {
-		logger.Fatal("MAGIC_DEFAULT_(USERNAME|PASSWORD) not set. Can't start the server.")
+	if username == "" {
+		logger.Fatal("MAGIC_DEFAULT_USERNAME not set. Can't start the server.")
 	}
 
+	// Create default ranks
+	if err := DBConn.FirstOrCreate(&Rank{
+		ID:              1,
+		Label:           "Default",
+		PermissionLevel: 0,
+	}).Error; err != nil {
+		logger.Fatal("couldn't create default ranks:", err)
+	}
+	if err := DBConn.FirstOrCreate(&Rank{
+		ID:              2,
+		Label:           "Admin",
+		PermissionLevel: 100,
+	}).Error; err != nil {
+		logger.Fatal("couldn't create default ranks:", err)
+	}
+
+	// Create the default account
+	if err := DBConn.FirstOrCreate(&Account{
+		Username: username,
+		Email:    username + "@magic.liphium.dev",
+		Rank:     2,
+	}).Error; err != nil {
+		logger.Fatal("couldn't create default account:", err)
+	}
 }

@@ -8,10 +8,11 @@ import (
 
 type Rank struct {
 	ID              uint `gorm:"primaryKey"`
+	Label           string
 	PermissionLevel uint `gorm:"index"`
 
-	Created time.Time
-	Updated time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Account struct {
@@ -20,8 +21,8 @@ type Account struct {
 	Email    string    `gorm:"uniqueIndex"`
 	Rank     uint      `gorm:"index"`
 
-	Created time.Time
-	Updated time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Session struct {
@@ -30,7 +31,7 @@ type Session struct {
 	Account uuid.UUID `gorm:"type:uuid;index"`
 	LastUse time.Time `gorm:"index"`
 
-	Created time.Time
+	CreatedAt time.Time
 }
 
 type Project struct {
@@ -39,6 +40,6 @@ type Project struct {
 	Description string
 	Creator     uuid.UUID `gorm:"type:uuid;index"`
 
-	Created time.Time
-	Updated time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

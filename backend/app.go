@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -19,6 +20,9 @@ func main() {
 		panic(err)
 	}
 
+	// Load secret environment variables (if there are any)
+	godotenv.Load("secret.env")
+
 	// Make sure the environment variables are set correctly
 	port := os.Getenv("MAGIC_PORT")
 	if port == "" {
@@ -30,8 +34,8 @@ func main() {
 		log.Println("Listening on 0.0.0.0, you can specify something different by using the MAGIC_LISTEN environment variable..")
 	}
 
-	// Connect to the database
-	//database.Connect()
+	// Connect to the database and initialize
+	database.Connect()
 
 	// Start fiber
 	app := setupApp()

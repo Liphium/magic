@@ -12,8 +12,8 @@ type Forge struct {
 	Label      string    `gorm:"index"`
 	Repository string
 
-	Created time.Time
-	Updated time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Build struct {
@@ -22,7 +22,7 @@ type Build struct {
 	Target uuid.UUID `gorm:"type:uuid;index"`
 	Value  string
 
-	Created time.Time
+	CreatedAt time.Time
 }
 
 type Asset struct {
@@ -31,7 +31,7 @@ type Asset struct {
 	Architecture string    `gorm:"index"`
 	Path         string
 
-	Created time.Time
+	CreatedAt time.Time
 }
 
 type Target struct {
@@ -40,5 +40,5 @@ type Target struct {
 	Type  string    `gorm:"index"`
 	Value string
 
-	Created time.Time
+	CreatedAt time.Time
 }
