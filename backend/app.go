@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -32,7 +31,7 @@ func main() {
 	}
 
 	// Connect to the database
-	database.Connect()
+	//database.Connect()
 
 	// Start fiber
 	app := setupApp()
