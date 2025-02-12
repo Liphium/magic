@@ -554,6 +554,30 @@ video {
   display: none;
 }
 
+.sticky {
+  position: sticky;
+}
+
+.top-8 {
+  top: 2rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-\[0\.4em\] {
+  margin-bottom: 0.4em;
+}
+
+.mt-0 {
+  margin-top: 0px;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
 .flex {
   display: flex;
 }
@@ -562,8 +586,32 @@ video {
   height: 100vh;
 }
 
+.w-screen {
+  width: 100vw;
+}
+
+.min-w-0 {
+  min-width: 0px;
+}
+
+.min-w-60 {
+  min-width: 15rem;
+}
+
+.max-w-7xl {
+  max-width: 80rem;
+}
+
+.max-w-80 {
+  max-width: 20rem;
+}
+
 .cursor-pointer {
   cursor: pointer;
+}
+
+.flex-row {
+  flex-direction: row;
 }
 
 .flex-col {
@@ -590,8 +638,16 @@ video {
   border-width: 2px;
 }
 
+.border-dashed {
+  border-style: dashed;
+}
+
 .border-dotted {
   border-style: dotted;
+}
+
+.border-accent {
+  border-color: var(--accent);
 }
 
 .border-transparent {
@@ -611,13 +667,27 @@ video {
   padding-right: 1.5rem;
 }
 
+.px-8 {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
 .py-3 {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
 }
 
+.py-6 {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
 .text-center {
   text-align: center;
+}
+
+.font-inter {
+  font-family: Inter, sans-serif;
 }
 
 .font-pixel {
@@ -629,8 +699,24 @@ video {
   line-height: 2.5rem;
 }
 
+.text-\[100\%\] {
+  font-size: 100%;
+}
+
+.text-\[90\%\] {
+  font-size: 90%;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
 .font-extrabold {
   font-weight: 800;
+}
+
+.text-middle-text {
+  color: var(--middle-text);
 }
 
 .text-text {
@@ -657,6 +743,14 @@ video {
 
 .hover\:border-accent:hover {
   border-color: var(--accent);
+}
+
+.hover\:text-accent:hover {
+  color: var(--accent);
+}
+
+.hover\:underline:hover {
+  text-decoration-line: underline;
 }
 
 @media (min-width: 1024px) {

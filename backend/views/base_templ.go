@@ -29,7 +29,7 @@ func Base(child templ.Component) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width\"><link rel=\"stylesheet\" href=\"/static/styles/global.css\"><link rel=\"icon\" type=\"image/png\" href=\"/static/logo_trans.png\"><link rel=\"stylesheet\" href=\"/static/styles/material-symbols.css\"><link rel=\"stylesheet\" href=\"/static/styles/tailwind.css\"><title>Liphium Magic Panel</title></head><body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.\"><link rel=\"stylesheet\" href=\"/static/styles/global.css\"><link rel=\"icon\" type=\"image/png\" href=\"/static/logo_trans.png\"><link rel=\"stylesheet\" href=\"/static/styles/material-symbols.css\"><link rel=\"stylesheet\" href=\"/static/styles/tailwind.css\"><title>Liphium Magic Panel</title></head><body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -37,7 +37,7 @@ func Base(child templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</body><style>\n\n    * {\n      margin: 0;\n      padding: 0;\n    }\n\n    body {\n      margin: 0;\n      width: 100%;\n      background-color: var(--background);\n      color: var(--text);\n    }\n\n    @font-face {\n      font-family: \"Inter\";\n      src: url(\"/static/fonts/Inter.ttf\") format(\"truetype\");\n    }\n\n    @font-face {\n      font-family: \"Pixel\";\n      src: url(\"/static/fonts//Pixel.ttf\") format(\"truetype\");\n    }\n\n    :root {\n      --text: #e5f5eb;\n      --middle-text: #b5c4bb;\n      --sec-text: #909d95;\n      --background: #04090c;\n      --background2: #2c1717;\n      --header-bg: #922a2a6e;\n      --secondary-action: #301d1d;\n      --primary: #610808;\n      --secondary: #522b2b;\n      --accent: #f14e4e;\n      --gradient-2: #f1a24e;\n      --gradient-shadow: #da4a2abd;\n      --accent-shadow: #d17a7a42;\n    }\n  </style></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</body><style>\n\n    * {\n      margin: 0;\n      padding: 0;\n    }\n\n    body {\n      margin: 0;\n      width: 100%;\n      line-height: 1.5;\n      font-size: 125%;\n      background-color: var(--background);\n      color: var(--text);\n    }\n\n    @font-face {\n      font-family: \"Inter\";\n      src: url(\"/static/fonts/Inter.ttf\") format(\"truetype\");\n    }\n\n    @font-face {\n      font-family: \"Pixel\";\n      src: url(\"/static/fonts//Pixel.ttf\") format(\"truetype\");\n    }\n\n    :root {\n      --text: #e5f5eb;\n      --middle-text: #b5c4bb;\n      --sec-text: #909d95;\n      --background: #04090c;\n      --background2: #2c1717;\n      --header-bg: #922a2a6e;\n      --secondary-action: #301d1d;\n      --primary: #610808;\n      --secondary: #522b2b;\n      --accent: #f14e4e;\n      --gradient-2: #f1a24e;\n      --gradient-shadow: #da4a2abd;\n      --accent-shadow: #d17a7a42;\n    }\n  </style></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

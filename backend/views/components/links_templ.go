@@ -38,14 +38,14 @@ func LinkButton(label string, url templ.SafeURL) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"bg-background2 text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer \r\n        text-center transition-all duration-200 ease-in-out no-underline hover:border-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"bg-background2 text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer text-center transition-all duration-200 ease-in-out no-underline hover:border-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/components/links.templ`, Line: 9, Col: 9}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/components/links.templ`, Line: 8, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -89,14 +89,14 @@ func LinkButtonPrimary(label string, url templ.SafeURL) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer \r\n        text-center transition-all duration-200 ease-in-out no-underline hover:border-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer text-center transition-all duration-200 ease-in-out no-underline hover:border-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/components/links.templ`, Line: 19, Col: 9}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/components/links.templ`, Line: 17, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
