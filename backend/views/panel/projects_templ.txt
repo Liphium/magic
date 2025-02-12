@@ -1,0 +1,9 @@
+<div class=\"flex flex-col gap-4 justify-start items-start\"><p class=\"text-middle-text\">Projects are the place where you can set up all things Magic. Create one to see what this platform can do, if you need help, you can always visit our documentation.</p>
+<p class=\"text-text\">It seems like you don't have any projects yet.</p>
+ 
+ 
+<div class=\"flex flex-row justify-between p-3 bg-background2 rounded-lg mb-4\"><div class=\"flex flex-col\"><p>
+</p><p class=\"text-middle-text\">
+</p></div>
+</div>
+</div>

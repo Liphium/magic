@@ -1,0 +1,28 @@
+package panel_views
+
+import "github.com/Liphium/magic/backend/views/components"
+import "github.com/Liphium/magic/backend/database"
+
+templ ProjectsPage(projects []database.Project) {
+	<div class="flex flex-col gap-4 justify-start items-start">
+		// A basic explanation to fill out the space
+		<p class="text-middle-text">Projects are the place where you can set up all things Magic. Create one to see what this platform can do, if you need help, you can always visit our documentation.</p>
+		if len(projects) == 0 {
+			<p class="text-text">It seems like you don't have any projects yet.</p>
+			@components.LinkButtonPrimary("Create Project", "/a/panel/projects/new")
+		} else {
+			// Create project button for creating new ones
+			@components.LinkButtonPrimary("Create Project", "/a/panel/projects/new")
+			// List of all the projects
+			for _, p := range projects {
+				<div class="flex flex-row justify-between p-3 bg-background2 rounded-lg mb-4">
+					<div class="flex flex-col">
+						<p>{ p.Label }</p>
+						<p class="text-middle-text">{ p.Description }</p>
+					</div>
+					@components.LinkButtonPrimary("Open", "/a/panel/projects/hello")
+				</div>
+			}
+		}
+	</div>
+}

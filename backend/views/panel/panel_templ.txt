@@ -1,16 +1,4 @@
-<div class=\"flex justify-center w-screen\"><div class=\"flex mt-4 min-w-0 max-w-7xl flex-row justify-center px-8 font-inter\">
-</div></div>
-<div class=\"flex flex-col\"><div class=\"flex flex-col rounded-lg min-w-60 max-w-80 mt-4 top-8 bg-background2 px-8 py-6 sticky border-2 border-dashed border-accent\">
-<h3 class=\"text-[100%] font-bold mt-0 mb-2\">
-</h3>
-<h3 class=\"text-[100%] font-bold mt-4 mb-2\">
-</h3>
- <div class=\"flex flex-col\">
-<a href=\"
-\" class=\"text-[90%] no-underline text-middle-text hover:underline hover:text-accent\">
-</a>
-<a href=\"
-\" class=\"text-[90%] no-underline text-middle-text hover:underline hover:text-accent mb-[0.4em]\">
-</a>
-</div>
-</div></div>
+<div class=\"flex justify-center w-screen\"><div class=\"flex flex-row justify-center gap-8 mt-4 min-w-0 w-full max-w-7xl px-8 font-inter\">
+<div class=\"mt-4 w-full\"><h1 class=\"hero-gradient font-pixel font-extrabold text-5xl leading-[1.2] mb-4\">
+</h1>
+</div></div></div>
