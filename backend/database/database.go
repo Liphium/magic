@@ -45,7 +45,6 @@ func Connect() {
 		&Account{},
 		&Rank{},
 		&Session{},
-		&Project{},
 
 		&Forge{},
 		&Build{},

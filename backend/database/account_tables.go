@@ -33,13 +33,3 @@ type Session struct {
 
 	CreatedAt time.Time
 }
-
-type Project struct {
-	ID          uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Label       string    `gorm:"index"`
-	Description string
-	Creator     uuid.UUID `gorm:"type:uuid;index"`
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}

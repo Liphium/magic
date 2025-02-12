@@ -1,4 +1,0 @@
-<div class=\"flex justify-center w-screen\"><div class=\"flex flex-row justify-center gap-8 mt-4 min-w-0 w-full max-w-7xl px-8 font-inter\">
-<div class=\"mt-4 w-full\"><h1 class=\"hero-gradient font-pixel font-extrabold text-5xl leading-[1.2] mb-4\">
-</h1>
-</div></div></div>

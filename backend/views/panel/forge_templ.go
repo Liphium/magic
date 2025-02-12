@@ -8,10 +8,10 @@ package panel_views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/Liphium/magic/backend/views/components"
 import "github.com/Liphium/magic/backend/database"
+import "github.com/Liphium/magic/backend/views/components"
 
-func ProjectsPage(projects []database.Project) templ.Component {
+func ForgePage(forges []database.Forge) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -32,16 +32,16 @@ func ProjectsPage(projects []database.Project) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col gap-4 justify-start items-start\"><p class=\"text-middle-text\">Projects are the place where you can set up all things Magic. Create one to see what this platform can do, if you need help, you can always visit our documentation.</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col gap-4 justify-start items-start\"><h1>All the things</h1><p class=\"text-middle-text\">Forge allows you to build applications straight from GitHub kind of like GitHub Actions. What's exciting is what happens after building though.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if len(projects) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"text-text\">It seems like you don't have any projects yet.</p>")
+		if len(forges) == 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"text-text\">Welcome to Forge, it seems like you're still new. Why don't you check out our documentation?</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.LinkButtonPrimary("Create Project", "/a/panel/projects/new").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -50,7 +50,7 @@ func ProjectsPage(projects []database.Project) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.LinkButtonPrimary("Create Project", "/a/panel/projects/new").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -58,15 +58,15 @@ func ProjectsPage(projects []database.Project) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			for _, p := range projects {
+			for _, f := range forges {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"flex flex-row justify-between p-3 bg-background2 rounded-lg mb-4\"><div class=\"flex flex-col\"><p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var2 string
-				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(p.Label)
+				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(f.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/projects.templ`, Line: 20, Col: 18}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/forge.templ`, Line: 21, Col: 18}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -77,9 +77,9 @@ func ProjectsPage(projects []database.Project) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(p.Description)
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(f.Repository)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/projects.templ`, Line: 21, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/forge.templ`, Line: 22, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -89,7 +89,7 @@ func ProjectsPage(projects []database.Project) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = components.LinkButtonPrimary("Open", "/a/panel/projects/hello").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.LinkButtonPrimary("Open", templ.SafeURL("/a/panel/forge/"+f.ID.String())).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

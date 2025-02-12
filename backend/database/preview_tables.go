@@ -9,6 +9,7 @@ import (
 type Preview struct {
 	Forge         uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	Configuration uuid.UUID `gorm:"type:uuid;index"`
+	LastViewed    time.Time
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

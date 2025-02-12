@@ -1,6 +1,0 @@
-<a href=\"
-\" class=\"bg-background2 text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent\">
-</a>
-<a href=\"
-\" class=\"bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent\">
-</a>

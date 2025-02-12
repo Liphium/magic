@@ -1,48 +1,27 @@
 package panel_views
 
+import "github.com/Liphium/magic/backend/database"
 import "github.com/Liphium/magic/backend/views/components"
 
-templ Base(sidebar templ.Component, title string, child templ.Component) {
-	<div class="flex justify-center w-screen">
-		<div class="flex flex-row justify-center gap-8 mt-4 min-w-0 w-full max-w-7xl px-8 font-inter">
-			// Sidebar
-			@sidebar
-			// Main page
-			<div class="mt-4 w-full">
-				// Title of the page
-				<h1 class="hero-gradient font-pixel font-extrabold text-5xl leading-[1.2] mb-4">{ title }</h1>
-				// The child for this page
-				@child
-			</div>
-		</div>
-	</div>
-}
-
-type RecentlyViewed struct {
-	Label       string
-	Description string
-	URL         templ.SafeURL
-}
-
-templ WelcomePage(recentViews []RecentlyViewed) {
+templ ForgePage(forges []database.Forge) {
 	<div class="flex flex-col gap-4 justify-start items-start">
 		<h1>All the things</h1>
 		// A basic explanation to fill out the space
 		<p class="text-middle-text">Forge allows you to build applications straight from GitHub kind of like GitHub Actions. What's exciting is what happens after building though.</p>
-		if len(recentViews) == 0 {
+		if len(forges) == 0 {
 			<p class="text-text">Welcome to Forge, it seems like you're still new. Why don't you check out our documentation?</p>
 			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
 		} else {
 			// Create project button for creating new ones
 			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
 			// List of all the projects
-			for _, recent := range recentViews {
+			for _, f := range forges {
 				<div class="flex flex-row justify-between p-3 bg-background2 rounded-lg mb-4">
 					<div class="flex flex-col">
-						<p>{ recent.Label }</p>
-						<p class="text-middle-text">{ recent.Description }</p>
+						<p>{ f.Label }</p>
+						<p class="text-middle-text">{ f.Repository }</p>
 					</div>
-					@components.LinkButtonPrimary("Open", recent.URL)
+					@components.LinkButtonPrimary("Open", templ.SafeURL("/a/panel/forge/"+f.ID.String()))
 				</div>
 			}
 		}

@@ -8,9 +8,10 @@ import (
 
 type Forge struct {
 	ID         uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Project    uuid.UUID `gorm:"type:uuid;index"`
+	Account    uuid.UUID `gorm:"type:uuid;index"`
 	Label      string    `gorm:"index"`
 	Repository string
+	LastViewed time.Time
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -24,6 +24,7 @@ go.work.sum
 
 # Project build
 bin
+*_templ.txt
 
 tmp
 node_modules

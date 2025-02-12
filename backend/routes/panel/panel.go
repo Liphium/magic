@@ -1,8 +1,6 @@
 package panel_routes
 
 import (
-	"github.com/Liphium/magic/backend/database"
-	project_routes "github.com/Liphium/magic/backend/routes/panel/projects"
 	"github.com/Liphium/magic/backend/views"
 	"github.com/Liphium/magic/backend/views/components"
 	panel_views "github.com/Liphium/magic/backend/views/panel"
@@ -12,14 +10,20 @@ import (
 
 func Authorized(router fiber.Router) {
 	router.Get("/", baseRoute)
-
-	// Route to all the other endpoints in the panel
-	router.Route("/projects", project_routes.Authorized)
 }
 
 // Route: /a/panel
 func baseRoute(c *fiber.Ctx) error {
-	return views.Render(c, panel_views.Base(panelBaseSidebar("/a/panel"), "Your Projects", panel_views.ProjectsPage([]database.Project{})))
+
+	welcome := panel_views.WelcomePage([]panel_views.RecentlyViewed{
+		{
+			Label:       "Liphium",
+			Description: "Last viewed on 04/21/2025",
+			URL:         "/a/panel/forge/...",
+		},
+	})
+
+	return views.Render(c, panel_views.Base(panelBaseSidebar("/a/panel"), "Welcome, Unbreathable!", welcome))
 }
 
 func panelBaseSidebar(selected string) templ.Component {
@@ -28,7 +32,7 @@ func panelBaseSidebar(selected string) templ.Component {
 			Name: "Account",
 			Links: []components.SBLink{
 				{
-					Name:     "Projects",
+					Name:     "Welcome",
 					Link:     "/a/panel",
 					Selected: selected == "/a/panel",
 				},
