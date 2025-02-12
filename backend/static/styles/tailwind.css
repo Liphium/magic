@@ -586,6 +586,11 @@ video {
   display: flex;
 }
 
+.h-min {
+  height: -moz-min-content;
+  height: min-content;
+}
+
 .h-screen {
   height: 100vh;
 }
@@ -602,16 +607,16 @@ video {
   min-width: 0px;
 }
 
-.min-w-60 {
-  min-width: 15rem;
+.min-w-64 {
+  min-width: 16rem;
+}
+
+.max-w-72 {
+  max-width: 18rem;
 }
 
 .max-w-7xl {
   max-width: 80rem;
-}
-
-.max-w-80 {
-  max-width: 20rem;
 }
 
 .cursor-pointer {

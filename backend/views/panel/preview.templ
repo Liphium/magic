@@ -1,0 +1,25 @@
+package panel_views
+
+import "github.com/Liphium/magic/backend/database"
+import "github.com/Liphium/magic/backend/views/components"
+
+templ PreviewPage(previews []database.Preview) {
+	<div class="flex flex-col gap-4 justify-start items-start">
+		// A basic explanation to fill out the space
+		<p class="text-middle-text">Preview allows you to instantly deploy any apps built from Forge to a staging environment. You can even add databases and more just through this panel.</p>
+		if len(previews) == 0 {
+			<p class="text-text">Welcome to Preview, it seems like you're still new. Preview is based on Forge, so start there.</p>
+		} else {
+			// List of all the previews
+			for _, p := range previews {
+				<div class="flex flex-row w-full justify-between p-3 bg-background2 rounded-lg mb-4">
+					<div class="flex flex-col">
+						<p>{ p.Forge.String() }</p>
+						<p class="text-middle-text">{ p.Forge.String() }</p>
+					</div>
+					@components.LinkButtonPrimary("Open", templ.SafeURL("/a/panel/preview/"+p.Forge.String()))
+				</div>
+			}
+		}
+	</div>
+}

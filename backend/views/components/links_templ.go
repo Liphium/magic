@@ -89,7 +89,7 @@ func LinkButtonPrimary(label string, url templ.SafeURL) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer h-min text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

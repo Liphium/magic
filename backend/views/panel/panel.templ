@@ -1,20 +1,26 @@
 package panel_views
 
 import "github.com/Liphium/magic/backend/views/components"
+import "github.com/Liphium/magic/backend/util"
 
-templ Base(sidebar templ.Component, title string, child templ.Component) {
+templ Base(sidebar templ.Component, child templ.Component) {
 	<div class="flex justify-center w-screen">
 		<div class="flex flex-row justify-center gap-8 mt-4 min-w-0 w-full max-w-7xl px-8 font-inter">
 			// Sidebar
 			@sidebar
 			// Main page
-			<div class="mt-4 w-full">
-				// Title of the page
-				<h1 class="hero-gradient font-pixel font-extrabold text-5xl leading-[1.2] mb-4">{ title }</h1>
-				// The child for this page
-				@child
-			</div>
+			@child
 		</div>
+	</div>
+}
+
+templ PanelPage(title string, child templ.Component) {
+	// Main page
+	<div class="mt-4 w-full" id="panel-content">
+		// Title of the page
+		<h1 class="hero-gradient font-pixel font-extrabold text-5xl leading-[1.2] mb-4">{ title }</h1>
+		// The child for this page
+		@child
 	</div>
 }
 
@@ -26,18 +32,12 @@ type RecentlyViewed struct {
 
 templ WelcomePage(recentViews []RecentlyViewed) {
 	<div class="flex flex-col gap-4 justify-start items-start">
-		<h1>All the things</h1>
-		// A basic explanation to fill out the space
-		<p class="text-middle-text">Forge allows you to build applications straight from GitHub kind of like GitHub Actions. What's exciting is what happens after building though.</p>
+		<p class="text-middle-text">{ util.RandomQuote() }</p>
 		if len(recentViews) == 0 {
-			<p class="text-text">Welcome to Forge, it seems like you're still new. Why don't you check out our documentation?</p>
-			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
+			<p class="text-text">Welcome to Magic, it seems like you're still new. Why don't you check out our documentation?</p>
 		} else {
-			// Create project button for creating new ones
-			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
-			// List of all the projects
 			for _, recent := range recentViews {
-				<div class="flex flex-row justify-between p-3 bg-background2 rounded-lg mb-4">
+				<div class="flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-lg mb-4">
 					<div class="flex flex-col">
 						<p>{ recent.Label }</p>
 						<p class="text-middle-text">{ recent.Description }</p>

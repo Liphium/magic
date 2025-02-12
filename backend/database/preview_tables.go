@@ -8,6 +8,7 @@ import (
 
 type Preview struct {
 	Forge         uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Account       uuid.UUID `gorm:"type:uuid;index"`
 	Configuration uuid.UUID `gorm:"type:uuid;index"`
 	LastViewed    time.Time
 
@@ -42,6 +43,7 @@ type ServiceConfiguration struct {
 
 type Environment struct {
 	ID            uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Account       uuid.UUID `gorm:"type:uuid;index"`
 	Preview       uuid.UUID `gorm:"type:uuid;index"`
 	Build         uuid.UUID `gorm:"type:uuid;index"`
 	Configuration uuid.UUID `gorm:"type:uuid;index"`

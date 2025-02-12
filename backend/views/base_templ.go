@@ -29,7 +29,7 @@ func Base(child templ.Component) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.\"><link rel=\"stylesheet\" href=\"/static/styles/global.css\"><link rel=\"icon\" type=\"image/png\" href=\"/static/logo_trans.png\"><link rel=\"stylesheet\" href=\"/static/styles/material-symbols.css\"><link rel=\"stylesheet\" href=\"/static/styles/tailwind.css\"><title>Liphium Magic Panel</title></head><body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.\"><link rel=\"stylesheet\" href=\"/static/styles/global.css\"><link rel=\"icon\" type=\"image/png\" href=\"/static/logo_trans.png\"><link rel=\"stylesheet\" href=\"/static/styles/material-symbols.css\"><link rel=\"stylesheet\" href=\"/static/styles/tailwind.css\"><script src=\"/static/scripts/htmx.js\"></script><script src=\"/static/scripts/alpine.js\"></script><title>Liphium Magic Panel</title></head><body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

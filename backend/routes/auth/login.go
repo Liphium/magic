@@ -8,5 +8,5 @@ import (
 
 // Route: /auth/login
 func loginRoute(c *fiber.Ctx) error {
-	return views.Render(c, auth_views.LoginView())
+	return views.RenderWithBase(c, auth_views.LoginView())
 }

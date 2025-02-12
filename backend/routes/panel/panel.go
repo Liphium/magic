@@ -1,15 +1,18 @@
 package panel_routes
 
 import (
+	forge_routes "github.com/Liphium/magic/backend/routes/panel/forge"
+	preview_routes "github.com/Liphium/magic/backend/routes/panel/preview"
 	"github.com/Liphium/magic/backend/views"
-	"github.com/Liphium/magic/backend/views/components"
 	panel_views "github.com/Liphium/magic/backend/views/panel"
-	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
 )
 
 func Authorized(router fiber.Router) {
 	router.Get("/", baseRoute)
+
+	router.Route("/forge", forge_routes.Authorized)
+	router.Route("/preview", preview_routes.Authorized)
 }
 
 // Route: /a/panel
@@ -22,39 +25,8 @@ func baseRoute(c *fiber.Ctx) error {
 			URL:         "/a/panel/forge/...",
 		},
 	})
+	panelPage := panel_views.PanelPage("Welcome, Unbreathable!", welcome)
+	sidebar := panel_views.PanelSidebar()
 
-	return views.Render(c, panel_views.Base(panelBaseSidebar("/a/panel"), "Welcome, Unbreathable!", welcome))
-}
-
-func panelBaseSidebar(selected string) templ.Component {
-	return components.Sidebar([]components.SBCategory{
-		{
-			Name: "Account",
-			Links: []components.SBLink{
-				{
-					Name:     "Welcome",
-					Link:     "/a/panel",
-					Selected: selected == "/a/panel",
-				},
-			},
-		},
-		{
-			Name: "Magic",
-			Links: []components.SBLink{
-				{
-					Name:     "Contact & support",
-					Link:     "/a/panel/contact",
-					Selected: selected == "/a/panel/contact",
-				},
-				{
-					Name: "Terms of service",
-					Link: "https://liphium.com/legal/terms",
-				},
-				{
-					Name: "Privacy policy",
-					Link: "https://liphium.com/legal/terms",
-				},
-			},
-		},
-	})
+	return views.RenderHTMX(c, panel_views.Base(sidebar, panelPage), panelPage)
 }
