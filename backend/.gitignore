@@ -30,6 +30,7 @@ tmp
 node_modules
 internal/static/css/tailwind.css
 secret.env
+github.pem
 
 # Fuck macOS
 *.DS_Store
