@@ -1,0 +1,19 @@
+{
+    "version": 1,
+    "environment": {
+        "JWT_SECRET": "%jwt_secret%"
+    },
+    "databases": [
+        {
+            "type": "postgresql",
+            "name": "main",
+            "mappings": {
+                "username": "DB_USER",
+                "password": "DB_PASSWORD",
+                "database": "DB_DATABASE",
+                "host": "DB_HOST",
+                "port": "DB_PORT"
+            }
+        }
+    ]
+}
