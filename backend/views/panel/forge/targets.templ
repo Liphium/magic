@@ -1,0 +1,26 @@
+package forge_views
+
+import "github.com/Liphium/magic/backend/database"
+import "github.com/Liphium/magic/backend/views/components"
+import "github.com/Liphium/magic/backend/views"
+
+templ TargetsPage(targets []database.Target) {
+	<div class="flex flex-col gap-4 justify-start items-start">
+		<p class="text-middle-text">Welcome to this Forge! Here you can create Targets to build your repository on every new Pull Request or even just when changes are pushed to a certain branch.</p>
+		if len(targets) == 0 {
+			<p class="text-text">It seems like you didn't set up any target in this Forge yet. Create one to automatically build this repository.</p>
+			@components.LinkButtonPrimary("Create Target", ctx.Value(views.URLContextKey{}).(templ.SafeURL)+templ.SafeURL("/new"))
+		} else {
+			@components.LinkButtonPrimary("Create Target", ctx.Value(views.URLContextKey{}).(templ.SafeURL)+templ.SafeURL("/new"))
+			for _, t := range targets {
+				<div class="flex flex-row w-full justify-between p-3 bg-background2 rounded-lg mb-4">
+					<div class="flex flex-col">
+						<p>{ t.Type }</p>
+						<p class="text-middle-text">{ t.Value }</p>
+					</div>
+					@components.LinkButtonPrimary("Edit", templ.SafeURL("./"+t.ID.String()))
+				</div>
+			}
+		}
+	</div>
+}

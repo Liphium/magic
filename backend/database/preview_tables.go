@@ -16,29 +16,13 @@ type Preview struct {
 	UpdatedAt time.Time
 }
 
-type EnvironmentConfiguration struct {
-	ID           uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Preview      uuid.UUID `gorm:"type:uuid;index"`
-	BuildCommand string
-	StartCommand string
+type PreviewSecret struct {
+	ID      uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Preview uuid.UUID `gorm:"type:uuid;index"`
+	Name    string
+	Secret  string
 
 	CreatedAt time.Time
-}
-
-type ConfigurationVariable struct {
-	ID            uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Configuration uuid.UUID `gorm:"type:uuid;index"`
-	Name          string    `gorm:"index"`
-	Type          string
-	Value         string
-}
-
-type ServiceConfiguration struct {
-	ID            uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Configuration uuid.UUID `gorm:"type:uuid;index"`
-	Type          string    `gorm:"index"`
-	Version       uint
-	Mappings      string
 }
 
 type Environment struct {

@@ -52,9 +52,7 @@ func Connect() {
 		&Target{},
 
 		&Preview{},
-		&EnvironmentConfiguration{},
-		&ConfigurationVariable{},
-		&ServiceConfiguration{},
+		&PreviewSecret{},
 		&Environment{},
 		&EnvironmentFile{},
 

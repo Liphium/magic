@@ -1,0 +1,76 @@
+package forge_views
+
+import "github.com/Liphium/magic/backend/database"
+import "github.com/Liphium/magic/backend/views/components"
+
+templ ForgeListPage(forges []database.Forge) {
+	<div class="flex flex-col gap-4 justify-start items-start">
+		// A basic explanation to fill out the space
+		<p class="text-middle-text">Forge allows you to build applications straight from GitHub kind of like GitHub Actions. What's exciting is what happens after building though.</p>
+		if len(forges) == 0 {
+			<p class="text-text">Welcome to Forge, it seems like you're still new. Why don't you check out our documentation?</p>
+			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
+		} else {
+			// Create project button for creating new ones
+			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
+			// List of all the projects
+			for _, f := range forges {
+				<div class="flex flex-row w-full justify-between p-3 bg-background2 rounded-lg mb-4">
+					<div class="flex flex-col">
+						<p>{ f.Label }</p>
+						<p class="text-middle-text">{ f.Repository }</p>
+					</div>
+					@components.LinkButtonPrimary("Open", templ.SafeURL("/a/panel/forge/"+f.ID.String()))
+				</div>
+			}
+		}
+	</div>
+}
+
+func ForgeSidebar(forge database.Forge) templ.Component {
+	return components.Sidebar([]components.SBCategory{
+		{
+			Name: forge.Label,
+			Links: []components.SBLink{
+				{
+					Name: "Targets",
+					Link: templ.SafeURL("/a/panel/forge/" + forge.ID.String()),
+				},
+				{
+					Name: "Builds",
+					Link: templ.SafeURL("/a/panel/forge/" + forge.ID.String() + "/builds"),
+				},
+			},
+		},
+		{
+			Name: "Preview",
+			Links: []components.SBLink{
+				{
+					Name: "Configuration",
+					Link: templ.SafeURL("/a/panel/forge/" + forge.ID.String() + "/preview/configuration"),
+				},
+				{
+					Name: "Secrets",
+					Link: templ.SafeURL("/a/panel/forge/" + forge.ID.String() + "/preview/secrets"),
+				},
+				{
+					Name: "Environments",
+					Link: templ.SafeURL("/a/panel/forge/" + forge.ID.String() + "/preview/environments"),
+				},
+			},
+		},
+		{
+			Name: "Legal documents",
+			Links: []components.SBLink{
+				{
+					Name: "Terms of Service",
+					Link: "https://liphium.com/legal/terms",
+				},
+				{
+					Name: "Privacy Policy",
+					Link: "https://liphium.com/legal/terms",
+				},
+			},
+		},
+	})
+}
