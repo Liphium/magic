@@ -1,6 +1,10 @@
 package parser
 
-import "github.com/pelletier/go-toml/v2"
+import (
+	"fmt"
+
+	"github.com/pelletier/go-toml/v2"
+)
 
 type MagicImage struct {
 	Version int
@@ -8,7 +12,12 @@ type MagicImage struct {
 	Tags    []string
 }
 
-func Parse(image []byte) {
+func Parse(image []byte) error {
 	var mi MagicImage
-	toml.Unmarshal(image, &mi)
+	if err := toml.Unmarshal(image, &mi); err != nil {
+		return err
+	}
+
+	fmt.Println(mi)
+	return nil
 }
