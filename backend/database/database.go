@@ -43,6 +43,7 @@ func Connect() {
 	// Migrate the schema
 	if err := db.AutoMigrate(
 		&Account{},
+		&Credential{},
 		&Rank{},
 		&Session{},
 

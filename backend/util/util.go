@@ -1,6 +1,8 @@
 package util
 
 import (
+	crand "crypto/rand"
+	"math/big"
 	"math/rand"
 )
 
@@ -42,4 +44,21 @@ var quotes []string = []string{
 
 func RandomQuote() string {
 	return quotes[rand.Intn(len(quotes))]
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+func GenerateToken(tkLength int32) string {
+
+	s := make([]rune, tkLength)
+
+	length := big.NewInt(int64(len(letters)))
+
+	for i := range s {
+
+		number, _ := crand.Int(crand.Reader, length)
+		s[i] = letters[number.Int64()]
+	}
+
+	return string(s)
 }

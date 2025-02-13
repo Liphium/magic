@@ -15,6 +15,16 @@ type Rank struct {
 	UpdatedAt time.Time
 }
 
+type Credential struct {
+	ID uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+
+	Type   string `gorm:"index"` // Something like "GitHub"
+	Secret string `gorm:"index"` // Secret like the GitHub user id
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type Account struct {
 	ID       uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	Username string    `gorm:"index"`

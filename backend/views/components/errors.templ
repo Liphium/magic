@@ -1,14 +1,13 @@
-package auth_views
+package components
 
-import "github.com/Liphium/magic/backend/views/components"
-
-templ LoginView() {
+templ ErrorPage(err string) {
 	<div class="flex flex-col items-center justify-center h-screen gap-6">
 		<div class="flex items-center justify-center">
 			<h1 class="text-center lg:text-left lg:text-5xl lg:leading-[1.2] text-4xl font-pixel font-extrabold hero-gradient">
-				Liphium Magic
+				Oooops..
 			</h1>
 		</div>
-		@components.LinkButtonPrimary("Sign in with GitHub", "/auth/gh/go")
+		<p class="text-middle-text">{ err }</p>
+		@LinkButtonPrimary("Go to Login", "/auth/login")
 	</div>
 }
