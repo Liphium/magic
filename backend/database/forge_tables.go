@@ -7,11 +7,11 @@ import (
 )
 
 type Forge struct {
-	ID         uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Account    uuid.UUID `gorm:"type:uuid;index"`
-	Label      string    `gorm:"index"`
-	Repository string
-	LastViewed time.Time
+	ID           uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Installation uuid.UUID `gorm:"type:uuid;index"`
+	Label        string    `gorm:"index"`
+	Repository   string    `gorm:"index"` // Identifier of the repository
+	LastViewed   time.Time
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

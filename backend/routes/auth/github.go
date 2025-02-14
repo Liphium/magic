@@ -126,7 +126,27 @@ func githubAuthCallback(c *fiber.Ctx) error {
 		}
 	}
 
-	// TODO: New JWT token
+	// Get the rank to determine permission level
+	var rank database.Rank
+	if err := database.DBConn.Where(&database.Rank{ID: account.Rank}).Take(&rank).Error; err != nil {
+		return views.RenderWithBase(c, components.ErrorPage("Something went wrong on our side (5). Please try again."))
+	}
+
+	// Clear the github cookie
+	c.ClearCookie(githubSessionCookie)
+
+	// Create a new JWT and add it as a cookie
+	token, err := util.SessionToken(account.ID, rank.PermissionLevel)
+	if err != nil {
+		return views.RenderWithBase(c, components.ErrorPage("Something went wrong on our side (6). Please try again."))
+	}
+	c.Cookie(&fiber.Cookie{
+		Name:     generalSessionCookie,
+		Value:    token,
+		Expires:  time.Now().Add(time.Hour * 24),
+		Secure:   os.Getenv("MAGIC_LOCAL") != "true",
+		SameSite: "lax",
+	})
 
 	// For now let's just tell the user that it worked
 	return views.RenderWithBase(c, components.ErrorPage("Auth actually worked, nice!"))

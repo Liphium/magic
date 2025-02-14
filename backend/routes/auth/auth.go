@@ -16,6 +16,7 @@ import (
 // If you are not credited on the credits page on the Liphium Magic website when it's finally
 // done, please let me know and we shall change that.
 
+const generalSessionCookie = "mgc:session"
 const githubSessionCookie = "gh:session"
 
 var githubProvider *github.Provider
