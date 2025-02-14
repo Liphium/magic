@@ -65,17 +65,11 @@ func Connect() {
 	DBConn = db
 
 	// Create the default admin account for the database
-	CreateDefaultAccount()
+	createDefaultThings()
 }
 
 // Create the default account
-func CreateDefaultAccount() {
-	username := os.Getenv("MAGIC_DEFAULT_USERNAME")
-
-	// Make sure the default user is set
-	if username == "" {
-		logger.Fatal("MAGIC_DEFAULT_USERNAME not set. Can't start the server.")
-	}
+func createDefaultThings() {
 
 	// Create default ranks
 	if err := DBConn.FirstOrCreate(&Rank{
@@ -91,14 +85,5 @@ func CreateDefaultAccount() {
 		PermissionLevel: 100,
 	}).Error; err != nil {
 		logger.Fatal("couldn't create default ranks:", err)
-	}
-
-	// Create the default account
-	if err := DBConn.FirstOrCreate(&Account{
-		Username: username,
-		Email:    username + "@magic.liphium.dev",
-		Rank:     2,
-	}).Error; err != nil {
-		logger.Fatal("couldn't create default account:", err)
 	}
 }

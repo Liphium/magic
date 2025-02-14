@@ -1,0 +1,30 @@
+package panel_views
+
+import "github.com/Liphium/magic/backend/views/components"
+
+type RenderedInstallation struct {
+	Name     string
+	Provider string
+	URL      templ.SafeURL // Management URL (like link to GitHub settings)
+}
+
+templ InstallationPage(installations []RenderedInstallation) {
+	<div class="flex flex-col gap-4 justify-start items-start">
+		<p class="text-middle-text">All of your installations on GitHub and any other providers.</p>
+		if len(installations) == 0 {
+			<p class="text-text">Seems like you haven't installed Magic anywhere yet. Let's change that.</p>
+			@components.LinkButtonPrimary("Install on GitHub", "https://github.com/apps/liphium-magic/installations/new")
+		} else {
+			@components.LinkButtonPrimary("Install on GitHub", "https://github.com/apps/liphium-magic/installations/new")
+			for _, i := range installations {
+				<div class="flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-lg">
+					<div class="flex flex-col">
+						<p>{ i.Name }</p>
+						<p class="text-middle-text">{ i.Provider }</p>
+					</div>
+					@components.LinkButtonPrimary("Edit", i.URL)
+				</div>
+			}
+		}
+	</div>
+}

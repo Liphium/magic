@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/Liphium/magic/backend/views/components"
 import "github.com/Liphium/magic/backend/util"
+import "time"
 
 func Base(sidebar templ.Component, child templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -80,7 +81,7 @@ func PanelPage(title string, child templ.Component) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 21, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 22, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -106,6 +107,7 @@ type RecentlyViewed struct {
 	Label       string
 	Description string
 	URL         templ.SafeURL
+	Time        time.Time
 }
 
 func WelcomePage(recentViews []RecentlyViewed) templ.Component {
@@ -136,7 +138,7 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(util.RandomQuote())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 35, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 37, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -147,7 +149,11 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(recentViews) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<p class=\"text-text\">Welcome to Magic, it seems like you're still new. Why don't you check out our documentation?</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<p class=\"text-text\">Welcome to Magic, it seems like you're still new. Why not check out Forge?</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = components.LinkButtonPrimaryHTMX("Open Forge", "/a/panel/forge").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -160,7 +166,7 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(recent.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 42, Col: 23}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 45, Col: 23}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -173,7 +179,7 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(recent.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 43, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 46, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -210,6 +216,10 @@ func PanelSidebar() templ.Component {
 					Name: "Welcome",
 					Link: "/a/panel",
 				},
+				{
+					Name: "Installations",
+					Link: "/a/panel/installations",
+				},
 			},
 		},
 		{
@@ -233,11 +243,11 @@ func PanelSidebar() templ.Component {
 			Name: "Legal documents",
 			Links: []components.SBLink{
 				{
-					Name: "Terms of service",
+					Name: "Terms of Service",
 					Link: "https://liphium.com/legal/terms",
 				},
 				{
-					Name: "Privacy policy",
+					Name: "Privacy Policy",
 					Link: "https://liphium.com/legal/terms",
 				},
 			},

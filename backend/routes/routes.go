@@ -1,13 +1,12 @@
 package routes
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	auth_routes "github.com/Liphium/magic/backend/routes/auth"
 	panel_routes "github.com/Liphium/magic/backend/routes/panel"
 	"github.com/Liphium/magic/backend/util/constants"
-	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -34,35 +33,55 @@ func unauthorizedRouter(router fiber.Router) {
 func authorizedRouter(router fiber.Router) {
 
 	// Add an auth middleware that parses thw JWT tokens
-	router.Use(jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{
-			JWTAlg: jwtware.HS512,
-			Key:    []byte(os.Getenv("MAGIC_JWT_SECRET")),
-		},
+	router.Use(func(c *fiber.Ctx) error {
 
-		// A success handler for passing down the arguments in the jwt token using context
-		SuccessHandler: func(c *fiber.Ctx) error {
+		// Get the cookie
+		tokenString := c.Cookies(constants.CookieMagicSession, "-")
+		if tokenString == "-" {
+			return c.Redirect("/auth/login", fiber.StatusTemporaryRedirect)
+		}
 
-			// Get user claims
-			user, valid := c.Locals("user").(*jwt.Token)
-			if !valid {
-				return c.SendStatus(fiber.StatusInternalServerError)
+		// Validate the actual token from the cookie
+		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+
+			// Make sure it's the correct method
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("invalid signing method for jwt: %v", t.Header["alg"])
 			}
-			claims := user.Claims.(jwt.MapClaims)
 
-			// Parse the values into the fiber context
-			c.Locals(constants.LocalsAccountID, claims["acc"])
-			c.Locals(constants.LocalsPermissionLevel, claims["plvl"])
-			return c.Next()
-		},
+			return []byte(os.Getenv("MAGIC_JWT_SECRET")), nil
+		})
+		if err != nil {
+			return c.Redirect("/auth/login", fiber.StatusTemporaryRedirect)
+		}
 
-		// Error handler (log errors in case they happen)
-		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			log.Println(err.Error())
-			// Return error message
-			return c.SendStatus(401)
-		},
-	}))
+		// Make sure the claims are valid and actually there
+		var claims jwt.MapClaims
+		var ok bool
+		if claims, ok = token.Claims.(jwt.MapClaims); !ok {
+			return c.Redirect("/auth/login", fiber.StatusTemporaryRedirect)
+		}
+
+		// Parse the values into the fiber context
+		if acc, ok := claims["acc"]; ok {
+			c.Locals(constants.LocalsAccountID, acc)
+		} else {
+			return c.Redirect("/auth/login", fiber.StatusTemporaryRedirect)
+		}
+		if name, ok := claims["name"]; ok {
+			c.Locals(constants.LocalsAccountName, name)
+		} else {
+			return c.Redirect("/auth/login", fiber.StatusTemporaryRedirect)
+		}
+		if pLvl, ok := claims["plvl"]; ok {
+			c.Locals(constants.LocalsPermissionLevel, uint(pLvl.(float64)))
+		} else {
+			return c.Redirect("/auth/login", fiber.StatusTemporaryRedirect)
+		}
+
+		// Continue to the handler
+		return c.Next()
+	})
 
 	router.Route("/panel", panel_routes.Authorized)
 }

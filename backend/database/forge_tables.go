@@ -11,7 +11,7 @@ type Forge struct {
 	Installation uuid.UUID `gorm:"type:uuid;index"`
 	Label        string    `gorm:"index"`
 	Repository   string    `gorm:"index"` // Identifier of the repository
-	LastViewed   time.Time
+	LastViewed   time.Time `gorm:"index"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

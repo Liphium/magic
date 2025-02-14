@@ -37,7 +37,7 @@ func ForgeListPage(forges []database.Forge) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(forges) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"text-text\">Welcome to Forge, it seems like you're still new. Why don't you check out our documentation?</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"text-text\">It seems like you don't have any Forge. Create one below.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -14,9 +14,14 @@ require (
 require (
 	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/bradleyfalzon/ghinstallation/v2 v2.13.0 // indirect
 	github.com/gofiber/contrib/jwt v1.0.10 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/google/go-github/v68 v68.0.0 // indirect
+	github.com/google/go-github/v69 v69.1.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect

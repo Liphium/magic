@@ -6,6 +6,7 @@ import (
 
 	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/util"
+	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/Liphium/magic/backend/views"
 	"github.com/Liphium/magic/backend/views/components"
 	"github.com/gofiber/fiber/v2"
@@ -31,7 +32,7 @@ func goToGitHubAuth(c *fiber.Ctx) error {
 
 	// Store the session in the cookies
 	c.Cookie(&fiber.Cookie{
-		Name:     githubSessionCookie,
+		Name:     constants.CookieGitHubSession,
 		Value:    session.Marshal(),
 		Expires:  time.Now().Add(time.Hour * 24),
 		Secure:   os.Getenv("MAGIC_LOCAL") != "true",
@@ -55,7 +56,7 @@ func githubAuthCallback(c *fiber.Ctx) error {
 	}
 
 	// Get the cookie and compare the state token
-	cookie := c.Cookies(githubSessionCookie, "-")
+	cookie := c.Cookies(constants.CookieGitHubSession, "-")
 	if cookie == "-" {
 		return c.Redirect("/auth/gh/go", fiber.StatusTemporaryRedirect)
 	}
@@ -65,7 +66,8 @@ func githubAuthCallback(c *fiber.Ctx) error {
 	if err != nil {
 		return views.RenderWithBase(c, components.ErrorPage("Seems like authorization with GitHub failed (2). Please try again."))
 	}
-	if _, err = session.Authorize(githubProvider, &Params{
+	var accessToken string
+	if accessToken, err = session.Authorize(githubProvider, &Params{
 		ctx: c,
 	}); err != nil {
 		return views.RenderWithBase(c, components.ErrorPage("Seems like authorization with GitHub failed (3). Please try again."))
@@ -114,7 +116,7 @@ func githubAuthCallback(c *fiber.Ctx) error {
 	} else {
 
 		// Update and get the account in case it does exist
-		if err := database.DBConn.Where(&database.Account{ID: credential.Account}).Take(&account); err != nil {
+		if err := database.DBConn.Where("id = ?", credential.Account).Take(&account).Error; err != nil {
 			return views.RenderWithBase(c, components.ErrorPage("Something went wrong on our side (3). Please try again."))
 		}
 
@@ -126,28 +128,33 @@ func githubAuthCallback(c *fiber.Ctx) error {
 		}
 	}
 
-	// Get the rank to determine permission level
-	var rank database.Rank
-	if err := database.DBConn.Where(&database.Rank{ID: account.Rank}).Take(&rank).Error; err != nil {
+	// Update the access token in the database
+	credential.Token = accessToken
+	if err := database.DBConn.Save(&credential).Error; err != nil {
 		return views.RenderWithBase(c, components.ErrorPage("Something went wrong on our side (5). Please try again."))
 	}
 
-	// Clear the github cookie
-	c.ClearCookie(githubSessionCookie)
-
-	// Create a new JWT and add it as a cookie
-	token, err := util.SessionToken(account.ID, rank.PermissionLevel)
-	if err != nil {
+	// Get the rank to determine permission level
+	var rank database.Rank
+	if err := database.DBConn.Where(&database.Rank{ID: account.Rank}).Take(&rank).Error; err != nil {
 		return views.RenderWithBase(c, components.ErrorPage("Something went wrong on our side (6). Please try again."))
 	}
+
+	// Clear the github cookie
+	c.ClearCookie(constants.CookieGitHubSession)
+
+	// Create a new JWT and add it as a cookie
+	token, err := util.SessionToken(account.ID, account.Username, rank.PermissionLevel)
+	if err != nil {
+		return views.RenderWithBase(c, components.ErrorPage("Something went wrong on our side (7). Please try again."))
+	}
 	c.Cookie(&fiber.Cookie{
-		Name:     generalSessionCookie,
+		Name:     constants.CookieMagicSession,
 		Value:    token,
 		Expires:  time.Now().Add(time.Hour * 24),
 		Secure:   os.Getenv("MAGIC_LOCAL") != "true",
 		SameSite: "lax",
 	})
 
-	// For now let's just tell the user that it worked
-	return views.RenderWithBase(c, components.ErrorPage("Auth actually worked, nice!"))
+	return c.Redirect("/a/panel", fiber.StatusTemporaryRedirect)
 }

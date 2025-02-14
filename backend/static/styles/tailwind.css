@@ -807,10 +807,6 @@ video {
   color: var(--accent);
 }
 
-.hover\:underline:hover {
-  text-decoration-line: underline;
-}
-
 @media (min-width: 1024px) {
   .lg\:text-left {
     text-align: left;

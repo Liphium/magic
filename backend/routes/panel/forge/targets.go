@@ -12,9 +12,9 @@ import (
 func targetsPage(c *fiber.Ctx) error {
 
 	// Get all of the base stuff for later
-	forge, sidebar, err := getBaseInfo(c)
-	if err != nil {
-		return c.Redirect("/a/panel", fiber.StatusPermanentRedirect)
+	forge, sidebar, valid := getBaseInfo(c)
+	if !valid {
+		return c.Redirect("/a/panel/forge", fiber.StatusPermanentRedirect)
 	}
 
 	// Create the page and the sidebar based on the Forge

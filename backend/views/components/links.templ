@@ -17,3 +17,14 @@ templ LinkButtonPrimary(label string, url templ.SafeURL) {
 		{ label }
 	</a>
 }
+
+templ LinkButtonPrimaryHTMX(label string, url templ.SafeURL) {
+	<a
+		href={ url }
+		class="bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer h-min text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent"
+		hx-get={ string(url) }
+		hx-target="#panel-content"
+		hx-swap="outerHTML"
+		hx-push-url="true"
+	>{ label }</a>
+}

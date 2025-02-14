@@ -2,6 +2,7 @@ package panel_views
 
 import "github.com/Liphium/magic/backend/views/components"
 import "github.com/Liphium/magic/backend/util"
+import "time"
 
 templ Base(sidebar templ.Component, child templ.Component) {
 	<div class="flex justify-center w-screen">
@@ -28,13 +29,15 @@ type RecentlyViewed struct {
 	Label       string
 	Description string
 	URL         templ.SafeURL
+	Time        time.Time
 }
 
 templ WelcomePage(recentViews []RecentlyViewed) {
 	<div class="flex flex-col gap-4 justify-start items-start">
 		<p class="text-middle-text">{ util.RandomQuote() }</p>
 		if len(recentViews) == 0 {
-			<p class="text-text">Welcome to Magic, it seems like you're still new. Why don't you check out our documentation?</p>
+			<p class="text-text">Welcome to Magic, it seems like you're still new. Why not check out Forge?</p>
+			@components.LinkButtonPrimaryHTMX("Open Forge", "/a/panel/forge")
 		} else {
 			for _, recent := range recentViews {
 				<div class="flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-lg mb-4">
@@ -57,6 +60,10 @@ func PanelSidebar() templ.Component {
 				{
 					Name: "Welcome",
 					Link: "/a/panel",
+				},
+				{
+					Name: "Installations",
+					Link: "/a/panel/installations",
 				},
 			},
 		},
@@ -81,11 +88,11 @@ func PanelSidebar() templ.Component {
 			Name: "Legal documents",
 			Links: []components.SBLink{
 				{
-					Name: "Terms of service",
+					Name: "Terms of Service",
 					Link: "https://liphium.com/legal/terms",
 				},
 				{
-					Name: "Privacy policy",
+					Name: "Privacy Policy",
 					Link: "https://liphium.com/legal/terms",
 				},
 			},

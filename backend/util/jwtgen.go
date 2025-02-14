@@ -10,21 +10,23 @@ import (
 
 type SessionTokenClaims struct {
 	Account         string `json:"acc"`  // Account id of the connecting client
+	Name            string `json:"name"` // Name of the account
 	PermissionLevel uint   `json:"plvl"` // Permission level of the account
 
 	jwt.RegisteredClaims
 }
 
 // Generate a session token for an account
-func SessionToken(account uuid.UUID, permLevel uint) (string, error) {
+func SessionToken(account uuid.UUID, name string, permLevel uint) (string, error) {
 
 	// Create jwt token
 	tk := jwt.NewWithClaims(jwt.SigningMethodHS512, SessionTokenClaims{
 
 		Account:         account.String(),
+		Name:            name,
 		PermissionLevel: permLevel,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 2)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 12)),
 		},
 	})
 

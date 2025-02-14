@@ -1,0 +1,23 @@
+package panel_views
+
+import (
+	"github.com/Liphium/magic/backend/views"
+	"github.com/gofiber/fiber/v2"
+	"log"
+	"os"
+)
+
+func RenderPanelError(c *fiber.Ctx, message string, err error) error {
+
+	if err != nil && os.Getenv("MAGIC_TESTING") == "true" {
+		log.Println(c.Path()+":", message+":", err)
+	}
+
+	errPage := PanelPage("Ooops..", errorMessage(message))
+
+	return views.RenderHTMX(c, Base(PanelSidebar(), errPage), errPage)
+}
+
+templ errorMessage(message string) {
+	<p class="text-middle-text">{ message }</p>
+}

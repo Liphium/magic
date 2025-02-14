@@ -2,6 +2,7 @@ package forge_routes
 
 import (
 	"github.com/Liphium/magic/backend/database"
+	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/Liphium/magic/backend/views"
 	panel_views "github.com/Liphium/magic/backend/views/panel"
 	forge_views "github.com/Liphium/magic/backend/views/panel/forge"
@@ -20,12 +21,14 @@ func Authorized(router fiber.Router) {
 // Route: /a/panel/forge
 func baseRoute(c *fiber.Ctx) error {
 
-	forgePage := forge_views.ForgeListPage([]database.Forge{
-		{
-			Label:      "Liphium Chat",
-			Repository: "https://github.com/Liphium/chat_interface",
-		},
-	})
+	// Get all forges from the database
+	var forges []database.Forge
+	if err := database.DBConn.Where("account = ?", c.Locals(constants.LocalsAccountID)).Order("last_viewed DESC").Find(&forges).Error; err != nil {
+		return panel_views.RenderPanelError(c, "Something went wrong with the database. Please try again later.", err)
+	}
+
+	// Render all the forges
+	forgePage := forge_views.ForgeListPage(forges)
 	panelPage := panel_views.PanelPage("Magic Forge", forgePage)
 	sidebar := panel_views.PanelSidebar()
 
@@ -33,12 +36,12 @@ func baseRoute(c *fiber.Ctx) error {
 }
 
 // Get all of the base information from the route
-func getBaseInfo(c *fiber.Ctx) (database.Forge, templ.Component, error) {
+func getBaseInfo(c *fiber.Ctx) (database.Forge, templ.Component, bool) {
 
 	// Try parsing the forge id retrieved from the request
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return database.Forge{}, nil, c.Redirect("/a/panel/forge", fiber.StatusPermanentRedirect)
+		return database.Forge{}, nil, false
 	}
 
 	// TODO: Get the Forge from the database
@@ -51,5 +54,5 @@ func getBaseInfo(c *fiber.Ctx) (database.Forge, templ.Component, error) {
 	// Create the sidebar just to save some repeated code
 	sidebar := forge_views.ForgeSidebar(forge)
 
-	return forge, sidebar, nil
+	return forge, sidebar, true
 }

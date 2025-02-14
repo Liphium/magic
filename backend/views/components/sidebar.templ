@@ -11,7 +11,20 @@ type SBLink struct {
 }
 
 templ Sidebar(categories []SBCategory) {
-	<div class="flex flex-col" x-data="{ active: window.location.pathname }">
+	<div class="flex flex-col">
+		<script>
+			document.addEventListener("alpine:init", () => {
+				Alpine.store('path', {
+					value: "/",
+					init() {
+						this.value = window.location.pathname;
+						document.addEventListener("htmx:load", () => {
+							this.value = window.location.pathname;
+						});
+					}
+				});
+			})
+		</script>
 		<div class="flex flex-col rounded-lg min-w-64 max-w-72 mt-4 top-8 bg-background2 px-8 py-6 sticky border-2 border-dashed border-accent">
 			for i, category := range categories {
 				if i == 0 {
@@ -26,14 +39,14 @@ templ Sidebar(categories []SBCategory) {
 							{{ extraClasses = "" }}
 						}
 						<a
+							x-data
 							href={ link.Link }
-							class={ "text-[90%] hover:underline hover:text-accent " + extraClasses }
+							class={ "text-[90%] hover:text-accent " + extraClasses }
 							hx-get={ string(link.Link) }
 							hx-target="#panel-content"
 							hx-swap="outerHTML"
 							hx-push-url="true"
-							@click={ "active = '" + string(link.Link) + "'" }
-							:class={ "[active === '" + string(link.Link) + "' ? 'underline text-accent' : 'no-underline text-middle-text']" }
+							:class={ "$store.path.value === '" + string(link.Link) + "' ? 'underline text-accent' : 'no-underline text-middle-text'" }
 						>{ link.Name }</a>
 					}
 				</div>

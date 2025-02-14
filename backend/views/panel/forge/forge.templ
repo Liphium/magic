@@ -8,7 +8,7 @@ templ ForgeListPage(forges []database.Forge) {
 		// A basic explanation to fill out the space
 		<p class="text-middle-text">Forge allows you to build applications straight from GitHub kind of like GitHub Actions. What's exciting is what happens after building though.</p>
 		if len(forges) == 0 {
-			<p class="text-text">Welcome to Forge, it seems like you're still new. Why don't you check out our documentation?</p>
+			<p class="text-text">It seems like you don't have any Forge. Create one below.</p>
 			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
 		} else {
 			// Create project button for creating new ones
