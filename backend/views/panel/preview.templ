@@ -5,8 +5,10 @@ import "github.com/Liphium/magic/backend/views/components"
 
 templ PreviewPage(previews []database.Preview) {
 	<div class="flex flex-col gap-4 justify-start items-start">
-		// A basic explanation to fill out the space
-		<p class="text-middle-text">Preview allows you to instantly deploy any apps built from Forge to a staging environment. You can even add databases and more just through this panel.</p>
+		<div class="flex flex-row w-full justify-between">
+			<p class="text-middle-text">Create staging environments from Magic Forge builds.</p>
+			@components.PanelCallToAction("Create Preview", "/a/panel/preview/new")
+		</div>
 		if len(previews) == 0 {
 			<p class="text-text">Welcome to Preview, it seems like you're still new. Preview is based on Forge, so start there.</p>
 		} else {

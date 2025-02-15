@@ -6,14 +6,14 @@ import "github.com/Liphium/magic/backend/views/components"
 templ ForgeListPage(forges []database.Forge) {
 	<div class="flex flex-col gap-4 justify-start items-start">
 		// A basic explanation to fill out the space
-		<p class="text-middle-text">Forge allows you to build applications straight from GitHub kind of like GitHub Actions. What's exciting is what happens after building though.</p>
+		<div class="flex flex-row w-full justify-between">
+			<p class="text-middle-text">Build applications for usage in Magic.</p>
+			@components.PanelCallToAction("Create Forge", "/a/panel/forge/new")
+		</div>
 		if len(forges) == 0 {
 			<p class="text-text">It seems like you don't have any Forge. Create one below.</p>
 			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
 		} else {
-			// Create project button for creating new ones
-			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
-			// List of all the projects
 			for _, f := range forges {
 				<div class="flex flex-row w-full justify-between p-3 bg-background2 rounded-lg mb-4">
 					<div class="flex flex-col">

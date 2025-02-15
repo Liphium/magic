@@ -5,7 +5,10 @@ import "github.com/Liphium/magic/backend/views/components"
 templ NewForgeStep1() {
 	<div class="flex flex-col gap-4 justify-start items-start">
 		// A basic explanation to fill out the space
-		<p class="text-middle-text">Select a repository for your Forge.</p>
+		<div class="flex flex-row w-full items-center justify-between">
+			<p class="text-middle-text">Select a repository for your Forge.</p>
+			@components.PanelCallToAction("Link more repositories", "/a/panel/installations")
+		</div>
 		<div
 			hx-get="/a/panel/_forms/repository/installations"
 			hx-swap="outerHTML"
@@ -31,7 +34,7 @@ func NewForgeSidebar() templ.Component {
 					Link: "/a/panel/forge/new/name",
 				},
 				{
-					Name: "3. Create default target",
+					Name: "3. Create target",
 					Link: "/a/panel/forge/new/target",
 				},
 			},

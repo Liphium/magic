@@ -1,9 +1,18 @@
 package components
 
+templ PanelCallToAction(label string, url templ.SafeURL) {
+	<a
+		href={ url }
+		class="text-accent cursor-pointer text-center align-middle transition-all duration-200 ease-in-out no-underline hover:underline"
+	>
+		{ label }
+	</a>
+}
+
 templ LinkButton(label string, url templ.SafeURL) {
 	<a
 		href={ url }
-		class="bg-background2 text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent"
+		class="bg-background2 text-text py-2 px-4 border-[3px] border-dotted border-transparent rounded-lg cursor-pointer text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent"
 	>
 		{ label }
 	</a>
@@ -12,7 +21,7 @@ templ LinkButton(label string, url templ.SafeURL) {
 templ LinkButtonPrimary(label string, url templ.SafeURL) {
 	<a
 		href={ url }
-		class="bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer h-min text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent"
+		class="bg-primary text-text py-2 px-4 border-[3px] border-dotted border-transparent rounded-lg cursor-pointer h-min text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent"
 	>
 		{ label }
 	</a>
@@ -21,7 +30,7 @@ templ LinkButtonPrimary(label string, url templ.SafeURL) {
 templ LinkButtonPrimaryHTMX(label string, url templ.SafeURL) {
 	<a
 		href={ url }
-		class="bg-primary text-text py-3 px-6 border-2 border-dotted border-transparent rounded-lg cursor-pointer h-min text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent"
+		class="bg-primary text-text py-2 px-4 border-[3px] border-dotted border-transparent rounded-lg cursor-pointer h-min text-center align-middle transition-all duration-200 ease-in-out no-underline hover:border-accent"
 		hx-get={ string(url) }
 		hx-target="#panel-content"
 		hx-swap="outerHTML"

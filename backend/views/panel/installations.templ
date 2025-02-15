@@ -10,12 +10,14 @@ type RenderedInstallation struct {
 
 templ InstallationPage(installations []RenderedInstallation) {
 	<div class="flex flex-col gap-4 justify-start items-start">
-		<p class="text-middle-text">All of your installations on GitHub and any other providers.</p>
+		<div class="flex flex-row w-full items-center justify-between">
+			<p class="text-middle-text">All of your installations on GitHub and any other providers.</p>
+			@components.PanelCallToAction("Install on GitHub", templ.SafeURL("https://github.com/apps/liphium-magic/installations/new"))
+		</div>
 		if len(installations) == 0 {
 			<p class="text-text">Seems like you haven't installed Magic anywhere yet. Let's change that.</p>
 			@components.InstallButtons()
 		} else {
-			@components.InstallButtons()
 			for _, i := range installations {
 				<div class="flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-lg">
 					<div class="flex flex-col">

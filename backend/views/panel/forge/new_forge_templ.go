@@ -31,7 +31,15 @@ func NewForgeStep1() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col gap-4 justify-start items-start\"><p class=\"text-middle-text\">Select a repository for your Forge.</p><div hx-get=\"/a/panel/_forms/repository/installations\" hx-swap=\"outerHTML\" hx-headers=\"{&#34;M-SubmitURL&#34;: &#34;/a/panel/forge/new&#34;}\" hx-trigger=\"load\"><p>Loading repositories..</p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col gap-4 justify-start items-start\"><div class=\"flex flex-row w-full items-center justify-between\"><p class=\"text-middle-text\">Select a repository for your Forge.</p>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.PanelCallToAction("Link more repositories", "/a/panel/installations").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div hx-get=\"/a/panel/_forms/repository/installations\" hx-swap=\"outerHTML\" hx-headers=\"{&#34;M-SubmitURL&#34;: &#34;/a/panel/forge/new&#34;}\" hx-trigger=\"load\"><p>Loading repositories..</p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -53,7 +61,7 @@ func NewForgeSidebar() templ.Component {
 					Link: "/a/panel/forge/new/name",
 				},
 				{
-					Name: "3. Create default target",
+					Name: "3. Create target",
 					Link: "/a/panel/forge/new/target",
 				},
 			},

@@ -6,4 +6,5 @@ func Authorized(router fiber.Router) {
 
 	// Repository picker component
 	router.Get("/repository/installations", repoPickerInstallations)
+	router.Get("/repository/gh/:id", getGitHubRepositories)
 }
