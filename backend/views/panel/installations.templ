@@ -13,9 +13,9 @@ templ InstallationPage(installations []RenderedInstallation) {
 		<p class="text-middle-text">All of your installations on GitHub and any other providers.</p>
 		if len(installations) == 0 {
 			<p class="text-text">Seems like you haven't installed Magic anywhere yet. Let's change that.</p>
-			@components.LinkButtonPrimary("Install on GitHub", "https://github.com/apps/liphium-magic/installations/new")
+			@components.InstallButtons()
 		} else {
-			@components.LinkButtonPrimary("Install on GitHub", "https://github.com/apps/liphium-magic/installations/new")
+			@components.InstallButtons()
 			for _, i := range installations {
 				<div class="flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-lg">
 					<div class="flex flex-col">

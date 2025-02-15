@@ -39,7 +39,7 @@ func Sidebar(categories []SBCategory) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col\"><script>\r\n\t\t\tdocument.addEventListener(\"alpine:init\", () => {\r\n\t\t\t\tAlpine.store('path', {\r\n\t\t\t\t\tvalue: \"/\",\r\n\t\t\t\t\tinit() {\r\n\t\t\t\t\t\tthis.value = window.location.pathname;\r\n\t\t\t\t\t\tdocument.addEventListener(\"htmx:load\", () => {\r\n\t\t\t\t\t\t\tthis.value = window.location.pathname;\r\n\t\t\t\t\t\t});\r\n\t\t\t\t\t}\r\n\t\t\t\t});\r\n\t\t\t})\r\n\t\t</script><div class=\"flex flex-col rounded-lg min-w-64 max-w-72 mt-4 top-8 bg-background2 px-8 py-6 sticky border-2 border-dashed border-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col\"><script>\r\n\t\t\tdocument.addEventListener(\"alpine:init\", () => {\r\n\t\t\t\tAlpine.store('path', {\r\n\t\t\t\t\tvalue: \"/\",\r\n\t\t\t\t\tinit() {\r\n\t\t\t\t\t\tthis.value = window.location.pathname;\r\n\t\t\t\t\t\tdocument.addEventListener(\"htmx:load\", () => {\r\n\t\t\t\t\t\t\tthis.value = window.location.pathname;\r\n\t\t\t\t\t\t});\r\n\t\t\t\t\t}\r\n\t\t\t\t});\r\n\t\t\t})\r\n\t\t</script><div class=\"flex flex-col rounded-lg min-w-64 max-w-80 mt-4 top-8 bg-background2 px-8 py-6 sticky border-2 border-dashed border-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

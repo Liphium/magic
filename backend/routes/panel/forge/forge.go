@@ -14,6 +14,9 @@ import (
 func Authorized(router fiber.Router) {
 	router.Get("/", baseRoute)
 
+	// Process for creating a new Forge
+	router.Get("/new", newForgeStart)
+
 	// All views when a forge id is present
 	router.Get("/:id", targetsPage)
 }

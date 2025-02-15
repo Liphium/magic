@@ -1,0 +1,53 @@
+package forge_views
+
+import "github.com/Liphium/magic/backend/views/components"
+
+templ NewForgeStep1() {
+	<div class="flex flex-col gap-4 justify-start items-start">
+		// A basic explanation to fill out the space
+		<p class="text-middle-text">Select a repository for your Forge.</p>
+		<div
+			hx-get="/a/panel/_forms/repository/installations"
+			hx-swap="outerHTML"
+			hx-headers='{"M-SubmitURL": "/a/panel/forge/new"}'
+			hx-trigger="load"
+		>
+			<p>Loading repositories..</p>
+		</div>
+	</div>
+}
+
+func NewForgeSidebar() templ.Component {
+	return components.Sidebar([]components.SBCategory{
+		{
+			Name: "Create new Forge",
+			Links: []components.SBLink{
+				{
+					Name: "1. Select a repository",
+					Link: "/a/panel/forge/new",
+				},
+				{
+					Name: "2. Choose a name",
+					Link: "/a/panel/forge/new/name",
+				},
+				{
+					Name: "3. Create default target",
+					Link: "/a/panel/forge/new/target",
+				},
+			},
+		},
+		{
+			Name: "Legal documents",
+			Links: []components.SBLink{
+				{
+					Name: "Terms of Service",
+					Link: "https://liphium.com/legal/terms",
+				},
+				{
+					Name: "Privacy Policy",
+					Link: "https://liphium.com/legal/terms",
+				},
+			},
+		},
+	})
+}

@@ -1,0 +1,21 @@
+package form_views
+
+import (
+	"github.com/Liphium/magic/backend/views"
+	"github.com/gofiber/fiber/v2"
+	"log"
+	"os"
+)
+
+func RenderFormError(c *fiber.Ctx, message string, err error) error {
+
+	if err != nil && os.Getenv("MAGIC_TESTING") == "true" {
+		log.Println(c.Path()+":", message+":", err)
+	}
+
+	return views.RenderJust(c, errorMessage(message))
+}
+
+templ errorMessage(message string) {
+	<p>{ message }</p>
+}

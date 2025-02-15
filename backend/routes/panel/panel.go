@@ -6,6 +6,7 @@ import (
 
 	"github.com/Liphium/magic/backend/database"
 	forge_routes "github.com/Liphium/magic/backend/routes/panel/forge"
+	form_routes "github.com/Liphium/magic/backend/routes/panel/forms"
 	preview_routes "github.com/Liphium/magic/backend/routes/panel/preview"
 	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/Liphium/magic/backend/views"
@@ -19,6 +20,7 @@ func Authorized(router fiber.Router) {
 	router.Get("/", baseRoute)
 	router.Get("/installations", installationListPage)
 
+	router.Route("/_forms", form_routes.Authorized)
 	router.Route("/forge", forge_routes.Authorized)
 	router.Route("/preview", preview_routes.Authorized)
 }

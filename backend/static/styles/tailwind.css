@@ -611,12 +611,12 @@ video {
   min-width: 16rem;
 }
 
-.max-w-72 {
-  max-width: 18rem;
-}
-
 .max-w-7xl {
   max-width: 80rem;
+}
+
+.max-w-80 {
+  max-width: 20rem;
 }
 
 .cursor-pointer {

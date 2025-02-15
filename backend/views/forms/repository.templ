@@ -1,0 +1,17 @@
+package form_views
+
+import "github.com/Liphium/magic/backend/views/components"
+
+type Installation struct {
+	Provider string
+	Name     string
+}
+
+templ InstallationChips(installations []Installation) {
+	if len(installations) == 0 {
+		<p class="text-text">It seems like you don't have any repositories where Magic is installed.</p>
+		@components.InstallButtons()
+	} else {
+		<p class="text-text">Now we just have to load the repositories.</p>
+	}
+}
