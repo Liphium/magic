@@ -8,11 +8,11 @@ templ ForgeListPage(forges []database.Forge) {
 		// A basic explanation to fill out the space
 		<div class="flex flex-row w-full justify-between">
 			<p class="text-middle-text">Build applications for usage in Magic.</p>
-			@components.PanelCallToAction("Create Forge", "/a/panel/forge/new")
+			@components.PanelCallToActionHTMX("Create Forge", "/a/panel/forge/new")
 		</div>
 		if len(forges) == 0 {
 			<p class="text-text">It seems like you don't have any Forge. Create one below.</p>
-			@components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new")
+			@components.LinkButtonPrimaryHTMX("Create Forge", "/a/panel/forge/new")
 		} else {
 			for _, f := range forges {
 				<div class="flex flex-row w-full justify-between p-3 bg-background2 rounded-lg mb-4">

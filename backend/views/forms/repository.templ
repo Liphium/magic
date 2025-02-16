@@ -15,15 +15,15 @@ templ InstallationChips(installations []Installation) {
 		<p class="text-text">It seems like you don't have any repositories where Magic is installed.</p>
 		@components.InstallButtons()
 	} else {
-		<div class="flex flex-row flex-wrap gap-4" x-data="{ active: 0 }">
+		<div class="flex flex-row flex-wrap gap-4 mb-2" x-data="{ active: 0 }">
 			for i, ins := range installations {
 				{{ triggers := "click" }}
 				if i == 0 {
 					{{ triggers += ",load" }}
 				}
 				<button
-					class="flex px-2 py-1 border-dashed border-[3px] transition-colors duration-200 hover:text-text hover:underline"
-					:class={ fmt.Sprintf("active == %d ? 'text-text border-accent underline' : 'border-sec-text text-middle-text'", i) }
+					class="flex transition-colors duration-200 hover:underline"
+					:class={ fmt.Sprintf("active == %d ? 'text-text underline' : 'text-middle-text'", i) }
 					@click={ fmt.Sprintf("active = %d", i) }
 					hx-target={ "#" + target }
 					hx-swap="innerHTML"

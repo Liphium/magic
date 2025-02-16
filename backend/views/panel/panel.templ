@@ -19,7 +19,15 @@ templ PanelPage(title string, child templ.Component) {
 	// Main page
 	<div class="mt-4 w-full" id="panel-content">
 		// Title of the page
-		<h1 class="hero-gradient font-pixel font-extrabold text-5xl leading-[1.2] mb-4">{ title }</h1>
+		@components.TextHeroLarge(title)
+		// The child for this page
+		@child
+	</div>
+}
+
+templ PanelPageBase(child templ.Component) {
+	// Main page
+	<div class="mt-4 w-full" id="panel-content">
 		// The child for this page
 		@child
 	</div>

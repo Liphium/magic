@@ -19,12 +19,12 @@ templ InstallationPage(installations []RenderedInstallation) {
 			@components.InstallButtons()
 		} else {
 			for _, i := range installations {
-				<div class="flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-lg">
+				<div class="flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-xl border-2 border-secondary">
 					<div class="flex flex-col">
 						<p>{ i.Name }</p>
 						<p class="text-middle-text">{ i.Provider }</p>
 					</div>
-					@components.LinkButtonPrimary("Edit", i.URL)
+					@components.LinkButton("Edit", i.URL)
 				</div>
 			}
 		}

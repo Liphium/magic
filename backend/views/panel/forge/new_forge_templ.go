@@ -31,54 +31,27 @@ func NewForgeStep1() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col gap-4 justify-start items-start\"><div class=\"flex flex-row w-full items-center justify-between\"><p class=\"text-middle-text\">Select a repository for your Forge.</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col justify-start items-start\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = components.PanelCallToAction("Link more repositories", "/a/panel/installations").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.TextHeroLarge("Create Forge").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div hx-get=\"/a/panel/_forms/repository/installations\" hx-swap=\"outerHTML\" hx-headers=\"{&#34;M-SubmitURL&#34;: &#34;/a/panel/forge/new&#34;}\" hx-trigger=\"load\"><p>Loading repositories..</p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<!-- Step 1 --><div class=\"flex flex-row w-full\"><div class=\"flex flex-col w-14\"><h2 class=\"font-pixel font-extrabold text-4xl leading-[1.2] mb-2\">1.</h2><div class=\"border-dashed border-accent border-l-[3px] ml-[11px] h-full\"></div></div><div class=\"flex flex-col w-full min-h-80 gap-4\"><h2 class=\"font-pixel font-extrabold text-4xl leading-[1.2]\">Select a repository</h2><div class=\"flex flex-row w-full items-center justify-between\"><p class=\"text-middle-text\">Select a repository for your Forge.</p>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.PanelCallToActionHTMX("Link more repositories", "/a/panel/installations").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div hx-get=\"/a/panel/_forms/repository/installations\" hx-swap=\"outerHTML\" hx-headers=\"{&#34;M-SubmitURL&#34;: &#34;/a/panel/forge/new&#34;}\" hx-trigger=\"load\"><p>Loading repositories..</p></div></div></div><!-- Step 2 --><div class=\"flex flex-row w-full\"><div class=\"flex flex-col w-14\"><h2 class=\"font-pixel font-extrabold text-4xl leading-[1.2] my-2\">2.</h2><div class=\"border-dashed border-accent border-l-[3px] ml-[11px] h-full\"></div></div><div class=\"flex flex-col w-full min-h-80 gap-4\"><h2 class=\"font-pixel font-extrabold text-4xl leading-[1.2] mt-2\">Choose a name</h2><p>We need some kind of choose name thing here</p></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		return nil
-	})
-}
-
-func NewForgeSidebar() templ.Component {
-	return components.Sidebar([]components.SBCategory{
-		{
-			Name: "Create new Forge",
-			Links: []components.SBLink{
-				{
-					Name: "1. Select a repository",
-					Link: "/a/panel/forge/new",
-				},
-				{
-					Name: "2. Choose a name",
-					Link: "/a/panel/forge/new/name",
-				},
-				{
-					Name: "3. Create target",
-					Link: "/a/panel/forge/new/target",
-				},
-			},
-		},
-		{
-			Name: "Legal documents",
-			Links: []components.SBLink{
-				{
-					Name: "Terms of Service",
-					Link: "https://liphium.com/legal/terms",
-				},
-				{
-					Name: "Privacy Policy",
-					Link: "https://liphium.com/legal/terms",
-				},
-			},
-		},
 	})
 }
 

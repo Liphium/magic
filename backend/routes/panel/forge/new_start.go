@@ -12,9 +12,8 @@ func newForgeStart(c *fiber.Ctx) error {
 
 	// Render all the forges
 	stepPage := forge_views.NewForgeStep1()
-	panelPage := panel_views.PanelPage("1. Select a repository", stepPage)
-	sidebar := forge_views.NewForgeSidebar()
+	panelPage := panel_views.PanelPageBase(stepPage)
+	sidebar := panel_views.PanelSidebar()
 
 	return views.RenderHTMX(c, panel_views.Base(sidebar, panelPage), panelPage)
-
 }

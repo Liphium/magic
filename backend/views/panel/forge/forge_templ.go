@@ -36,7 +36,7 @@ func ForgeListPage(forges []database.Forge) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = components.PanelCallToAction("Create Forge", "/a/panel/forge/new").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.PanelCallToActionHTMX("Create Forge", "/a/panel/forge/new").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -49,7 +49,7 @@ func ForgeListPage(forges []database.Forge) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.LinkButtonPrimary("Create Forge", "/a/panel/forge/new").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.LinkButtonPrimaryHTMX("Create Forge", "/a/panel/forge/new").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
