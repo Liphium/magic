@@ -1,7 +1,13 @@
 {
     "version": 1,
+    "caster": "docker",
     "environment": {
         "JWT_SECRET": "%jwt_secret%"
+    },
+    "ports": {
+        "3000": "http",
+        "3001": "http",
+        "3002": "http"
     },
     "databases": [
         {
