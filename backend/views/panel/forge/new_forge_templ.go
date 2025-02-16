@@ -39,7 +39,7 @@ func NewForgeStep1() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<!-- Step 1 --><div class=\"flex flex-row w-full\"><div class=\"flex flex-col w-14\"><h2 class=\"font-pixel font-extrabold text-4xl leading-[1.2] mb-2\">1.</h2><div class=\"border-dashed border-accent border-l-[3px] ml-[11px] h-full\"></div></div><div class=\"flex flex-col w-full min-h-80 gap-4\"><h2 class=\"font-pixel font-extrabold text-4xl leading-[1.2]\">Select a repository</h2><div class=\"flex flex-row w-full items-center justify-between\"><p class=\"text-middle-text\">Select a repository for your Forge.</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<!-- Step 1 --><div class=\"flex flex-row w-full\"><div class=\"flex flex-col mr-4\"><h2 class=\"flex justify-center items-center font-bold text-3xl bg-background2 border-[3px] rounded-full border-accent min-w-[60px] min-h-[60px]\">1.</h2><div class=\"border-dashed border-accent border-l-[3px] ml-[28.5px] h-full\"></div></div><div class=\"flex flex-col w-full min-h-80 gap-4\"><h2 class=\"font-bold text-3xl leading-[1.2] mt-[13px]\">Select a repository</h2><div class=\"flex flex-row w-full items-center justify-between\"><p class=\"text-middle-text\">Select a repository from the installations below.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -47,7 +47,7 @@ func NewForgeStep1() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div hx-get=\"/a/panel/_forms/repository/installations\" hx-swap=\"outerHTML\" hx-headers=\"{&#34;M-SubmitURL&#34;: &#34;/a/panel/forge/new&#34;}\" hx-trigger=\"load\"><p>Loading repositories..</p></div></div></div><!-- Step 2 --><div class=\"flex flex-row w-full\"><div class=\"flex flex-col w-14\"><h2 class=\"font-pixel font-extrabold text-4xl leading-[1.2] my-2\">2.</h2><div class=\"border-dashed border-accent border-l-[3px] ml-[11px] h-full\"></div></div><div class=\"flex flex-col w-full min-h-80 gap-4\"><h2 class=\"font-pixel font-extrabold text-4xl leading-[1.2] mt-2\">Choose a name</h2><p>We need some kind of choose name thing here</p></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div hx-get=\"/a/panel/_forms/repository/installations\" hx-swap=\"outerHTML\" hx-headers=\"{&#34;M-SubmitURL&#34;: &#34;/a/panel/forge/new&#34;}\" hx-trigger=\"load\"><p>Loading repositories..</p></div></div></div><!-- Step 2 --><div class=\"flex flex-row w-full\"><div class=\"flex flex-col mr-4\"><h2 class=\"flex justify-center items-center font-bold text-3xl bg-background2 border-[3px] rounded-full border-accent min-w-[60px] min-h-[60px]\">2.</h2><div class=\"border-dashed border-accent border-l-[3px] ml-[28.5px] h-full\"></div></div><div class=\"flex flex-col w-full min-h-80 gap-4\"><h2 class=\"font-bold text-3xl leading-[1.2] mt-[13px]\">Choose a name</h2><p>We need some kind of choose name thing here</p></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
