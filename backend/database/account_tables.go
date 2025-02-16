@@ -9,7 +9,7 @@ import (
 type Rank struct {
 	ID              uint `gorm:"primaryKey"`
 	Label           string
-	PermissionLevel uint `gorm:"index"`
+	PermissionLevel uint
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -36,7 +36,7 @@ type Account struct {
 	ID       uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	Username string    `gorm:"index"`
 	Email    string    `gorm:"index"`
-	Rank     uint      `gorm:"index"`
+	Rank     uint
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -42,21 +42,26 @@ func Connect() {
 
 	// Migrate the schema
 	if err := db.AutoMigrate(
+		// All tables related to the accounts
 		&Account{},
 		&Credential{},
 		&Rank{},
 
+		// All tables for Forge and the build pipeline
 		&Forge{},
 		&Build{},
 		&Asset{},
 		&Target{},
 
+		// All tables for Preview and stuff
 		&Preview{},
 		&PreviewSecret{},
 		&Environment{},
 		&EnvironmentFile{},
 
-		&Node{},
+		// All tables that Wizard needs to deploy new jobs
+		&Wizard{},
+		&Job{},
 	); err != nil {
 		logger.Fatal("Something went wrong during the migration.", err)
 	}

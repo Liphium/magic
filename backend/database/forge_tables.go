@@ -9,8 +9,8 @@ import (
 type Forge struct {
 	ID           uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	Installation uuid.UUID `gorm:"type:uuid;index"`
-	Label        string    `gorm:"index"`
-	Repository   string    `gorm:"index"` // Identifier of the repository
+	Label        string
+	Repository   string    // Identifier of the repository
 	LastViewed   time.Time `gorm:"index"`
 
 	CreatedAt time.Time
@@ -29,7 +29,7 @@ type Build struct {
 type Asset struct {
 	ID           uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	Build        uuid.UUID `gorm:"type:uuid;index"`
-	Architecture string    `gorm:"index"`
+	Architecture string
 	Path         string
 
 	CreatedAt time.Time

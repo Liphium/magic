@@ -7,19 +7,34 @@ import (
 )
 
 // The node is currently offline
-const NodeStatusOffline = 0
+const WizardStatusOffline = 0
 
-// Something happened on the node, an admin should check the situation
-const NodeStatusError = 1
+// Something happened on the wizard, an admin should check the situation
+const WizardStatusError = 1
 
-// The node is online and accepting new deployments
-const NodeStatusOnline = 2
+// The wizard is online and accepting new jobs
+const WizardStatusOnline = 2
 
-type Node struct {
+type Wizard struct {
 	ID     uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Domain string    `gorm:"uniqueIndex"`
+	Domain string    `gorm:"unique"`
+	Token  string    `gorm:"index"`
 	Status uint      `gorm:"index"`
 
-	Created time.Time
-	Updated time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+// All the different job types
+const (
+	JobTypeBuild   = "build"
+	JobTypePreview = "preview"
+)
+
+type Job struct {
+	ID     uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Type   string    `gorm:"index"`
+	Target string
+
+	CreatedAt time.Time `gorm:"index"`
 }
