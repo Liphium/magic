@@ -8,6 +8,8 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "os"
+
 func InstallButtons() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,7 +31,7 @@ func InstallButtons() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = LinkButtonPrimary("Install on GitHub", "https://github.com/apps/liphium-magic/installations/new").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LinkButtonPrimary("Install on GitHub", templ.SafeURL("https://github.com/apps/"+os.Getenv("MAGIC_GH_APPSLUG")+"/installations/new")).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

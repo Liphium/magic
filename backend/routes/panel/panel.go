@@ -8,6 +8,7 @@ import (
 	forge_routes "github.com/Liphium/magic/backend/routes/panel/forge"
 	form_routes "github.com/Liphium/magic/backend/routes/panel/forms"
 	preview_routes "github.com/Liphium/magic/backend/routes/panel/preview"
+	"github.com/Liphium/magic/backend/util"
 	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/Liphium/magic/backend/views"
 	"github.com/Liphium/magic/backend/views/components"
@@ -27,14 +28,15 @@ func Authorized(router fiber.Router) {
 
 // Route: /a/panel
 func baseRoute(c *fiber.Ctx) error {
+	uuid := util.AccountUUID(c)
 
 	// Get recently viewed things from the database
 	var forges []database.Forge
 	var previews []database.Preview
-	if err := database.DBConn.Order("last_viewed DESC").Limit(10).Find(&forges).Error; err != nil {
+	if err := database.DBConn.Where("account = ?", uuid).Order("last_viewed DESC").Limit(10).Find(&forges).Error; err != nil {
 		return views.RenderWithBase(c, components.ErrorPage(""))
 	}
-	if err := database.DBConn.Order("last_viewed DESC").Limit(10).Find(&previews).Error; err != nil {
+	if err := database.DBConn.Where("account = ?", uuid).Order("last_viewed DESC").Limit(10).Find(&previews).Error; err != nil {
 		return views.RenderWithBase(c, components.ErrorPage(""))
 	}
 

@@ -6,7 +6,10 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/Liphium/magic/backend/database"
+	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/bradleyfalzon/ghinstallation/v2"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/go-github/v69/github"
 )
 
@@ -26,6 +29,20 @@ func getAppId() int64 {
 	}
 
 	return appId
+}
+
+// Get a GitHub client for the user from context (using database and auth information)
+func GetUserFromContext(c *fiber.Ctx) (*github.Client, error) {
+
+	// Get the user access token for Github
+	acc := c.Locals(constants.LocalsAccountID)
+	var credential database.Credential
+	if err := database.DBConn.Where("account = ?", acc).Take(&credential).Error; err != nil {
+		return nil, err
+	}
+
+	// Get all installations from Github
+	return github.NewClient(nil).WithAuthToken(credential.Token), nil
 }
 
 // Get a GitHub client for an installation using the private key.

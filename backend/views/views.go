@@ -2,6 +2,8 @@ package views
 
 import (
 	"context"
+	"log"
+	"os"
 
 	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +24,17 @@ func RenderJust(c *fiber.Ctx, component templ.Component) error {
 	c.Set("Content-Type", "text/html")
 	ctx := context.WithValue(c.Context(), URLContextKey{}, templ.SafeURL(c.Path()))
 	return component.Render(ctx, c.Response().BodyWriter())
+}
+
+// Render just the component without the base (but you can pass an error for logging purposes)
+func RenderError(c *fiber.Ctx, component templ.Component, err error) error {
+
+	if err != nil && os.Getenv("MAGIC_TESTING") == "true" {
+		log.Println(c.Path()+":", err)
+	}
+
+	// Render the component like normal
+	return RenderJust(c, component)
 }
 
 // Render full in case of no HTMX and just page in case it is an HTMX request

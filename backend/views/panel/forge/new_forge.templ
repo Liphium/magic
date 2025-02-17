@@ -5,39 +5,56 @@ import "github.com/Liphium/magic/backend/views/components"
 templ NewForgeStep1() {
 	<div class="flex flex-col justify-start items-start">
 		@components.TextHeroLarge("Create Forge")
-		<!-- Step 1 -->
-		<div class="flex flex-row w-full">
-			<div class="flex flex-col mr-4">
-				<h2 class="flex justify-center items-center font-bold text-3xl bg-background2 border-[3px] rounded-full border-accent min-w-[60px] min-h-[60px]">1.</h2>
-				<div class="border-dashed border-accent border-l-[3px] ml-[28.5px] h-full"></div>
-			</div>
-			<div class="flex flex-col w-full min-h-80 gap-4">
-				<h2 class="font-bold text-3xl leading-[1.2] mt-[13px]">Select a repository</h2>
-				// A basic explanation to fill out the space
-				<div class="flex flex-row w-full items-center justify-between">
-					<p class="text-middle-text">Select a repository from the installations below.</p>
-					@components.PanelCallToActionHTMX("Link more repositories", "/a/panel/installations")
+		<form class="w-full">
+			<!-- Step 1 -->
+			<div class="flex flex-row w-full">
+				<div class="flex flex-col mr-4">
+					<h2 class="flex justify-center items-center font-bold text-3xl bg-background2 border-[3px] rounded-full border-accent min-w-[60px] min-h-[60px]">1.</h2>
+					<div class="border-dashed border-accent border-l-[3px] ml-[28.5px] h-full"></div>
 				</div>
-				<div
-					hx-get="/a/panel/_forms/repository/installations"
-					hx-swap="outerHTML"
-					hx-headers='{"M-SubmitURL": "/a/panel/forge/new"}'
-					hx-trigger="load"
+				<div class="flex flex-col w-full min-h-80 gap-4">
+					<h2 class="font-bold text-3xl leading-[1.2] mt-[13px]">Repository</h2>
+					// A basic explanation to fill out the space
+					<div class="flex flex-row w-full items-center justify-between">
+						<p class="text-middle-text">Select a repository from the installations below.</p>
+						@components.PanelCallToActionHTMX("Link more repositories", "/a/panel/installations")
+					</div>
+					<div
+						hx-get="/a/panel/_forms/repository/installations"
+						hx-swap="outerHTML"
+						hx-headers='{"M-ID": "repository"}'
+						hx-trigger="load"
+					>
+						<p>Loading repositories..</p>
+					</div>
+					<div class="mb-12"></div>
+				</div>
+			</div>
+			<!-- Step 2 -->
+			<div class="flex flex-row w-full">
+				<div class="flex flex-col mr-4">
+					<h2 class="flex justify-center items-center font-bold text-3xl bg-background2 border-[3px] rounded-full border-accent min-w-[60px] min-h-[60px]">2.</h2>
+					<div class="border-dashed border-accent border-l-[3px] ml-[28.5px] h-full"></div>
+				</div>
+				<div class="flex flex-col w-full gap-4">
+					<h2 class="font-bold text-3xl leading-[1.2] mt-[13px]">Name</h2>
+					<p class="text-middle-text">The name has to be longer than 5 characters.</p>
+					<input class="bg-background2 text-text px-4 py-3 rounded-lg border-2 outline-none border-transparent transition-colors duration-200 hover:border-secondary focus:border-accent" type="text" placeholder="Name" name="name" minlength="3" maxlength="20"/>
+					<div class="mb-12"></div>
+				</div>
+			</div>
+			<!-- Submit button -->
+			<div class="flex flex-row items-center gap-4 mb-4">
+				<button
+					hx-post="/a/panel/forge/new"
+					hx-target="#create-container"
+					hx-swap="innerHTML"
+					class="bg-background2 text-xl text-text py-2 px-4 cursor-pointer h-min min-w-max text-center align-middle transition-all duration-200 no-underline rounded-lg border-[3px] border-accent hover:bg-accent"
 				>
-					<p>Loading repositories..</p>
-				</div>
+					Create Forge
+				</button>
+				<div class="w-max animate-pulse" id="create-container"></div>
 			</div>
-		</div>
-		<!-- Step 2 -->
-		<div class="flex flex-row w-full">
-			<div class="flex flex-col mr-4">
-				<h2 class="flex justify-center items-center font-bold text-3xl bg-background2 border-[3px] rounded-full border-accent min-w-[60px] min-h-[60px]">2.</h2>
-				<div class="border-dashed border-accent border-l-[3px] ml-[28.5px] h-full"></div>
-			</div>
-			<div class="flex flex-col w-full min-h-80 gap-4">
-				<h2 class="font-bold text-3xl leading-[1.2] mt-[13px]">Choose a name</h2>
-				<p>We need some kind of choose name thing here</p>
-			</div>
-		</div>
+		</form>
 	</div>
 }

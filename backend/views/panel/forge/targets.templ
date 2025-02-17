@@ -13,12 +13,12 @@ templ TargetsPage(targets []database.Target) {
 		} else {
 			@components.LinkButtonPrimary("Create Target", ctx.Value(views.URLContextKey{}).(templ.SafeURL)+templ.SafeURL("/new"))
 			for _, t := range targets {
-				<div class="flex flex-row w-full justify-between p-3 bg-background2 rounded-lg mb-4">
+				<div class="flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary">
 					<div class="flex flex-col">
 						<p>{ t.Type }</p>
 						<p class="text-middle-text">{ t.Value }</p>
 					</div>
-					@components.LinkButtonPrimary("Edit", templ.SafeURL("./"+t.ID.String()))
+					@components.LinkButton("Edit", templ.SafeURL("./"+t.ID.String()))
 				</div>
 			}
 		}

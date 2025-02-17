@@ -1,5 +1,7 @@
 package components
 
+import "os"
+
 templ InstallButtons() {
-	@LinkButtonPrimary("Install on GitHub", "https://github.com/apps/liphium-magic/installations/new")
+	@LinkButtonPrimary("Install on GitHub", templ.SafeURL("https://github.com/apps/"+os.Getenv("MAGIC_GH_APPSLUG")+"/installations/new"))
 }

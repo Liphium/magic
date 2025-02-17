@@ -4,6 +4,10 @@ import (
 	crand "crypto/rand"
 	"math/big"
 	"math/rand"
+
+	"github.com/Liphium/magic/backend/util/constants"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // This is just useless and there just for fun, this is justified performance wasting
@@ -61,4 +65,10 @@ func GenerateToken(tkLength int32) string {
 	}
 
 	return string(s)
+}
+
+// Get the account uuid
+func AccountUUID(c *fiber.Ctx) uuid.UUID {
+	uuid, _ := uuid.Parse(c.Locals(constants.LocalsAccountID).(string))
+	return uuid
 }

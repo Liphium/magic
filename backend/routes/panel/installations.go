@@ -3,8 +3,7 @@ package panel_routes
 import (
 	"context"
 
-	"github.com/Liphium/magic/backend/database"
-	"github.com/Liphium/magic/backend/util/constants"
+	github_utils "github.com/Liphium/magic/backend/util/github"
 	"github.com/Liphium/magic/backend/views"
 	panel_views "github.com/Liphium/magic/backend/views/panel"
 	"github.com/a-h/templ"
@@ -16,15 +15,15 @@ import (
 func installationListPage(c *fiber.Ctx) error {
 
 	// Get the user access token for Github
-	acc := c.Locals(constants.LocalsAccountID)
-	var credential database.Credential
-	if err := database.DBConn.Where("account = ?", acc).Take(&credential).Error; err != nil {
+	client, err := github_utils.GetUserFromContext(c)
+	if err != nil {
 		return panel_views.RenderPanelError(c, "We couldn't get your GitHub credentials. Please try again later.", err)
 	}
 
-	// Get all installations from Github
-	client := github.NewClient(nil).WithAuthToken(credential.Token)
-	installation, res, err := client.Apps.ListUserInstallations(context.Background(), &github.ListOptions{})
+	// Get all the installations they have made
+	installation, res, err := client.Apps.ListUserInstallations(context.Background(), &github.ListOptions{
+		PerPage: 100,
+	})
 	if err != nil {
 		return panel_views.RenderPanelError(c, "Something went wrong with GitHub. Maybe check their status?", err)
 	}

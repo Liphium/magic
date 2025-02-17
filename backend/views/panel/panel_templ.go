@@ -187,7 +187,7 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 			}
 		} else {
 			for _, recent := range recentViews {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-lg mb-4\"><div class=\"flex flex-col\"><p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary\"><div class=\"flex flex-col\"><p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -217,7 +217,7 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = components.LinkButtonPrimary("Open", recent.URL).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.LinkButton("Open", recent.URL).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -271,12 +271,14 @@ func PanelSidebar() templ.Component {
 			Name: "Legal documents",
 			Links: []components.SBLink{
 				{
-					Name: "Terms of Service",
-					Link: "https://liphium.com/legal/terms",
+					Name:     "Terms of Service",
+					Link:     "https://liphium.com/legal/terms",
+					External: true,
 				},
 				{
-					Name: "Privacy Policy",
-					Link: "https://liphium.com/legal/terms",
+					Name:     "Privacy Policy",
+					Link:     "https://liphium.com/legal/terms",
+					External: true,
 				},
 			},
 		},

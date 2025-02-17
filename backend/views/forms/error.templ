@@ -19,3 +19,11 @@ func RenderFormError(c *fiber.Ctx, message string, err error) error {
 templ errorMessage(message string) {
 	<p>{ message }</p>
 }
+
+templ FormSubmitError(message string) {
+	<p class="text-accent">{ message }</p>
+}
+
+templ FormSubmitSuccess(message string) {
+	<p class="text-text">{ message }</p>
+}

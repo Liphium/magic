@@ -6,6 +6,7 @@ const (
 	LocalsAccountID       = "ses:acc"
 	LocalsAccountName     = "ses:name"
 	LocalsPermissionLevel = "ses:plvl"
+	LocalsWizard          = "wiz"
 
 	// Name for cookies used by Magic
 

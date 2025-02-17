@@ -8,7 +8,10 @@ package panel_views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/Liphium/magic/backend/views/components"
+import (
+	"github.com/Liphium/magic/backend/views/components"
+	"os"
+)
 
 type RenderedInstallation struct {
 	Name     string
@@ -41,7 +44,7 @@ func InstallationPage(installations []RenderedInstallation) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = components.PanelCallToAction("Install on GitHub", templ.SafeURL("https://github.com/apps/liphium-magic/installations/new")).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.PanelCallToAction("Install on GitHub", templ.SafeURL("https://github.com/apps/"+os.Getenv("MAGIC_GH_APPSLUG")+"/installations/new")).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -60,14 +63,14 @@ func InstallationPage(installations []RenderedInstallation) templ.Component {
 			}
 		} else {
 			for _, i := range installations {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex flex-row w-full items-center justify-between p-3 bg-background2 rounded-xl border-2 border-secondary\"><div class=\"flex flex-col\"><p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary\"><div class=\"flex flex-col\"><p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var2 string
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(i.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/installations.templ`, Line: 24, Col: 17}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/installations.templ`, Line: 27, Col: 17}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -80,7 +83,7 @@ func InstallationPage(installations []RenderedInstallation) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(i.Provider)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/installations.templ`, Line: 25, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/installations.templ`, Line: 28, Col: 46}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {

@@ -6,8 +6,9 @@ type SBCategory struct {
 }
 
 type SBLink struct {
-	Name string
-	Link templ.SafeURL
+	Name     string
+	Link     templ.SafeURL
+	External bool
 }
 
 templ Sidebar(categories []SBCategory) {
@@ -38,16 +39,23 @@ templ Sidebar(categories []SBCategory) {
 						if i == len(category.Links)-1 {
 							{{ extraClasses = "" }}
 						}
-						<a
-							x-data
-							href={ link.Link }
-							class={ "text-[90%] hover:text-accent " + extraClasses }
-							hx-get={ string(link.Link) }
-							hx-target="#panel-content"
-							hx-swap="outerHTML"
-							hx-push-url="true"
-							:class={ "$store.path.value === '" + string(link.Link) + "' ? 'underline text-accent' : 'no-underline text-middle-text'" }
-						>{ link.Name }</a>
+						if link.External {
+							<a
+								href={ link.Link }
+								class={ "text-[90%] text-middle-text no-underline hover:text-accent " + extraClasses }
+							>{ link.Name }</a>
+						} else {
+							<a
+								x-data
+								href={ link.Link }
+								class={ "text-[90%] hover:text-accent " + extraClasses }
+								hx-get={ string(link.Link) }
+								hx-target="#panel-content"
+								hx-swap="outerHTML"
+								hx-push-url="true"
+								:class={ "$store.path.value === '" + string(link.Link) + "' ? 'underline text-accent' : 'no-underline text-middle-text'" }
+							>{ link.Name }</a>
+						}
 					}
 				</div>
 			}

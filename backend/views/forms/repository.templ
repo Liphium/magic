@@ -5,47 +5,64 @@ import "github.com/Liphium/magic/backend/util"
 import "fmt"
 
 type Installation struct {
+	ID   int64
 	Name string
 	URL  string
 }
 
-templ InstallationChips(installations []Installation) {
+templ InstallationChips(inputId string, installations []Installation) {
 	{{ target := "repo-chips-" + util.GenerateToken(10) }}
 	if len(installations) == 0 {
 		<p class="text-text">It seems like you don't have any repositories where Magic is installed.</p>
 		@components.InstallButtons()
 	} else {
-		<div class="flex flex-row flex-wrap gap-4 mb-2" x-data="{ active: 0 }">
-			for i, ins := range installations {
-				{{ triggers := "click" }}
-				if i == 0 {
-					{{ triggers += ",load" }}
+		<div class="flex flex-col gap-4 w-full" x-data={ fmt.Sprintf("{ installation: '%d' }", installations[0].ID) }>
+			<div class="flex flex-row flex-wrap gap-4 mb-2">
+				for _, ins := range installations {
+					{{ triggers := "click" }}
+					if ins.ID == installations[0].ID {
+						{{ triggers += ",load" }}
+					}
+					<button
+						class="flex transition-colors duration-200 hover:underline"
+						:class={ fmt.Sprintf("installation === '%d' ? 'text-text underline' : 'text-middle-text'", ins.ID) }
+						@click={ fmt.Sprintf("installation = '%d'", ins.ID) }
+						hx-target={ "#" + target }
+						hx-swap="innerHTML"
+						hx-get={ ins.URL }
+						hx-trigger={ triggers }
+					>{ ins.Name }</button>
 				}
-				<button
-					class="flex transition-colors duration-200 hover:underline"
-					:class={ fmt.Sprintf("active == %d ? 'text-text underline' : 'text-middle-text'", i) }
-					@click={ fmt.Sprintf("active = %d", i) }
-					hx-target={ "#" + target }
-					hx-swap="innerHTML"
-					hx-get={ ins.URL }
-					hx-trigger={ triggers }
-				>{ ins.Name }</button>
-			}
+			</div>
+			<div
+				class="w-full"
+				x-data="{ selected: '' }"
+			>
+				<div
+					class="flex flex-row flex-wrap w-full gap-4 mb-8"
+					id={ target }
+				></div>
+				<input type="text" name={ inputId } hidden :value="selected"/>
+				<input type="text" name={ inputId + "_ins" } hidden :value="installation"/>
+			</div>
 		</div>
-		<div
-			class="flex flex-row wrap w-full gap-4"
-			id={ target }
-		></div>
 	}
 }
 
 type Repository struct {
 	Name string
+	ID   int64
 	URL  string
 }
 
 templ RenderRepositories(repositories []Repository) {
 	for _, r := range repositories {
-		<a href="/a/panel" class="px-4 py-2 bg-background2 rounded-lg border-[3px] border-dotted border-transparent transition-colors duration-200 hover:border-accent">{ r.Name }</a>
+		<button
+			type="button"
+			href="/a/panel"
+			class="px-4 py-2 bg-background2 rounded-lg border-2 transition-colors duration-200"
+			:class={ fmt.Sprintf("selected === '%d' ? 'border-accent hover:border-accent' : 'border-transparent hover:border-secondary'", r.ID) }
+			@click={ fmt.Sprintf("selected = '%d'", r.ID) }
+		>{ r.Name }</button>
 	}
 }

@@ -6,6 +6,7 @@ import (
 
 	auth_routes "github.com/Liphium/magic/backend/routes/auth"
 	panel_routes "github.com/Liphium/magic/backend/routes/panel"
+	wizard_routes "github.com/Liphium/magic/backend/routes/wizard"
 	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -28,6 +29,7 @@ func InitializeRoutes(router fiber.Router) {
 
 func unauthorizedRouter(router fiber.Router) {
 	router.Route("/auth", auth_routes.Unauthorized)
+	router.Route("/wizard", wizard_routes.Unauthorized)
 }
 
 func authorizedRouter(router fiber.Router) {

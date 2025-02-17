@@ -17,6 +17,12 @@ import (
 // Route: /a/panel/_forms/repository/installations
 func repoPickerInstallations(c *fiber.Ctx) error {
 
+	// Get the header for the input id
+	inputId := c.Get("M-ID", "-")
+	if inputId == "-" {
+		return form_views.RenderFormError(c, "Something went wrong again. Please try again later.", nil)
+	}
+
 	// Get the user access token for Github
 	acc := c.Locals(constants.LocalsAccountID)
 	var credential database.Credential
@@ -38,13 +44,14 @@ func repoPickerInstallations(c *fiber.Ctx) error {
 	var rendered []form_views.Installation
 	for _, i := range installations {
 		rendered = append(rendered, form_views.Installation{
+			ID:   i.GetID(),
 			Name: i.Account.GetLogin(),
 			URL:  fmt.Sprintf("/a/panel/_forms/repository/gh/%d", i.GetID()),
 		})
 	}
 
 	// Render the chips
-	return views.RenderJust(c, form_views.InstallationChips(rendered))
+	return views.RenderJust(c, form_views.InstallationChips(inputId, rendered))
 }
 
 // Route: /a/panel/forms/repository/gh/:id
@@ -81,11 +88,11 @@ func getGitHubRepositories(c *fiber.Ctx) error {
 	}
 
 	// Parse to output
-	// TODO: Paginate in the future (and maybe add search)
 	var rendered []form_views.Repository
 	for _, r := range repos.Repositories {
 		rendered = append(rendered, form_views.Repository{
 			Name: r.GetName(),
+			ID:   r.GetID(),
 			URL:  r.GetURL(),
 		})
 	}

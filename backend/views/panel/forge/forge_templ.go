@@ -55,7 +55,7 @@ func ForgeListPage(forges []database.Forge) templ.Component {
 			}
 		} else {
 			for _, f := range forges {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex flex-row w-full justify-between p-3 bg-background2 rounded-lg mb-4\"><div class=\"flex flex-col\"><p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary\"><div class=\"flex flex-col\"><p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -85,7 +85,7 @@ func ForgeListPage(forges []database.Forge) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = components.LinkButtonPrimary("Open", templ.SafeURL("/a/panel/forge/"+f.ID.String())).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.LinkButton("Open", templ.SafeURL("/a/panel/forge/"+f.ID.String())).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

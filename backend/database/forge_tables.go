@@ -6,11 +6,18 @@ import (
 	"github.com/google/uuid"
 )
 
+// All provider types
+const (
+	ProviderTypeGitHub = "github"
+)
+
 type Forge struct {
 	ID           uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Installation uuid.UUID `gorm:"type:uuid;index"`
+	Account      uuid.UUID `gorm:"type:uuid;index"`
+	Provider     string    // Type of the provider ("github")
+	Installation string
+	Repository   string // Identifier of the repository
 	Label        string
-	Repository   string    // Identifier of the repository
 	LastViewed   time.Time `gorm:"index"`
 
 	CreatedAt time.Time
