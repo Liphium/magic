@@ -45,7 +45,7 @@ func baseRoute(c *fiber.Ctx) error {
 	for _, f := range forges {
 		recentViews = append(recentViews, panel_views.RecentlyViewed{
 			Label:       f.Label,
-			Description: f.Repository,
+			Description: "Forge building " + f.RepositoryName,
 			URL:         templ.SafeURL("/a/panel/forge/" + f.ID.String()),
 			Time:        f.LastViewed,
 		})

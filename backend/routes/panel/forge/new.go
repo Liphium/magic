@@ -56,7 +56,7 @@ func createNewForge(c *fiber.Ctx) error {
 	}
 
 	// Check if we have access to this repository
-	_, res, err := client.Repositories.GetByID(context.Background(), repoId)
+	repository, res, err := client.Repositories.GetByID(context.Background(), repoId)
 	if err != nil {
 		return views.RenderError(c, form_views.FormSubmitError("Something went wrong with the GitHub API!"), err)
 	}
@@ -78,12 +78,13 @@ func createNewForge(c *fiber.Ctx) error {
 
 	// Create the forge
 	forge := database.Forge{
-		Account:      util.AccountUUID(c),
-		Provider:     provider,
-		Installation: installation,
-		Repository:   repo,
-		Label:        name,
-		LastViewed:   time.Now(),
+		Account:        util.AccountUUID(c),
+		Provider:       provider,
+		Installation:   installation,
+		Repository:     repo,
+		RepositoryName: repository.GetFullName(),
+		Label:          name,
+		LastViewed:     time.Now(),
 	}
 	if err := database.DBConn.Create(&forge).Error; err != nil {
 		return views.RenderError(c, form_views.FormSubmitError("Seems like there was a server error. Please try again later."), err)

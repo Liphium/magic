@@ -18,7 +18,7 @@ func targetsPage(c *fiber.Ctx) error {
 	}
 
 	// Create the page and the sidebar based on the Forge
-	page := panel_views.PanelPage(forge.Label, forge_views.TargetsPage([]database.Target{
+	page := panel_views.PanelPage(forge.Label, forge_views.TargetsPage(forge, []database.Target{
 		{
 			Type:  "Pull Request Target",
 			Value: "Builds the app & deploys to Preview",

@@ -1,0 +1,26 @@
+package components
+
+templ Dialog(button string, buttonStyles string, child templ.Component) {
+	<div x-data="{ isModalOpen: false }" @keydown.escape.window="isModalOpen = false">
+		<button @click="isModalOpen = true" class={ buttonStyles }>
+			{ button }
+		</button>
+		<template x-teleport="body">
+			<div
+				x-show="isModalOpen"
+				x-transition.opacity.duration.250
+				class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
+				@click.self="isModalOpen = false"
+				x-cloak
+			>
+				<div
+					x-show="isModalOpen"
+					x-transition
+					class="flex flex-col gap-4 bg-background2 rounded-lg shadow-lg p-4 max-w-96"
+				>
+					@child
+				</div>
+			</div>
+		</template>
+	</div>
+}

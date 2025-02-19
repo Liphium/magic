@@ -257,14 +257,16 @@ func PanelSidebar() templ.Component {
 					Name: "Forge",
 					Link: "/a/panel/forge",
 				},
-				{
-					Name: "Preview",
-					Link: "/a/panel/preview",
-				},
-				{
-					Name: "Environments",
-					Link: "/a/panel/environments",
-				},
+				/*
+					{
+						Name: "Preview",
+						Link: "/a/panel/preview",
+					},
+					{
+						Name: "Environments",
+						Link: "/a/panel/environments",
+					},
+				*/
 			},
 		},
 		{

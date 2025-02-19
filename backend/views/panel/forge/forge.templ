@@ -18,7 +18,7 @@ templ ForgeListPage(forges []database.Forge) {
 				<div class="flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary">
 					<div class="flex flex-col">
 						<p>{ f.Label }</p>
-						<p class="text-middle-text">{ f.Repository }</p>
+						<p class="text-middle-text">{ f.RepositoryName }</p>
 					</div>
 					@components.LinkButton("Open", templ.SafeURL("/a/panel/forge/"+f.ID.String()))
 				</div>

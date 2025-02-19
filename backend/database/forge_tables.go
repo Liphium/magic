@@ -12,13 +12,14 @@ const (
 )
 
 type Forge struct {
-	ID           uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Account      uuid.UUID `gorm:"type:uuid;index"`
-	Provider     string    // Type of the provider ("github")
-	Installation string
-	Repository   string // Identifier of the repository
-	Label        string
-	LastViewed   time.Time `gorm:"index"`
+	ID             uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Account        uuid.UUID `gorm:"type:uuid;index"`
+	Provider       string    // Type of the provider ("github")
+	Installation   string
+	Repository     string // Identifier of the repository
+	RepositoryName string // Short name of the repository
+	Label          string
+	LastViewed     time.Time `gorm:"index"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

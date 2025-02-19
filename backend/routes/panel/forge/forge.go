@@ -2,6 +2,7 @@ package forge_routes
 
 import (
 	"github.com/Liphium/magic/backend/database"
+	"github.com/Liphium/magic/backend/util"
 	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/Liphium/magic/backend/views"
 	panel_views "github.com/Liphium/magic/backend/views/panel"
@@ -20,6 +21,7 @@ func Authorized(router fiber.Router) {
 
 	// All views when a forge id is present
 	router.Get("/:id", targetsPage)
+	router.Post("/:id/delete", deleteForge)
 }
 
 // Route: /a/panel/forge
@@ -48,11 +50,10 @@ func getBaseInfo(c *fiber.Ctx) (database.Forge, templ.Component, bool) {
 		return database.Forge{}, nil, false
 	}
 
-	// TODO: Get the Forge from the database
-	forge := database.Forge{
-		ID:         id,
-		Label:      "Liphium station",
-		Repository: "https://github.com/Liphium/station",
+	// Get the Forge from the database
+	var forge database.Forge
+	if err := database.DBConn.Where("account = ? AND id = ?", util.AccountUUID(c), id).Take(&forge).Error; err != nil {
+		return database.Forge{}, nil, false
 	}
 
 	// Create the sidebar just to save some repeated code
