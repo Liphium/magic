@@ -34,7 +34,7 @@ func unauthorizedRouter(router fiber.Router) {
 
 func authorizedRouter(router fiber.Router) {
 
-	// Add an auth middleware that parses thw JWT tokens
+	// Add an auth middleware that parses the JWT tokens
 	router.Use(func(c *fiber.Ctx) error {
 
 		// Get the cookie

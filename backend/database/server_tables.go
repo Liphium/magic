@@ -33,8 +33,12 @@ const (
 
 type Job struct {
 	ID     uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Type   string    `gorm:"index"`
-	Target string
+	Type   string    `gorm:"index"` // Type: "build"
+	Target string    // Forge id in case of type "build"
+
+	Claimed bool      `gorm:"index"`
+	Wizard  uuid.UUID `gorm:"index"`
 
 	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time
 }
