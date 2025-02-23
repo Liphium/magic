@@ -92,7 +92,7 @@ func getGitHubRepositories(c *fiber.Ctx) error {
 	for _, r := range repos.Repositories {
 		rendered = append(rendered, form_views.Repository{
 			Name: r.GetName(),
-			ID:   r.GetID(),
+			ID:   r.GetFullName(),
 			URL:  r.GetURL(),
 		})
 	}

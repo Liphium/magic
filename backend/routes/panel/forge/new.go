@@ -3,6 +3,7 @@ package forge_routes
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Liphium/magic/backend/database"
@@ -34,10 +35,12 @@ func createNewForge(c *fiber.Ctx) error {
 	if repo == "-" || repo == "0" || repo == "" {
 		return views.RenderError(c, form_views.FormSubmitError("Please select a repository for the Forge!"), nil)
 	}
-	repoId, err := strconv.ParseInt(repo, 10, 64)
-	if err != nil {
-		return views.RenderError(c, form_views.FormSubmitError("Please select a valid repository for the Forge!"), err)
+	args := strings.Split(repo, "/")
+	if len(args) != 2 {
+		return views.RenderError(c, form_views.FormSubmitError("Please select a valid GitHub repository for the Forge!"), nil)
 	}
+	owner := args[0]
+	repoSlug := args[1]
 
 	// Get the actual installation id
 	installation := c.FormValue("repository_ins", "-")
@@ -56,7 +59,7 @@ func createNewForge(c *fiber.Ctx) error {
 	}
 
 	// Check if we have access to this repository
-	repository, res, err := client.Repositories.GetByID(context.Background(), repoId)
+	repository, res, err := client.Repositories.Get(context.Background(), owner, repoSlug)
 	if err != nil {
 		return views.RenderError(c, form_views.FormSubmitError("Something went wrong with the GitHub API!"), err)
 	}
@@ -81,7 +84,7 @@ func createNewForge(c *fiber.Ctx) error {
 		Account:        util.AccountUUID(c),
 		Provider:       provider,
 		Installation:   installation,
-		Repository:     repo,
+		Repository:     repository.GetFullName(),
 		RepositoryName: repository.GetFullName(),
 		Label:          name,
 		LastViewed:     time.Now(),

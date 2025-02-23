@@ -205,7 +205,7 @@ func InstallationChips(inputId string, installations []Installation) templ.Compo
 
 type Repository struct {
 	Name string
-	ID   int64
+	ID   string
 	URL  string
 }
 
@@ -236,7 +236,7 @@ func RenderRepositories(repositories []Repository) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("selected === '%d' ? 'border-accent hover:border-accent' : 'border-transparent hover:border-secondary'", r.ID))
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("selected === '%s' ? 'border-accent hover:border-accent' : 'border-transparent hover:border-secondary'", r.ID))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/forms/repository.templ`, Line: 64, Col: 134}
 			}
@@ -249,7 +249,7 @@ func RenderRepositories(repositories []Repository) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("selected = '%d'", r.ID))
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("selected = '%s'", r.ID))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/forms/repository.templ`, Line: 65, Col: 48}
 			}

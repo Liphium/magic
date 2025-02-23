@@ -51,7 +51,7 @@ templ InstallationChips(inputId string, installations []Installation) {
 
 type Repository struct {
 	Name string
-	ID   int64
+	ID   string
 	URL  string
 }
 
@@ -61,8 +61,8 @@ templ RenderRepositories(repositories []Repository) {
 			type="button"
 			href="/a/panel"
 			class="px-4 py-2 bg-background2 rounded-lg border-2 transition-colors duration-200"
-			:class={ fmt.Sprintf("selected === '%d' ? 'border-accent hover:border-accent' : 'border-transparent hover:border-secondary'", r.ID) }
-			@click={ fmt.Sprintf("selected = '%d'", r.ID) }
+			:class={ fmt.Sprintf("selected === '%s' ? 'border-accent hover:border-accent' : 'border-transparent hover:border-secondary'", r.ID) }
+			@click={ fmt.Sprintf("selected = '%s'", r.ID) }
 		>{ r.Name }</button>
 	}
 }

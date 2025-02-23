@@ -1,10 +1,12 @@
 package github_utils
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/util/constants"
@@ -55,4 +57,33 @@ func GetInstallationClient(installationId int64) (*github.Client, error) {
 	}
 
 	return github.NewClient(&http.Client{Transport: itr}), nil
+}
+
+type RepositoryIdentifier struct {
+	Owner string
+	Name  string
+}
+
+// Get the repository information and GitHub API client from a Forge.
+func ClientAndRepoFromForge(forge database.Forge) (*github.Client, *RepositoryIdentifier, error) {
+
+	// Parse the installation id
+	installationId, err := strconv.ParseInt(forge.Installation, 10, 64)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Get the client for the installation
+	client, err := GetInstallationClient(installationId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Get the repository identifier
+	args := strings.Split(forge.Repository, "/")
+	if len(args) != 2 {
+		return nil, nil, fmt.Errorf("not a valid repository: %s", forge.Repository)
+	}
+
+	return client, &RepositoryIdentifier{Owner: args[0], Name: args[1]}, nil
 }

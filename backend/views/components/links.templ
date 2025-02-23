@@ -54,3 +54,12 @@ templ LinkButtonPrimaryHTMX(label string, url templ.SafeURL) {
 		hx-push-url="true"
 	>{ label }</a>
 }
+
+templ PostButtonHTMX(label string, target string, swap string, url string) {
+	<button
+		class="bg-background2 text-text py-2 px-4 cursor-pointer h-min text-center align-middle transition-all duration-200 no-underline rounded-lg border-2 border-secondary hover:bg-secondary"
+		hx-post={ url }
+		hx-swap={ swap }
+		hx-target={ target }
+	>{ label }</button>
+}
