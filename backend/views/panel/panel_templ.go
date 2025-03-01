@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import "github.com/Liphium/magic/backend/views/components"
 import "github.com/Liphium/magic/backend/util"
 import "time"
+import "github.com/Liphium/magic/backend/util/constants"
 
 func Base(sidebar templ.Component, child templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -166,7 +167,7 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(util.RandomQuote())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 45, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 46, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -194,7 +195,7 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(recent.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 53, Col: 23}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 54, Col: 23}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -207,7 +208,7 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(recent.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 54, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/panel.templ`, Line: 55, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -235,8 +236,8 @@ func WelcomePage(recentViews []RecentlyViewed) templ.Component {
 	})
 }
 
-func PanelSidebar() templ.Component {
-	return components.Sidebar([]components.SBCategory{
+func PanelSidebar(permissionLevel uint) templ.Component {
+	links := []components.SBCategory{
 		{
 			Name: "Account",
 			Links: []components.SBLink{
@@ -247,6 +248,11 @@ func PanelSidebar() templ.Component {
 				{
 					Name: "Installations",
 					Link: "/a/panel/installations",
+				},
+				{
+					Name:     "Log out",
+					External: true,
+					Link:     "/a/panel/logout",
 				},
 			},
 		},
@@ -269,22 +275,39 @@ func PanelSidebar() templ.Component {
 				*/
 			},
 		},
-		{
-			Name: "Legal documents",
+	}
+
+	// Append admin stuff in case needed
+	if permissionLevel >= constants.PermissionAdmin {
+		links = append(links, components.SBCategory{
+			Name: "Admin Area",
 			Links: []components.SBLink{
 				{
-					Name:     "Terms of Service",
-					Link:     "https://liphium.com/legal/terms",
-					External: true,
+					Name: "Wizards",
+					Link: "/a/panel/admin/wizards",
 				},
-				{
-					Name:     "Privacy Policy",
-					Link:     "https://liphium.com/legal/terms",
-					External: true,
-				},
+			},
+		})
+	}
+
+	// Append legal documents
+	links = append(links, components.SBCategory{
+		Name: "Legal documents",
+		Links: []components.SBLink{
+			{
+				Name:     "Terms of Service",
+				Link:     "https://liphium.com/legal/terms",
+				External: true,
+			},
+			{
+				Name:     "Privacy Policy",
+				Link:     "https://liphium.com/legal/terms",
+				External: true,
 			},
 		},
 	})
+
+	return components.Sidebar(links)
 }
 
 var _ = templruntime.GeneratedTemplate

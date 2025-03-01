@@ -1,0 +1,21 @@
+package components
+
+import "github.com/Liphium/magic/backend/util"
+
+script copyToClipboard(value string, button string) {
+    navigator.clipboard.writeText(value).then(function() {
+        const element = document.querySelector("#" + button)
+        var originalText = element.innerHTML;
+        element.innerHTML = "Copied!";
+        setTimeout(function() {
+            element.innerHTML = originalText;
+        }, 2000);
+    });
+}
+
+templ CopyButton(label string, value string, styles string) {
+	{{ randomId := util.GenerateToken(20) }}
+	<button id={ randomId } class={ styles } onclick={ copyToClipboard(value, randomId) }>
+		{ label }
+	</button>
+}

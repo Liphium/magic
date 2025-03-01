@@ -9,7 +9,9 @@ const (
 	LocalsWizard          = "wiz"
 
 	// Name for cookies used by Magic
-
 	CookieMagicSession  = "mgc:session"
-	CookieGitHubSession = "gh:session"
+	CookieGitHubSession = "mgc:gh:session"
+
+	// All permissions and their levels
+	PermissionAdmin uint = 100
 )

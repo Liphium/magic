@@ -37,7 +37,7 @@ func baseRoute(c *fiber.Ctx) error {
 	// Render all the forges
 	forgePage := forge_views.ForgeListPage(forges)
 	panelPage := panel_views.PanelPage("Magic Forge", forgePage)
-	sidebar := panel_views.PanelSidebar()
+	sidebar := panel_views.PanelSidebar(c.Locals(constants.LocalsPermissionLevel).(uint))
 
 	return views.RenderHTMX(c, panel_views.Base(sidebar, panelPage), panelPage)
 }

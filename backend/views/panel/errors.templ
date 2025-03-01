@@ -1,6 +1,7 @@
 package panel_views
 
 import (
+	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/Liphium/magic/backend/views"
 	"github.com/gofiber/fiber/v2"
 	"log"
@@ -15,7 +16,7 @@ func RenderPanelError(c *fiber.Ctx, message string, err error) error {
 
 	errPage := PanelPage("Ooops..", errorMessage(message))
 
-	return views.RenderHTMX(c, Base(PanelSidebar(), errPage), errPage)
+	return views.RenderHTMX(c, Base(PanelSidebar(c.Locals(constants.LocalsPermissionLevel).(uint)), errPage), errPage)
 }
 
 templ errorMessage(message string) {

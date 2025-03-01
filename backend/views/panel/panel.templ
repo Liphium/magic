@@ -3,6 +3,7 @@ package panel_views
 import "github.com/Liphium/magic/backend/views/components"
 import "github.com/Liphium/magic/backend/util"
 import "time"
+import "github.com/Liphium/magic/backend/util/constants"
 
 templ Base(sidebar templ.Component, child templ.Component) {
 	<div class="flex justify-center w-screen">
@@ -60,8 +61,8 @@ templ WelcomePage(recentViews []RecentlyViewed) {
 	</div>
 }
 
-func PanelSidebar() templ.Component {
-	return components.Sidebar([]components.SBCategory{
+func PanelSidebar(permissionLevel uint) templ.Component {
+	links := []components.SBCategory{
 		{
 			Name: "Account",
 			Links: []components.SBLink{
@@ -72,6 +73,11 @@ func PanelSidebar() templ.Component {
 				{
 					Name: "Installations",
 					Link: "/a/panel/installations",
+				},
+				{
+					Name:     "Log out",
+					External: true,
+					Link:     "/a/panel/logout",
 				},
 			},
 		},
@@ -94,20 +100,37 @@ func PanelSidebar() templ.Component {
 				*/
 			},
 		},
-		{
-			Name: "Legal documents",
+	}
+
+	// Append admin stuff in case needed
+	if permissionLevel >= constants.PermissionAdmin {
+		links = append(links, components.SBCategory{
+			Name: "Admin Area",
 			Links: []components.SBLink{
 				{
-					Name:     "Terms of Service",
-					Link:     "https://liphium.com/legal/terms",
-					External: true,
+					Name: "Wizards",
+					Link: "/a/panel/admin/wizards",
 				},
-				{
-					Name:     "Privacy Policy",
-					Link:     "https://liphium.com/legal/terms",
-					External: true,
-				},
+			},
+		})
+	}
+
+	// Append legal documents
+	links = append(links, components.SBCategory{
+		Name: "Legal documents",
+		Links: []components.SBLink{
+			{
+				Name:     "Terms of Service",
+				Link:     "https://liphium.com/legal/terms",
+				External: true,
+			},
+			{
+				Name:     "Privacy Policy",
+				Link:     "https://liphium.com/legal/terms",
+				External: true,
 			},
 		},
 	})
+
+	return components.Sidebar(links)
 }

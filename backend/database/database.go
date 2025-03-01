@@ -61,6 +61,7 @@ func Connect() {
 
 		// All tables that Wizard needs to deploy new jobs
 		&Wizard{},
+		&WizardCreationToken{},
 		&Job{},
 	); err != nil {
 		logger.Fatal("Something went wrong during the migration.", err)

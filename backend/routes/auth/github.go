@@ -141,7 +141,10 @@ func githubAuthCallback(c *fiber.Ctx) error {
 	}
 
 	// Clear the github cookie
-	c.ClearCookie(constants.CookieGitHubSession)
+	c.Cookie(&fiber.Cookie{
+		Name:  constants.CookieGitHubSession,
+		Value: "",
+	})
 
 	// Create a new JWT and add it as a cookie
 	token, err := util.SessionToken(account.ID, account.Username, rank.PermissionLevel)

@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/Liphium/magic/backend/views"
 	"github.com/gofiber/fiber/v2"
 	"log"
@@ -23,7 +24,7 @@ func RenderPanelError(c *fiber.Ctx, message string, err error) error {
 
 	errPage := PanelPage("Ooops..", errorMessage(message))
 
-	return views.RenderHTMX(c, Base(PanelSidebar(), errPage), errPage)
+	return views.RenderHTMX(c, Base(PanelSidebar(c.Locals(constants.LocalsPermissionLevel).(uint)), errPage), errPage)
 }
 
 func errorMessage(message string) templ.Component {
@@ -54,7 +55,7 @@ func errorMessage(message string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/errors.templ`, Line: 22, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/errors.templ`, Line: 23, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {

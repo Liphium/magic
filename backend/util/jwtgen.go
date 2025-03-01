@@ -39,3 +39,21 @@ func SessionToken(account uuid.UUID, name string, permLevel uint) (string, error
 
 	return tokenString, nil
 }
+
+// Generate a session token for an account
+func WizardCreationToken() (string, error) {
+
+	// Create jwt token
+	tk := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 10)),
+	})
+
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := tk.SignedString([]byte(os.Getenv("MAGIC_JWT_SECRET")))
+
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}

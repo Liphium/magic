@@ -3,6 +3,7 @@ package panel_routes
 import (
 	"context"
 
+	"github.com/Liphium/magic/backend/util/constants"
 	github_utils "github.com/Liphium/magic/backend/util/github"
 	"github.com/Liphium/magic/backend/views"
 	panel_views "github.com/Liphium/magic/backend/views/panel"
@@ -43,7 +44,7 @@ func installationListPage(c *fiber.Ctx) error {
 
 	// Render all the content
 	installationPage := panel_views.InstallationPage(rendered)
-	sidebar := panel_views.PanelSidebar()
+	sidebar := panel_views.PanelSidebar(c.Locals(constants.LocalsPermissionLevel).(uint))
 	page := panel_views.PanelPage("Installations", installationPage)
 
 	return views.RenderHTMX(c, panel_views.Base(sidebar, page), page)

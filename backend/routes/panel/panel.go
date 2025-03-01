@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/Liphium/magic/backend/database"
+	admin_panel_routes "github.com/Liphium/magic/backend/routes/panel/admin"
 	forge_routes "github.com/Liphium/magic/backend/routes/panel/forge"
 	form_routes "github.com/Liphium/magic/backend/routes/panel/forms"
 	preview_routes "github.com/Liphium/magic/backend/routes/panel/preview"
@@ -20,7 +21,9 @@ import (
 func Authorized(router fiber.Router) {
 	router.Get("/", baseRoute)
 	router.Get("/installations", installationListPage)
+	router.Get("/logout", logout)
 
+	router.Route("/admin", admin_panel_routes.Authorized)
 	router.Route("/_forms", form_routes.Authorized)
 	router.Route("/forge", forge_routes.Authorized)
 	router.Route("/preview", preview_routes.Authorized)
@@ -67,7 +70,7 @@ func baseRoute(c *fiber.Ctx) error {
 	// Generate the html required for this
 	welcome := panel_views.WelcomePage(recentViews)
 	panelPage := panel_views.PanelPage(fmt.Sprintf("Welcome, %s!", c.Locals(constants.LocalsAccountName)), welcome)
-	sidebar := panel_views.PanelSidebar()
+	sidebar := panel_views.PanelSidebar(c.Locals(constants.LocalsPermissionLevel).(uint))
 
 	return views.RenderHTMX(c, panel_views.Base(sidebar, panelPage), panelPage)
 }

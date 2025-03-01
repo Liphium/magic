@@ -1,0 +1,28 @@
+package admin_panel_views
+
+import "github.com/Liphium/magic/backend/views/components"
+import "github.com/Liphium/magic/backend/database"
+
+templ WizardListPage(creationToken string, wizards []database.Wizard) {
+	<div class="flex flex-col gap-4 justify-start items-start">
+		// A basic explanation to fill out the space
+		<div class="flex flex-row w-full justify-between">
+			<p class="text-middle-text">All workers running Wizard.</p>
+			@components.CopyButton("Copy Creation Token", creationToken, components.PanelCallToActionStyles)
+		</div>
+		if len(wizards) == 0 {
+			<p class="text-text">There aren't any wizards yet. Add some for Magic to work.</p>
+			@components.CopyButton("Copy Creation Token", creationToken, components.PrimaryButtonStyles)
+		} else {
+			for _, w := range wizards {
+				<div class="flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary">
+					<div class="flex flex-col">
+						<p>{ w.Domain }</p>
+						<p class="text-middle-text">Status: { w.StatusText() }</p>
+					</div>
+					@components.LinkButton("Do something", templ.SafeURL("/a/panel/admin/wizards/"+w.ID.String()))
+				</div>
+			}
+		}
+	</div>
+}

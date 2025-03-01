@@ -8,6 +8,7 @@ import (
 
 	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/util"
+	"github.com/Liphium/magic/backend/util/constants"
 	github_utils "github.com/Liphium/magic/backend/util/github"
 	"github.com/Liphium/magic/backend/views"
 	form_views "github.com/Liphium/magic/backend/views/forms"
@@ -22,7 +23,7 @@ func newForgePage(c *fiber.Ctx) error {
 	// Render all the forges
 	stepPage := forge_views.NewForgeStep1()
 	panelPage := panel_views.PanelPageBase(stepPage)
-	sidebar := panel_views.PanelSidebar()
+	sidebar := panel_views.PanelSidebar(c.Locals(constants.LocalsPermissionLevel).(uint))
 
 	return views.RenderHTMX(c, panel_views.Base(sidebar, panelPage), panelPage)
 }
