@@ -8,8 +8,14 @@ import (
 
 func Unauthorized(router fiber.Router) {
 
+	router.Route("/api/wizard", wizardUnauthorized)
+
 	// All the routes that wizard uses to interact with Magic
-	router.Route("/api", wizardAPI)
+	router.Route("/api/wizard/a/", wizardAPI)
+}
+
+func wizardUnauthorized(router fiber.Router) {
+
 }
 
 func wizardAPI(router fiber.Router) {
