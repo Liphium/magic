@@ -29,7 +29,7 @@ func InitializeRoutes(router fiber.Router) {
 
 func unauthorizedRouter(router fiber.Router) {
 	router.Route("/auth", auth_routes.Unauthorized)
-	router.Route("/wizard", wizard_routes.Unauthorized)
+	router.Route("/api/wizard", wizard_routes.Unauthorized)
 }
 
 func authorizedRouter(router fiber.Router) {
