@@ -1,8 +1,10 @@
 package components
 
 type SBCategory struct {
-	Name  string
-	Links []SBLink
+	Name     string
+	Link     templ.SafeURL
+	External bool
+	Links    []SBLink
 }
 
 type SBLink struct {
@@ -28,36 +30,58 @@ templ Sidebar(categories []SBCategory) {
 		</script>
 		<div class="flex flex-col min-w-64 max-w-80 mt-4 top-8 bg-background2 px-8 py-6 sticky border-[3px] border-dashed border-accent">
 			for i, category := range categories {
-				if i == 0 {
-					<h3 class="text-[100%] font-bold mt-0 mb-2">{ category.Name }</h3>
-				} else {
-					<h3 class="text-[100%] font-bold mt-4 mb-2">{ category.Name }</h3>
-				}
-				<div class="flex flex-col">
-					for i, link := range category.Links {
-						{{ extraClasses := "mb-[0.4em]" }}
-						if i == len(category.Links)-1 {
-							{{ extraClasses = "" }}
-						}
-						if link.External {
-							<a
-								href={ link.Link }
-								class={ "text-[90%] text-middle-text no-underline hover:text-accent " + extraClasses }
-							>{ link.Name }</a>
-						} else {
-							<a
-								x-data
-								href={ link.Link }
-								class={ "text-[90%] hover:text-accent " + extraClasses }
-								hx-get={ string(link.Link) }
-								hx-target="#panel-content"
-								hx-swap="outerHTML"
-								hx-push-url="true"
-								:class={ "$store.path.value === '" + string(link.Link) + "' ? 'underline text-accent' : 'no-underline text-middle-text'" }
-							>{ link.Name }</a>
-						}
+				if category.Link != "" {
+					<!-- In case the category is a link -->
+					if category.External {
+						<a
+							href={ category.Link }
+							class={ "text-[90%] text-middle-text no-underline hover:text-accent" }
+						>{ category.Name }</a>
+					} else {
+						<a
+							x-data
+							href={ category.Link }
+							class={ "text-[90%] hover:text-accent" }
+							hx-get={ string(category.Link) }
+							hx-target="#panel-content"
+							hx-swap="outerHTML"
+							hx-push-url="true"
+							:class={ "$store.path.value === '" + string(category.Link) + "' ? 'underline text-accent' : 'no-underline text-middle-text'" }
+						>{ category.Name }</a>
 					}
-				</div>
+				} else {
+					<!-- In case the category is not a link -->
+					if i == 0 {
+						<h3 class="text-[100%] font-bold mt-0 mb-2">{ category.Name }</h3>
+					} else {
+						<h3 class="text-[100%] font-bold mt-4 mb-2">{ category.Name }</h3>
+					}
+					<div class="flex flex-col">
+						for i, link := range category.Links {
+							{{ extraClasses := "mb-[0.4em]" }}
+							if i == len(category.Links)-1 {
+								{{ extraClasses = "" }}
+							}
+							if link.External {
+								<a
+									href={ link.Link }
+									class={ "text-[90%] text-middle-text no-underline hover:text-accent " + extraClasses }
+								>{ link.Name }</a>
+							} else {
+								<a
+									x-data
+									href={ link.Link }
+									class={ "text-[90%] hover:text-accent " + extraClasses }
+									hx-get={ string(link.Link) }
+									hx-target="#panel-content"
+									hx-swap="outerHTML"
+									hx-push-url="true"
+									:class={ "$store.path.value === '" + string(link.Link) + "' ? 'underline text-accent' : 'no-underline text-middle-text'" }
+								>{ link.Name }</a>
+							}
+						}
+					</div>
+				}
 			}
 		</div>
 	</div>

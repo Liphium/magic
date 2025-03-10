@@ -106,6 +106,11 @@ func ForgeListPage(forges []database.Forge) templ.Component {
 func ForgeSidebar(forge database.Forge) templ.Component {
 	return components.Sidebar([]components.SBCategory{
 		{
+			Name:     "Back to Magic",
+			Link:     templ.SafeURL("/a/panel/forge"),
+			External: true,
+		},
+		{
 			Name: forge.Label,
 			Links: []components.SBLink{
 				{
@@ -119,24 +124,7 @@ func ForgeSidebar(forge database.Forge) templ.Component {
 			},
 		},
 		{
-			Name: "Preview",
-			Links: []components.SBLink{
-				{
-					Name: "Configuration",
-					Link: templ.SafeURL("/a/panel/forge/" + forge.ID.String() + "/preview/configuration"),
-				},
-				{
-					Name: "Secrets",
-					Link: templ.SafeURL("/a/panel/forge/" + forge.ID.String() + "/preview/secrets"),
-				},
-				{
-					Name: "Environments",
-					Link: templ.SafeURL("/a/panel/forge/" + forge.ID.String() + "/preview/environments"),
-				},
-			},
-		},
-		{
-			Name: "Legal documents",
+			Name: "About Magic",
 			Links: []components.SBLink{
 				{
 					Name: "Terms of Service",

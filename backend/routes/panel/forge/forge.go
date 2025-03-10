@@ -21,7 +21,12 @@ func Authorized(router fiber.Router) {
 
 	// All views when a forge id is present
 	router.Get("/:id", targetsPage)
-	router.Post("/:id/build/:branch", buildBranch)
+	router.Get("/:id/builds", buildListPage)
+	router.Get("/:id/builds/new", newBuildPage)
+	router.Post("/:id/builds/new/:branch", newBuildRequest)
+	router.Get("/:id/builds/:build", showBuildPage)
+	router.Get("/:id/builds/:build/progress", pullBuildProgress)
+	router.Post("/:id/builds/:build/cancel", cancelBuild)
 	router.Post("/:id/delete", deleteForge)
 }
 

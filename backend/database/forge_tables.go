@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,11 +26,16 @@ type Forge struct {
 	UpdatedAt time.Time
 }
 
+// Get the value for a build source with a branch name.
+func BuildSourceBranch(name string) string {
+	return fmt.Sprintf("branch:%s", name)
+}
+
 type Build struct {
-	ID     uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Forge  uuid.UUID `gorm:"type:uuid;index"`
-	Target uuid.UUID `gorm:"type:uuid;index"`
-	Value  string
+	ID          uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Forge       uuid.UUID `gorm:"type:uuid;index"`
+	DisplayName string
+	Source      string // Thing being built, for example: branch:main
 
 	CreatedAt time.Time
 }

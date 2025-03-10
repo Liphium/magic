@@ -28,7 +28,7 @@ type Action struct {
 	Progress float32 // From 0 to 1
 }
 
-type CloudIntegration interface {
+type CloudProvider interface {
 
 	// Returns the name of the cloud provider
 	name() string

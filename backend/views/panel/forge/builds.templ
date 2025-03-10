@@ -1,0 +1,128 @@
+package forge_views
+
+import (
+	"github.com/Liphium/magic/backend/database"
+	"github.com/Liphium/magic/backend/views/components"
+)
+
+templ BuildsListPage(forge database.Forge, builds []database.Build) {
+	<div class="flex flex-col justify-start items-start gap-4">
+		<div class="flex flex-row justify-between w-full">
+			<p class="text-middle-text">Only the last 15 builds will be stored.</p>
+			@components.PanelCallToAction("Build a branch", templ.SafeURL("/a/panel/forge/"+forge.ID.String()+"/builds/new"))
+		</div>
+		if len(builds) == 0 {
+			<p class="text-text">No builds found. Press the button in the top right to start one.</p>
+		} else {
+			for _, b := range builds {
+				<div class="flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary">
+					<div class="flex flex-col">
+						<p>{ b.DisplayName }</p>
+						<p class="text-middle-text">Created at { b.CreatedAt.String() }</p>
+					</div>
+					@components.LinkButtonHTMX("View", templ.SafeURL("/a/panel/forge/"+forge.ID.String()+"/builds/"+b.ID.String()))
+				</div>
+			}
+		}
+	</div>
+}
+
+type Branch struct {
+	Name   string
+	Commit string
+}
+
+templ BranchPageMessage(err bool, message string) {
+	<div id="branch-error" class="mb-4">
+		if err {
+			<p class="text-accent animate-pulse">{ message }</p>
+		} else {
+			<p>{ message }</p>
+		}
+	</div>
+}
+
+templ NewBuildPage(forge database.Forge, branches []Branch) {
+	<div class="flex flex-col justify-start items-start">
+		<p class="text-middle-text mb-4">Select a branch to build an image from.</p>
+		<div id="branch-error"></div>
+		if len(branches) == 0 {
+			<p class="text-text mb-4">There are no branches in this repository. Please make sure the repository has content before creating a Forge for it.</p>
+		} else {
+			for _, b := range branches {
+				<div class="flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary mb-4">
+					<div class="flex flex-col">
+						<p>{ b.Name }</p>
+						<p class="text-middle-text">Commit { b.Commit }</p>
+					</div>
+					@components.Dialog("Build", components.SecondaryButtonStyles, buildBranchDialog(forge, b))
+				</div>
+			}
+		}
+		<div class="mb-4"></div>
+	</div>
+}
+
+templ buildBranchDialog(forge database.Forge, branch Branch) {
+	<p>Do you really want to build this branch?</p>
+	<div class="flex flex-row justify-between">
+		<button @click="isModalOpen = false" class={ components.SecondaryButtonStyles }>
+			Cancel
+		</button>
+		<button
+			id={ "branch-build-" + branch.Name }
+			hx-post={ "/a/panel/forge/" + forge.ID.String() + "/builds/new/" + branch.Name }
+			hx-target="#branch-error"
+			hx-swap="outerHTML"
+			class={ components.PrimaryButtonStyles }
+			x-init={ "document.querySelector('#branch-build-" + branch.Name + "').addEventListener('htmx:afterRequest', (e) => isModalOpen = false)" }
+		>
+			Build
+		</button>
+	</div>
+}
+
+templ BuildViewPage(forge database.Forge, build database.Build) {
+	<div class="flex flex-col justify-start items-start">
+		// A basic explanation to fill out the space
+		<div id="build-cancel-target"></div>
+		<div class="flex flex-row w-full justify-between mb-4">
+			<p class="text-middle-text">{ build.DisplayName }</p>
+			@components.Dialog("Cancel build", components.PanelCallToActionStyles, buildCancelDialog(forge, build))
+		</div>
+		<div hx-ext="sse" sse-connect={ "/a/panel/forge/" + forge.ID.String() + "/builds/" + build.ID.String() + "/progress" } sse-close="end">
+			<div sse-swap="end">
+				<p class="animate-pulse" sse-swap="progress"></p>
+			</div>
+		</div>
+	</div>
+}
+
+templ BuildViewCancelMessage(err bool, message string) {
+	<div id="build-cancel-target" class="mb-4">
+		if err {
+			<p class="text-accent animate-pulse">{ message }</p>
+		} else {
+			<p>{ message }</p>
+		}
+	</div>
+}
+
+templ buildCancelDialog(forge database.Forge, build database.Build) {
+	<p>Do you really want to cancel this build?</p>
+	<div class="flex flex-row justify-between">
+		<button @click="isModalOpen = false" class={ components.SecondaryButtonStyles }>
+			No
+		</button>
+		<button
+			id="build-cancel"
+			hx-post={ "/a/panel/forge/" + forge.ID.String() + "/builds/" + build.ID.String() + "/cancel" }
+			hx-target="#build-cancel-target"
+			hx-swap="outerHTML"
+			class={ components.PrimaryButtonStyles }
+			x-init="document.querySelector('#build-cancel').addEventListener('htmx:afterRequest', (e) => isModalOpen = false)"
+		>
+			Yes
+		</button>
+	</div>
+}

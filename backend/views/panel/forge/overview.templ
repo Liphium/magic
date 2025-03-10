@@ -3,42 +3,15 @@ package forge_views
 import "github.com/Liphium/magic/backend/database"
 import "github.com/Liphium/magic/backend/views/components"
 
-type Branch struct {
-	Name   string
-	Commit string
-}
-
-templ BranchPageMessage(err bool, message string) {
-	<div id="branch-error" class="mb-4">
-		if err {
-			<p class="text-accent animate-pulse">{ message }</p>
-		} else {
-			<p>{ message }</p>
-		}
-	</div>
-}
-
-templ TargetsPage(forge database.Forge, branches []Branch) {
+templ TargetsPage(forge database.Forge) {
 	<div class="flex flex-col justify-start items-start">
-		<p class="text-middle-text mb-4">Welcome to this Forge! Click on a branch below to let Forge build it for you.</p>
-		<div id="branch-error"></div>
-		if len(branches) == 0 {
-			<p class="text-text mb-4">There are no branches in this repository. Please make sure the repository has content before creating a Forge for it.</p>
-		} else {
-			for _, b := range branches {
-				<div class="flex flex-row w-full items-center justify-between px-4 py-3 bg-background2 rounded-xl border-2 border-secondary mb-4">
-					<div class="flex flex-col">
-						<p>{ b.Name }</p>
-						<p class="text-middle-text">Commit { b.Commit }</p>
-					</div>
-					@components.PostButtonHTMX("Build", "#branch-error", "outerHTML", "/a/panel/forge/"+forge.ID.String()+"/build/"+b.Name)
-				</div>
-			}
-		}
-		<div class="mb-4"></div>
-		<p class="text-middle-text mb-4">Deleting this Forge means all builds, assets and more related to this Forge will be deleted.</p>
 		<div id="forge-delete-target"></div>
-		@components.Dialog("Delete Forge", components.PrimaryButtonStyles, deleteDialog(forge))
+		<div class="flex flex-row justify-between w-full mb-4">
+			<p class="text-middle-text">Forge building { forge.RepositoryName }.</p>
+			@components.Dialog("Delete Forge", components.PanelCallToActionStyles, deleteDialog(forge))
+		</div>
+		<p class="mb-4">I have no idea what to put here yet, so for now it's just gonna be empty.</p>
+		<div class="mb-4"></div>
 	</div>
 }
 
@@ -53,7 +26,7 @@ templ FormDeleteMessage(err bool, message string) {
 }
 
 templ deleteDialog(forge database.Forge) {
-	<p>Do you really want to delete this Forge?</p>
+	<p>Deleting this Forge means all builds, assets and more related to this Forge will be deleted.</p>
 	<div class="flex flex-row justify-between">
 		<button @click="isModalOpen = false" class={ components.SecondaryButtonStyles }>
 			Cancel
