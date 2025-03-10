@@ -1,6 +1,7 @@
 package views
 
 import (
+	"bytes"
 	"context"
 	"log"
 	"os"
@@ -58,4 +59,14 @@ func RenderHTMX(c *fiber.Ctx, full templ.Component, page templ.Component) error 
 	}
 
 	return RenderWithBase(c, full)
+}
+
+// Render a templ component to a string
+func RenderToString(component templ.Component) (string, error) {
+	var buf bytes.Buffer
+	err := component.Render(context.Background(), &buf)
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }

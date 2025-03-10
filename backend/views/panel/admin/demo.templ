@@ -1,0 +1,15 @@
+package admin_panel_views
+
+templ DemoPage() {
+	<div class="flex flex-col gap-4 justify-start items-start">
+		// A basic explanation to fill out the space
+		<div class="flex flex-row w-full justify-between">
+			<p class="text-middle-text">A few demos that I've just been working on.</p>
+		</div>
+		<div hx-ext="sse" sse-connect="/a/panel/admin/demo/progress" sse-close="end">
+			<div sse-swap="end">
+				<p class="animate-pulse" sse-swap="progress"></p>
+			</div>
+		</div>
+	</div>
+}

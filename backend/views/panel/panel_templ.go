@@ -257,7 +257,7 @@ func PanelSidebar(permissionLevel uint) templ.Component {
 			},
 		},
 		{
-			Name: "Forge & Preview",
+			Name: "Services",
 			Links: []components.SBLink{
 				{
 					Name: "Forge",
@@ -285,6 +285,10 @@ func PanelSidebar(permissionLevel uint) templ.Component {
 				{
 					Name: "Wizards",
 					Link: "/a/panel/admin/wizards",
+				},
+				{
+					Name: "Demo",
+					Link: "/a/panel/admin/demo",
 				},
 			},
 		})

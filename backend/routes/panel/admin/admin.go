@@ -20,4 +20,6 @@ func Authorized(router fiber.Router) {
 	})
 
 	router.Get("/wizards", wizardListPage)
+	router.Get("/demo", demoRoute)
+	router.Get("/demo/progress", demoProgress)
 }

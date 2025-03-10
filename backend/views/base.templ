@@ -11,10 +11,11 @@ templ Base(child templ.Component) {
 			<link rel="stylesheet" href="/static/styles/material-symbols.css"/>
 			<link rel="stylesheet" href="/static/styles/tailwind.css"/>
 			<script src="/static/scripts/htmx.js"></script>
+			<script src="/static/scripts/htmx-sse.js"></script>
 			<script src="/static/scripts/alpine.js" defer></script>
 			<title>Liphium Magic</title>
 		</head>
-		<body>
+		<body hx-ext="sse">
 			@child
 		</body>
 		<style>
