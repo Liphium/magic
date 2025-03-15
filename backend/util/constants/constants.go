@@ -7,6 +7,7 @@ const (
 	LocalsAccountName     = "ses:name"
 	LocalsPermissionLevel = "ses:plvl"
 	LocalsWizard          = "wiz"
+	LocalsForgeBuild      = "fg:build"
 
 	// Name for cookies used by Magic
 	CookieMagicSession  = "mgc:session"

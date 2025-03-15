@@ -2,8 +2,10 @@ package forge_routes
 
 import (
 	"context"
+	"log"
 
 	"github.com/Liphium/magic/backend/database"
+	"github.com/Liphium/magic/backend/util"
 	github_utils "github.com/Liphium/magic/backend/util/github"
 	"github.com/Liphium/magic/backend/views"
 	panel_views "github.com/Liphium/magic/backend/views/panel"
@@ -22,7 +24,7 @@ func newBuildPage(c *fiber.Ctx) error {
 	}
 
 	// Get the repository and github client for the Forge
-	client, repo, err := github_utils.ClientAndRepoFromForge(forge)
+	client, repo, _, err := github_utils.ClientAndRepoFromForge(forge)
 	if err != nil {
 		return c.Redirect("/a/panel/forge", fiber.StatusTemporaryRedirect)
 	}
@@ -68,7 +70,7 @@ func newBuildRequest(c *fiber.Ctx) error {
 	}
 
 	// Get the repository and github client for the Forge
-	client, repo, err := github_utils.ClientAndRepoFromForge(forge)
+	client, repo, _, err := github_utils.ClientAndRepoFromForge(forge)
 	if err != nil {
 		return views.RenderError(c, forge_views.BranchPageMessage(true, "Couldn't interact with GitHub."), err)
 	}
@@ -89,14 +91,21 @@ func newBuildRequest(c *fiber.Ctx) error {
 	}
 
 	// Create a new build
+	spellcastToken := util.GenerateToken(50)
 	build := database.Build{
-		Forge:       forge.ID,
-		DisplayName: branch.Commit.Commit.GetMessage(),
-		Source:      database.BuildSourceBranch(branch.GetName()),
+		Forge:          forge.ID,
+		DisplayName:    branch.Commit.Commit.GetMessage(),
+		Branch:         branch.GetName(),
+		Commit:         branch.Commit.GetSHA(),
+		SpellcastToken: spellcastToken,
+		Status:         database.BuildStatusStarting,
 	}
 	if err := database.DBConn.Create(&build).Error; err != nil {
 		return views.RenderError(c, forge_views.BranchPageMessage(true, "Something went wrong during creation."), err)
 	}
+
+	// TODO: Start server here
+	log.Println("Spellcast token created:", spellcastToken)
 
 	// Redirect to the page of the build
 	c.Set("HX-Redirect", "/a/panel/forge/"+forge.ID.String()+"/builds/"+build.ID.String())

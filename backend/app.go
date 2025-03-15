@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Liphium/magic/backend/cloud"
 	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/routes"
 	"github.com/gofiber/fiber/v2"
@@ -36,6 +37,9 @@ func main() {
 
 	// Connect to the database and initialize
 	database.Connect()
+
+	// Initialize cloud integrations
+	cloud.Initialize()
 
 	// Start fiber
 	app := setupApp()

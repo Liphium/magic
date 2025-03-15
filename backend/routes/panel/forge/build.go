@@ -1,13 +1,13 @@
 package forge_routes
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/util"
 	"github.com/Liphium/magic/backend/views"
-	"github.com/Liphium/magic/backend/views/components"
+	form_views "github.com/Liphium/magic/backend/views/forms"
 	panel_views "github.com/Liphium/magic/backend/views/panel"
 	forge_views "github.com/Liphium/magic/backend/views/panel/forge"
 	"github.com/gofiber/fiber/v2"
@@ -40,31 +40,76 @@ func showBuildPage(c *fiber.Ctx) error {
 // Route: /a/panel/forge/builds/:id/builds/:build/progress
 func pullBuildProgress(c *fiber.Ctx) error {
 
+	// Get the base info for later
+	forge, _, valid := getBaseInfo(c)
+	if !valid {
+		c.Set("HX-Redirect", "/a/panel/forge/")
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	// Get the build
+	buildId := c.Params("build", "")
+	if buildId == "" {
+		c.Set("HX-Redirect", "/a/panel/forge/")
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	var build database.Build
+	if err := database.DBConn.Where("forge = ? AND id = ?", forge.ID.String(), buildId).Take(&build).Error; err != nil {
+		c.Set("HX-Redirect", "/a/panel/forge/")
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
 	// Start sending random events
 	return util.StartEvents(c, func(w *util.EventWriter) {
-		n := 0
 		for {
-			if n == 100 {
-
-				// Render an error
-				rendered, err := views.RenderToString(components.ErrorText("Something went wrong on the server."))
+			// Get the current status of the build
+			if err := database.DBConn.Where("forge = ? AND id = ?", forge.ID.String(), buildId).Take(&build).Error; err != nil {
+				str, err := views.RenderToString(form_views.FormSubmitError("Something went wrong during the build process."))
 				if err != nil {
+					log.Println("error during rendering:", err)
 					break
 				}
 
-				if err := w.SendEvent("end", rendered); err != nil {
+				w.SendEvent("end", str)
+				break
+			}
+
+			endSending := false
+			switch build.Status {
+			case database.BuildStatusStarting:
+				w.SendEvent("progress", "Starting server..")
+			case database.BuildStatusStarted:
+				w.SendEvent("progress", "Building image..")
+
+			case database.BuildStatusError:
+
+				// Send an error in case the build failed
+				endSending = true
+				str, err := views.RenderToString(form_views.FormSubmitError("Something went wrong during the build process."))
+				if err != nil {
+					log.Println("error during rendering:", err)
 					break
 				}
 
+				w.SendEvent("end", str)
+			case database.BuildStatusFinished:
+
+				// Send a success message in case the build succeeded
+				endSending = true
+				str, err := views.RenderToString(form_views.FormSubmitSuccess("Build finished successfully."))
+				if err != nil {
+					log.Println("error during rendering:", err)
+					break
+				}
+
+				w.SendEvent("end", str)
+			}
+
+			if endSending {
 				break
 			}
 
-			if err := w.SendEvent("progress", fmt.Sprintf("Starting server.. (%d/100)", n)); err != nil {
-				break
-			}
-			n++
-
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(700 * time.Millisecond)
 		}
 	})
 }

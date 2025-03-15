@@ -1,6 +1,7 @@
 package github_utils
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -48,15 +49,21 @@ func GetUserFromContext(c *fiber.Ctx) (*github.Client, error) {
 }
 
 // Get a GitHub client for an installation using the private key.
-func GetInstallationClient(installationId int64) (*github.Client, error) {
+func GetInstallationClient(installationId int64) (*github.Client, string, error) {
 
 	// Get a new http client that's authenticated for the Github installation
 	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, getAppId(), installationId, "github.pem")
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return github.NewClient(&http.Client{Transport: itr}), nil
+	// Get the actual token
+	token, err := itr.Token(context.Background())
+	if err != nil {
+		return nil, "", err
+	}
+
+	return github.NewClient(&http.Client{Transport: itr}), token, nil
 }
 
 type RepositoryIdentifier struct {
@@ -65,25 +72,25 @@ type RepositoryIdentifier struct {
 }
 
 // Get the repository information and GitHub API client from a Forge.
-func ClientAndRepoFromForge(forge database.Forge) (*github.Client, *RepositoryIdentifier, error) {
+func ClientAndRepoFromForge(forge database.Forge) (*github.Client, *RepositoryIdentifier, string, error) {
 
 	// Parse the installation id
 	installationId, err := strconv.ParseInt(forge.Installation, 10, 64)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	// Get the client for the installation
-	client, err := GetInstallationClient(installationId)
+	client, token, err := GetInstallationClient(installationId)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	// Get the repository identifier
 	args := strings.Split(forge.Repository, "/")
 	if len(args) != 2 {
-		return nil, nil, fmt.Errorf("not a valid repository: %s", forge.Repository)
+		return nil, nil, "", fmt.Errorf("not a valid repository: %s", forge.Repository)
 	}
 
-	return client, &RepositoryIdentifier{Owner: args[0], Name: args[1]}, nil
+	return client, &RepositoryIdentifier{Owner: args[0], Name: args[1]}, token, nil
 }

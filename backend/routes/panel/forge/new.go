@@ -54,7 +54,7 @@ func createNewForge(c *fiber.Ctx) error {
 	}
 
 	// Get the GitHub client for the installation
-	client, err := github_utils.GetInstallationClient(installationId)
+	client, _, err := github_utils.GetInstallationClient(installationId)
 	if err != nil {
 		return views.RenderError(c, form_views.FormSubmitError("Something went wrong on the server (3)."), err)
 	}

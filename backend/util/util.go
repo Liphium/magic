@@ -4,6 +4,7 @@ import (
 	crand "crypto/rand"
 	"math/big"
 	"math/rand"
+	"os"
 
 	"github.com/Liphium/magic/backend/util/constants"
 	"github.com/gofiber/fiber/v2"
@@ -71,4 +72,9 @@ func GenerateToken(tkLength int32) string {
 func AccountUUID(c *fiber.Ctx) uuid.UUID {
 	uuid, _ := uuid.Parse(c.Locals(constants.LocalsAccountID).(string))
 	return uuid
+}
+
+// Check if the backend server is in testing mode
+func IsTesting() bool {
+	return os.Getenv("MAGIC_TESTING") == "true"
 }

@@ -31,11 +31,21 @@ func BuildSourceBranch(name string) string {
 	return fmt.Sprintf("branch:%s", name)
 }
 
+const (
+	BuildStatusStarting = 0
+	BuildStatusError    = 1
+	BuildStatusStarted  = 2
+	BuildStatusFinished = 3
+)
+
 type Build struct {
-	ID          uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Forge       uuid.UUID `gorm:"type:uuid;index"`
-	DisplayName string
-	Source      string // Thing being built, for example: branch:main
+	ID             uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Forge          uuid.UUID `gorm:"type:uuid;index"`
+	DisplayName    string
+	Branch         string
+	Commit         string
+	Status         uint
+	SpellcastToken string `gorm:"uniqueIndex"`
 
 	CreatedAt time.Time
 }

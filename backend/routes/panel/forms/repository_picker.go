@@ -75,7 +75,7 @@ func getGitHubRepositories(c *fiber.Ctx) error {
 	}
 
 	// Get all installations from Github
-	client, err := github_utils.GetInstallationClient(installationId)
+	client, _, err := github_utils.GetInstallationClient(installationId)
 	if err != nil {
 		return form_views.RenderFormError(c, "Something went wrong with GitHub (1). Maybe check their status?", err)
 	}
