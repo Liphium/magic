@@ -423,7 +423,7 @@ func BuildViewPage(forge database.Forge, build database.Build) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" sse-close=\"end\"><div class=\"h-full flex flex-col py-3 bg-background2 rounded-xl border-2 border-secondary\" sse-swap=\"end\"><p class=\"animate-pulse flex-initial mb-3 px-4\" sse-swap=\"progress\"></p><div class=\"bg-secondary h-0.5\"></div><div class=\"w-full flex flex-auto flex-col-reverse px-4\"><p class=\"text-middle-text\">Hello world</p><p>Another hello world</p></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" sse-close=\"end\"><div class=\"h-full flex flex-col py-3 bg-background2 rounded-xl border-2 border-secondary\" sse-swap=\"end\"><p class=\"animate-pulse flex-initial mb-3 px-4\" sse-swap=\"progress\"></p><div class=\"bg-secondary h-0.5\"></div><div class=\"w-full flex flex-auto flex-col-reverse px-4 overflow-y-auto\" hx-swap=\"afterbegin\" sse-swap=\"log\"></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -464,7 +464,7 @@ func BuildViewCancelMessage(err bool, message string) templ.Component {
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/forge/builds.templ`, Line: 109, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/forge/builds.templ`, Line: 106, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -482,7 +482,7 @@ func BuildViewCancelMessage(err bool, message string) templ.Component {
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/forge/builds.templ`, Line: 111, Col: 15}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/forge/builds.templ`, Line: 108, Col: 15}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {
@@ -560,7 +560,7 @@ func buildCancelDialog(forge database.Forge, build database.Build) templ.Compone
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs("/a/panel/forge/" + forge.ID.String() + "/builds/" + build.ID.String() + "/cancel")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/forge/builds.templ`, Line: 124, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/panel/forge/builds.templ`, Line: 121, Col: 95}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {

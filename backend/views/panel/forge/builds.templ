@@ -94,10 +94,7 @@ templ BuildViewPage(forge database.Forge, build database.Build) {
 			<div class="h-full flex flex-col py-3 bg-background2 rounded-xl border-2 border-secondary" sse-swap="end">
 				<p class="animate-pulse flex-initial mb-3 px-4" sse-swap="progress"></p>
 				<div class="bg-secondary h-0.5"></div>
-				<div class="w-full flex flex-auto flex-col-reverse px-4">
-					<p class="text-middle-text">Hello world</p>
-					<p>Another hello world</p>
-				</div>
+				<div class="w-full flex flex-auto flex-col-reverse px-4 overflow-y-auto" hx-swap="afterbegin" sse-swap="log"></div>
 			</div>
 		</div>
 	</div>

@@ -763,6 +763,10 @@ video {
   gap: 2rem;
 }
 
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
 .rounded-full {
   border-radius: 9999px;
 }

@@ -1,7 +1,10 @@
 package forge_routes
 
 import (
+	"bufio"
 	"log"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Liphium/magic/backend/database"
@@ -61,6 +64,7 @@ func pullBuildProgress(c *fiber.Ctx) error {
 
 	// Start sending random events
 	return util.StartEvents(c, func(w *util.EventWriter) {
+		logsStarted := false
 		for {
 			// Get the current status of the build
 			if err := database.DBConn.Where("forge = ? AND id = ?", forge.ID.String(), buildId).Take(&build).Error; err != nil {
@@ -80,6 +84,39 @@ func pullBuildProgress(c *fiber.Ctx) error {
 				w.SendEvent("progress", "Starting server..")
 			case database.BuildStatusStarted:
 				w.SendEvent("progress", "Building image..")
+
+				// Start the log stream
+				if !logsStarted {
+					logsStarted = true
+					go func() {
+						client := &http.Client{}
+						req, err := http.NewRequest("POST", "http://localhost:9000/logs", nil)
+						if err != nil {
+							log.Println("Error creating log stream request:", err)
+							return
+						}
+
+						resp, err := client.Do(req)
+						if err != nil {
+							log.Println("Error connecting to log stream:", err)
+							return
+						}
+						defer resp.Body.Close()
+
+						scanner := bufio.NewScanner(resp.Body)
+						for scanner.Scan() {
+							line := scanner.Text()
+							if strings.HasPrefix(line, "data: ") {
+								logData := strings.TrimPrefix(line, "data: ")
+								w.SendEvent("log", "<p class=\"text-middle-text\">"+logData+"</p>")
+							}
+						}
+
+						if err := scanner.Err(); err != nil {
+							log.Println("Error reading log stream:", err)
+						}
+					}()
+				}
 
 			case database.BuildStatusError:
 
