@@ -35,11 +35,10 @@ func main() {
 	if util.BackendURL == "" {
 		log.Fatalln("Please specify the backend URL using the SC_BACKEND environment variable (example: http://localhost:8081)")
 	}
+	util.InitWorkingDirectory()
 
-	// Change to the proper working directory (if desired)
-	if os.Getenv("SC_WORKDIR") != "" {
-		os.Chdir(os.Getenv("SC_WORKDIR"))
-	}
+	// Set up docker
+	util.InitDocker()
 
 	// Setup all the endpoints
 	app := setupApp(service, token)

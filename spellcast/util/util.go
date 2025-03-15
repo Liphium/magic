@@ -3,13 +3,27 @@ package util
 import (
 	"bytes"
 	"io"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bytedance/sonic"
 )
 
+var WorkingDirectory = ""
 var BackendURL = ""
+
+func InitWorkingDirectory() {
+	if os.Getenv("SC_WORKDIR") == "" {
+		log.Fatalln("Please set the working directory using the SC_WORKDIR environment variable.")
+	}
+
+	// Change to the working directory
+	os.Chdir(os.Getenv("SC_WORKDIR"))
+	WorkingDirectory = os.Getenv("SC_WORKDIR")
+}
 
 // Send a post request to the backend
 func PostRequestBackend(path string, body map[string]interface{}) (map[string]interface{}, error) {
@@ -83,4 +97,23 @@ func PostRequestBackendToken(path string, token string, body map[string]interfac
 		return nil, err
 	}
 	return data, nil
+}
+
+// Delete all the files in the specified directory.
+func DeleteAllFiles(dir string) error {
+
+	// List all the files in the directory
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+
+	// Delete all of them
+	for _, entry := range entries {
+		err = os.RemoveAll(filepath.Join(dir, entry.Name()))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

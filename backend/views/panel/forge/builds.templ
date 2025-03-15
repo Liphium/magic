@@ -20,7 +20,7 @@ templ BuildsListPage(forge database.Forge, builds []database.Build) {
 						<p>{ b.DisplayName }</p>
 						<p class="text-middle-text">Created at { b.CreatedAt.String() }</p>
 					</div>
-					@components.LinkButtonHTMX("View", templ.SafeURL("/a/panel/forge/"+forge.ID.String()+"/builds/"+b.ID.String()))
+					@components.LinkButton("View", templ.SafeURL("/a/panel/forge/"+forge.ID.String()+"/builds/"+b.ID.String()))
 				</div>
 			}
 		}
@@ -83,16 +83,21 @@ templ buildBranchDialog(forge database.Forge, branch Branch) {
 }
 
 templ BuildViewPage(forge database.Forge, build database.Build) {
-	<div class="flex flex-col justify-start items-start">
+	<div class="flex flex-col flex-auto justify-start items-start">
 		// A basic explanation to fill out the space
-		<div id="build-cancel-target"></div>
-		<div class="flex flex-row w-full justify-between mb-4">
+		<div class="flex-initial" id="build-cancel-target"></div>
+		<div class="flex flex-initial flex-row w-full justify-between mb-4">
 			<p class="text-middle-text">{ build.DisplayName }</p>
 			@components.Dialog("Cancel build", components.PanelCallToActionStyles, buildCancelDialog(forge, build))
 		</div>
-		<div hx-ext="sse" sse-connect={ "/a/panel/forge/" + forge.ID.String() + "/builds/" + build.ID.String() + "/progress" } sse-close="end">
-			<div sse-swap="end">
-				<p class="animate-pulse" sse-swap="progress"></p>
+		<div class="w-full flex-auto mb-8" hx-ext="sse" sse-connect={ "/a/panel/forge/" + forge.ID.String() + "/builds/" + build.ID.String() + "/progress" } sse-close="end">
+			<div class="h-full flex flex-col py-3 bg-background2 rounded-xl border-2 border-secondary" sse-swap="end">
+				<p class="animate-pulse flex-initial mb-3 px-4" sse-swap="progress"></p>
+				<div class="bg-secondary h-0.5"></div>
+				<div class="w-full flex flex-auto flex-col-reverse px-4">
+					<p class="text-middle-text">Hello world</p>
+					<p>Another hello world</p>
+				</div>
 			</div>
 		</div>
 	</div>
