@@ -1,7 +1,6 @@
 package forge_views
 
 import (
-	"fmt"
 	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/views/components"
 )
@@ -92,14 +91,10 @@ templ BuildViewPage(forge database.Forge, build database.Build) {
 			@components.Dialog("Cancel build", components.PanelCallToActionStyles, buildCancelDialog(forge, build))
 		</div>
 		<div class="w-full flex-auto mb-8" hx-ext="sse" sse-connect={ "/a/panel/forge/" + forge.ID.String() + "/builds/" + build.ID.String() + "/progress" } sse-close="end">
-			<div class="h-full flex flex-col py-3 bg-background2 rounded-xl border-2 border-secondary" sse-swap="end">
-				<p class="animate-pulse flex-initial mb-3 px-4" sse-swap="progress"></p>
+			<div class="h-full flex flex-col bg-background2 rounded-xl border-2 border-secondary" sse-swap="end">
+				<p class="animate-pulse flex-initial mb-3 px-4 mt-3" sse-swap="progress"></p>
 				<div class="bg-secondary h-0.5"></div>
-				<div class="w-full flex flex-auto flex-col-reverse px-4" hx-swap="afterbegin" sse-swap="log">
-					for i := range 100 {
-						<p class="text-middle-text">Hello world { fmt.Sprintf("%d", i) }</p>
-					}
-				</div>
+				<div class="w-full flex flex-grow h-0 flex-auto flex-col-reverse px-4 overflow-y-auto py-3" hx-swap="afterbegin" sse-swap="log"></div>
 			</div>
 		</div>
 	</div>

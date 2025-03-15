@@ -610,6 +610,10 @@ video {
   margin-top: 0px;
 }
 
+.mt-3 {
+  margin-top: 0.75rem;
+}
+
 .mt-4 {
   margin-top: 1rem;
 }
@@ -624,6 +628,10 @@ video {
 
 .hidden {
   display: none;
+}
+
+.h-0 {
+  height: 0px;
 }
 
 .h-0\.5 {
@@ -701,6 +709,10 @@ video {
   flex: 0 1 auto;
 }
 
+.flex-grow {
+  flex-grow: 1;
+}
+
 @keyframes pulse {
   50% {
     opacity: .5;
@@ -761,6 +773,10 @@ video {
 
 .gap-8 {
   gap: 2rem;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
 }
 
 .rounded-full {
