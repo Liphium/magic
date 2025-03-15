@@ -1,6 +1,7 @@
 package forge_views
 
 import (
+	"fmt"
 	"github.com/Liphium/magic/backend/database"
 	"github.com/Liphium/magic/backend/views/components"
 )
@@ -94,7 +95,11 @@ templ BuildViewPage(forge database.Forge, build database.Build) {
 			<div class="h-full flex flex-col py-3 bg-background2 rounded-xl border-2 border-secondary" sse-swap="end">
 				<p class="animate-pulse flex-initial mb-3 px-4" sse-swap="progress"></p>
 				<div class="bg-secondary h-0.5"></div>
-				<div class="w-full flex flex-auto flex-col-reverse px-4 overflow-y-auto" hx-swap="afterbegin" sse-swap="log"></div>
+				<div class="w-full flex flex-auto flex-col-reverse px-4" hx-swap="afterbegin" sse-swap="log">
+					for i := range 100 {
+						<p class="text-middle-text">Hello world { fmt.Sprintf("%d", i) }</p>
+					}
+				</div>
 			</div>
 		</div>
 	</div>
