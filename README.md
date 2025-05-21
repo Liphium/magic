@@ -20,6 +20,13 @@ Folder structure:
 - General CLI
     - Help command
     - ``magic init`` for generating gitignore and basic configuration
+- Magic SDK
+    - Control databases and stuff (and create connections)
+    - Communicate with the Runner
+- Magic Config SDK
+    - Can run the Runner
+- Magic Runner
+    - Run the project, database containers, etc.
 - Debugging of local apps
     - Create databases from configuration using Docker
     - Create local persistence in the local.json file (for databases used in the app)
