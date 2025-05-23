@@ -39,3 +39,6 @@ Folder structure:
 - Base for testing and scripting
     - A directory with files/directories for tests and scripts written in Go
     - Do code generation that can execute the functions in those tests
+
+
+Wichtig: https://excalidraw.com/#json=RhQtkM0Ufq11Sf7CrvYMa,YdBfJ9cxWAhoMhTQ1AYgNw
