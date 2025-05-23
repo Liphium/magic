@@ -1,4 +1,4 @@
-module mcli
+module github.com/Liphium/magic/mcli
 
 go 1.24.2
 

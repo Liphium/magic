@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -11,14 +10,21 @@ import (
 
 func main() {
 	cmd := &cli.Command{
-		Arguments: []cli.Argument{
-			&cli.IntArg{
-				Name: "someint",
+		Description: "Testing and debugging like Magic.",
+		Commands: []*cli.Command{
+			{
+				Name:        "init",
+				Description: "Magically initialize a new project.",
+				Action:      initCommand,
 			},
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			fmt.Printf("We got %d", cmd.IntArg("someint"))
-			return nil
+			{
+				Name:        "start",
+				Description: "Magically start your project.",
+			},
+			{
+				Name:        "test",
+				Description: "Magically test your project.",
+			},
 		},
 	}
 
