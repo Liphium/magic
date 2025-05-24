@@ -1,14 +1,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/urfave/cli/v3"
 )
+
+const refreshDelay = 100
+
+var cmdError = ""
 
 func main() {
 	p := tea.NewProgram(initialModel())
@@ -24,8 +31,8 @@ type (
 type model struct {
 	textInput textinput.Model
 	err       error
-	width    int
-	height   int
+	width     int
+	height    int
 }
 
 type sPipe struct {
@@ -33,7 +40,7 @@ type sPipe struct {
 	items []string
 }
 
-var pn = &sPipe{
+var console = &sPipe{
 	mutex: &sync.Mutex{},
 	items: []string{},
 }
@@ -43,14 +50,14 @@ var ctr = &sPipe{
 	items: []string{},
 }
 
-func addItem(pn *sPipe, item string) {
+func (pn *sPipe) addItem(item string) {
 	pn.mutex.Lock()
 	defer pn.mutex.Unlock()
 
 	pn.items = append(pn.items, item)
 }
 
-func getItem(pn *sPipe) (string, bool){
+func (pn *sPipe) getItem() (string, bool) {
 	pn.mutex.Lock()
 	defer pn.mutex.Unlock()
 	if len(pn.items) == 0 {
@@ -61,17 +68,61 @@ func getItem(pn *sPipe) (string, bool){
 	return item, true
 }
 
-func runTui(pn *sPipe){
+func runTui() {
 	i := 0
-	for  {
-		time.Sleep(time.Millisecond * 100)
-		addItem(pn, "number of prints: " + fmt.Sprint(i))
-		if cmd, newCmd := getItem(ctr); newCmd{
-			switch cmd {
-			case "cat":
-				addItem(pn, "meow :3")
+	for {
+		time.Sleep(time.Millisecond * refreshDelay)
+		console.addItem("number of prints: " + fmt.Sprint(i))
+		if cmd, newCmd := ctr.getItem(); newCmd {
+			var testPath string = ""
+			var scriptPath string = ""
+			var commands = &cli.Command{
+				HideHelp:        true,
+				OnUsageError:    func(ctx context.Context, cmd *cli.Command, err error, isSubcommand bool) error { return nil },
+				CommandNotFound: func(ctx context.Context, c *cli.Command, s string) {cmdError = "command doesnt exist"},
+				Commands: []*cli.Command{
+					{
+						Name:    "run",
+						Usage:   "",
+						Aliases: []string{"r"},
+						Arguments: []cli.Argument{
+							&cli.StringArg{
+								Name:        "path",
+								Destination: &scriptPath,
+							},
+						},
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							if scriptPath != "" {
+								go runCommand(scriptPath, console)
+							} else {
+								cmdError = "usage: run [path]"
+							}
+							return nil
+						},
+					},
+					{
+						Name:    "test",
+						Usage:   "",
+						Aliases: []string{"t"},
+						Arguments: []cli.Argument{
+							&cli.StringArg{
+								Name:        "path",
+								Destination: &testPath,
+							},
+						},
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							if testPath != "" {
+								go testCommand(testPath, console)
+							} else {
+								cmdError = "usage: test [path]"
+							}
+							return nil
+						},
+					},
+				},
 			}
-			
+			if err := commands.Run(context.Background(), append([]string{""}, strings.Split(strings.Trim(cmd, " "), " ")...)); err != nil {
+			}
 		}
 		i++
 	}
@@ -79,7 +130,6 @@ func runTui(pn *sPipe){
 
 func initialModel() model {
 	ti := textinput.New()
-	ti.Placeholder = "Enter command"
 	ti.Focus()
 	ti.CharLimit = 156
 	ti.Width = 0
@@ -91,13 +141,14 @@ func initialModel() model {
 }
 
 func (m model) Init() tea.Cmd {
-	go runTui(pn)
+	go runTui()
 
 	return tea.Batch(textinput.Blink)
 }
+
 // remove if creates lag or not wanted
 func setUpdateTime() tea.Cmd {
-	d := time.Millisecond * time.Duration(100) // set update time in ms
+	d := time.Millisecond * time.Duration(refreshDelay)
 	return tea.Tick(d, func(t time.Time) tea.Msg {
 		return ""
 	})
@@ -114,8 +165,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		case tea.KeyEnter:
-			addItem(ctr, m.textInput.Value())
-			m.textInput.SetValue("")
+			if value := m.textInput.Value(); value != "" {
+				m.textInput.SetValue("")
+				ctr.addItem(value)
+			}
 		}
 
 	// We handle errors just like any other message
@@ -124,17 +177,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	if m.textInput.Value() == "" && cmdError != "" {
+		m.textInput.Placeholder = cmdError
+	} else {
+		m.textInput.Placeholder = "Enter command"
+	}
+	if m.textInput.Value() != "" {
+		cmdError = ""
+	}
+
 	m.textInput.Width = m.width
 	m.textInput, cmd = m.textInput.Update(msg)
 
-	if itemToPrint, shouldPrint := getItem(pn); shouldPrint{
+	if itemToPrint, shouldPrint := console.getItem(); shouldPrint {
 		return m, tea.Batch(
 			tea.Println(itemToPrint),
 			cmd,
 			setUpdateTime(),
 		)
-	} else{
-		return m, tea.Batch(cmd, setUpdateTime(),)
+	} else {
+		return m, tea.Batch(cmd, setUpdateTime())
 	}
 }
 
