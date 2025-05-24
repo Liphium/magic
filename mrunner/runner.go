@@ -8,12 +8,14 @@ const DefaultStartPort uint = 10000
 const DefaultEndPort uint = 60000
 
 type Runner struct {
+	config    string
+	profile   string
 	client    *client.Client
 	databases []*Database
 }
 
 // Create a new runner
-func NewRunner() (*Runner, error) {
+func NewRunner(config string, profile string) (*Runner, error) {
 
 	// Create a new client for the docker sdk
 	dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -22,6 +24,8 @@ func NewRunner() (*Runner, error) {
 	}
 
 	return &Runner{
-		client: dc,
+		config:  config,
+		profile: profile,
+		client:  dc,
 	}, nil
 }
