@@ -16,6 +16,7 @@ func main() {
 
 	var startPath = ""
 	var initScriptPath = ""
+	var initTestPath = ""
 	var startProfile = ""
 	cmd := &cli.Command{
 		Description: "Testing and debugging like Magic.",
@@ -33,6 +34,17 @@ func main() {
 							&cli.StringArg{
 								Name:        "path",
 								Destination: &initScriptPath,
+							},
+						},
+					},
+					{
+						Name:        "test",
+						Description: "Magically generates a test template.",
+						Action:      func(ctx context.Context, c *cli.Command) error { return initTestCommand(initTestPath) },
+						Arguments: []cli.Argument{
+							&cli.StringArg{
+								Name:        "path",
+								Destination: &initTestPath,
 							},
 						},
 					},
