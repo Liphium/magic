@@ -9,6 +9,7 @@ const runFile = `package main
 import (
 	"os"
 	"log"
+	"fmt"
 	
 	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
