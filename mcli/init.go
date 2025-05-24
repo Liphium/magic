@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -59,7 +61,28 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 
 	// Run go mod tidy
 	log.Println("Importing packages..")
-	if err := exec.Command("go", "mod", "tidy").Run(); err != nil {
+	cmd := exec.Command("go", "mod", "tidy")
+
+	// Set up the output pipe
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+	}()
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 
