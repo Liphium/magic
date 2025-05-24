@@ -15,9 +15,18 @@ func (c *Context) Profile() string {
 	return c.profile
 }
 
+func (c *Context) Environment() *Environment {
+	return c.environment
+}
+
 // Set the environment.
 func (c *Context) WithEnvironment(env *Environment) {
 	c.environment = env
+}
+
+// Get the databases.
+func (c *Context) Databases() []*Database {
+	return c.databases
 }
 
 // Add a new database.

@@ -27,6 +27,7 @@ import (
 	"github.com/Liphium/magic/mconfig"
 )
 
+// This is the function called once you run the project
 func run(ctx *mconfig.Context) {
 	fmt.Println("Hello magic!")
 }
