@@ -15,6 +15,7 @@ func main() {
 	godotenv.Load()
 
 	var startPath = ""
+	var initScriptPath = ""
 	var startProfile = ""
 	cmd := &cli.Command{
 		Description: "Testing and debugging like Magic.",
@@ -23,6 +24,19 @@ func main() {
 				Name:        "init",
 				Description: "Magically initialize a new project.",
 				Action:      initCommand,
+				Commands: []*cli.Command{
+					{
+						Name:        "script",
+						Description: "Magically generates a script template.",
+						Action:      func(ctx context.Context, c *cli.Command) error { return initScriptCommand(initScriptPath) },
+						Arguments: []cli.Argument{
+							&cli.StringArg{
+								Name:        "path",
+								Destination: &initScriptPath,
+							},
+						},
+					},
+				},
 			},
 			{
 				Name:        "start",

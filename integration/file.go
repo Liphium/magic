@@ -24,3 +24,14 @@ func CopyFile(source string, destination string) error {
 	}
 	return nil
 }
+
+// Create a new file with content.
+func CreateFileWithContent(name string, content string) error {
+	file, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.Write([]byte(content))
+	return err
+}

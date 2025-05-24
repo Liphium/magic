@@ -56,10 +56,10 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 
 	// Create all files needed
 	log.Println("Creating files..")
-	if err := createFile(".gitignore", magicGitIgnore); err != nil {
+	if err := integration.CreateFileWithContent(".gitignore", magicGitIgnore); err != nil {
 		return err
 	}
-	if err := createFile("config.go", magicConfig); err != nil {
+	if err := integration.CreateFileWithContent("config.go", magicConfig); err != nil {
 		return err
 	}
 
@@ -104,13 +104,4 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	return nil
 }
 
-// Create a new file with content.
-func createFile(name string, content string) error {
-	file, err := os.Create(name)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	_, err = file.Write([]byte(content))
-	return err
-}
+

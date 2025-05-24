@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/Liphium/magic/integration v0.0.0-00010101000000-000000000000
-	github.com/Liphium/magic/mconfig v0.0.0-20250524185402-6400dae75f3f
+	github.com/Liphium/magic/mconfig v0.0.0-20250524213256-5758b00ad841
 	github.com/Liphium/magic/mrunner v0.0.0-20250524143131-a6ed6092307a
 	github.com/Liphium/magic/tui v0.0.0-00010101000000-000000000000
 	github.com/joho/godotenv v1.5.1
