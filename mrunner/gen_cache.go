@@ -21,7 +21,6 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 
 	err = os.Chdir("cache")
 	if err != nil {
-		fmt.Println(os.Getwd())
 		return "", err
 	}
 
@@ -101,8 +100,10 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	defer file.Close()
 
 	// Read the file content
+	printFunc("Finding version and module name..")
 	content = ""
 	moduleName := ""
+	version := ""
 	scanner = bufio.NewScanner(file)
 	for scanner.Scan() {
 		t := scanner.Text()
@@ -113,6 +114,14 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 				return "", errors.New("can't find module name in go.mod")
 			}
 			moduleName = itms[ind+1]
+		}
+		if strings.Contains(t, "go ") {
+			itms := strings.Split(t, " ")
+			ind := slices.Index(itms, "go")
+			if ind == -1 || len(itms) < ind+2 {
+				return "", errors.New("can't find module name in go.mod")
+			}
+			version = itms[ind+1]
 			break
 		}
 	}
@@ -125,7 +134,11 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 		return "", err
 	}
 
-	// create base go.mod
+	// create base go.mod and delete old one
+	if err := os.RemoveAll("go.mod"); err != nil {
+		return "", fmt.Errorf("couldn't delete go.mod: %s", err)
+	}
+	printFunc("Initializing " + confName + "..")
 	integration.ExecCmdWithFunc(printFunc, false, "go", "mod", "init", confName)
 
 	// add replace to go.mod
@@ -157,16 +170,16 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	if err != nil {
 		return "", err
 	}
+	printFunc("Initialized module.")
 
+	// Generate the go.work file for this to work
+	printFunc("Creating go.work file..")
+	if err := handleWorkFile(version); err != nil {
+		return "", fmt.Errorf("couldn't generate work file: %s", err)
+	}
+
+	printFunc("Importing dependencies..")
 	err = integration.ExecCmdWithFunc(printFunc, false, "go", "get", confName)
-	if err != nil {
-		return "", err
-	}
-	err = integration.ExecCmdWithFunc(printFunc, false, "go", "get", "githum.com/Liphium/migic/mconfig")
-	if err != nil {
-		return "", err
-	}
-	err = integration.ExecCmdWithFunc(printFunc, false, "go", "get", "githum.com/Liphium/migic/mrunner")
 	if err != nil {
 		return "", err
 	}
@@ -174,11 +187,60 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	if err != nil {
 		return "", err
 	}
+	err = integration.ExecCmdWithFunc(printFunc, false, "go", "work", "use", ".")
+	if err != nil {
+		return "", err
+	}
+	printFunc("Imported dependencies.")
 
+	// Return the directory of the config
 	wd, err = os.Getwd()
 	if err != nil {
 		return "", err
 	}
-
 	return wd, nil
+}
+
+const generatedWorkFile = `go %s
+`
+
+func handleWorkFile(version string) error {
+
+	// Get the name of the current working directory
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("couldn't get wd: %s", err)
+	}
+
+	// Go to the work file and open
+	if err := os.Chdir(".."); err != nil {
+		return fmt.Errorf("couldn't go to previous dir: %s", err)
+	}
+	file, err := os.OpenFile("go.work", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+
+		// Create the work file with the version from the go mod
+		if err := os.WriteFile("go.work", []byte(fmt.Sprintf(generatedWorkFile, version)), 0755); err != nil {
+			return fmt.Errorf("couldn't write go.work: %s", err)
+		}
+		return nil
+	}
+	defer file.Close()
+
+	// Modify the version in the file
+	content := ""
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.HasPrefix(content, "go") {
+			content += fmt.Sprintf("go %s\n", version)
+		} else {
+			content += scanner.Text() + "\n"
+		}
+	}
+
+	// Go back to the previous directory
+	if err := os.Chdir(wd); err != nil {
+		return fmt.Errorf("couldn't change back to original wd: %s", err)
+	}
+	return nil
 }

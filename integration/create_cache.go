@@ -13,7 +13,7 @@ func CreateCache() error {
 	if err != nil {
 		return err
 	}
-	
+
 	err = os.Chdir(mDir)
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func CreateCache() error {
 			return nil
 		}
 	}
-	
+
 	if err := os.Mkdir("cache", 0755); err != nil {
 		return err
 	}

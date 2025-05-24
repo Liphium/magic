@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -33,7 +32,6 @@ func startCommand(config string, profile string) error {
 
 	_, _, path, err := integration.EvaluatePath(filepath.Join(mDir, config+".go"))
 	if err != nil {
-		fmt.Println(filepath.Join(mDir, config+".go"))
 		return err
 	}
 	// generate the cache
@@ -43,7 +41,6 @@ func startCommand(config string, profile string) error {
 	if err != nil {
 		return err
 	}
-
 	if err = os.Chdir(wd); err != nil {
 		return err
 	}
@@ -52,7 +49,7 @@ func startCommand(config string, profile string) error {
 
 	integration.ExecCmdWithFunc(func(s string) {
 		tui.Console.AddItem(s)
-	}, true, "go", "run", ".")
+	}, true, "go", "run", ".", config, profile)
 
 	tui.RunTui()
 

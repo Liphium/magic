@@ -20,7 +20,10 @@ func (r *Runner) GeneratePlan() string {
 	}
 
 	// Generate the environment variables
-	environment := r.Environment().Generate()
+	environment := map[string]string{}
+	if r.Environment() != nil {
+		environment = r.Environment().Generate()
+	}
 
 	// Load into plan
 	plan := mtest.Plan{
