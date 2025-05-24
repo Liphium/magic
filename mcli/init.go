@@ -36,7 +36,7 @@ func run(ctx *mconfig.Context) {
 func initCommand(ctx context.Context, c *cli.Command) error {
 
 	// See if the magic directory already exists
-	dir, err := integration.GetMagicDirectory(false)
+	dir, err := integration.GetMagicDirectory(0)
 	if err == nil && dir != nil {
 		return errors.New("magic project already exists")
 	}
