@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 )
@@ -6,6 +6,6 @@ import (
 // Command: test [path]
 func testCommand(path string, console *sPipe) error {
 	// run test 
-	console.addItem("run test with path: " + path)
+	console.AddItem("run test with path: " + path)
 	return nil
 }

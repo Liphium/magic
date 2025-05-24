@@ -20,6 +20,7 @@ func main() {
 			{
 				Name:        "start",
 				Description: "Magically start your project.",
+				Action:      startCommand,
 			},
 			{
 				Name:        "test",

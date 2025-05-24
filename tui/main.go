@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	"context"
@@ -17,11 +17,13 @@ const refreshDelay = 100
 
 var cmdError = ""
 
-func main() {
+func RunTui(){
+
 	p := tea.NewProgram(initialModel())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
+	
 }
 
 type (
@@ -40,7 +42,7 @@ type sPipe struct {
 	items []string
 }
 
-var console = &sPipe{
+var Console = &sPipe{
 	mutex: &sync.Mutex{},
 	items: []string{},
 }
@@ -50,7 +52,7 @@ var ctr = &sPipe{
 	items: []string{},
 }
 
-func (pn *sPipe) addItem(item string) {
+func (pn *sPipe) AddItem(item string) {
 	pn.mutex.Lock()
 	defer pn.mutex.Unlock()
 
@@ -69,10 +71,8 @@ func (pn *sPipe) getItem() (string, bool) {
 }
 
 func runTui() {
-	i := 0
 	for {
 		time.Sleep(time.Millisecond * refreshDelay)
-		console.addItem("number of prints: " + fmt.Sprint(i))
 		if cmd, newCmd := ctr.getItem(); newCmd {
 			var testPath string = ""
 			var scriptPath string = ""
@@ -93,7 +93,7 @@ func runTui() {
 						},
 						Action: func(ctx context.Context, cmd *cli.Command) error {
 							if scriptPath != "" {
-								go runCommand(scriptPath, console)
+								go runCommand(scriptPath, Console)
 							} else {
 								cmdError = "usage: run [path]"
 							}
@@ -112,7 +112,7 @@ func runTui() {
 						},
 						Action: func(ctx context.Context, cmd *cli.Command) error {
 							if testPath != "" {
-								go testCommand(testPath, console)
+								go testCommand(testPath, Console)
 							} else {
 								cmdError = "usage: test [path]"
 							}
@@ -124,7 +124,6 @@ func runTui() {
 			if err := commands.Run(context.Background(), append([]string{""}, strings.Split(strings.Trim(cmd, " "), " ")...)); err != nil {
 			}
 		}
-		i++
 	}
 }
 
@@ -167,7 +166,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			if value := m.textInput.Value(); value != "" {
 				m.textInput.SetValue("")
-				ctr.addItem(value)
+				ctr.AddItem(value)
 			}
 		}
 
@@ -189,7 +188,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.textInput.Width = m.width
 	m.textInput, cmd = m.textInput.Update(msg)
 
-	if itemToPrint, shouldPrint := console.getItem(); shouldPrint {
+	if itemToPrint, shouldPrint := Console.getItem(); shouldPrint {
 		return m, tea.Batch(
 			tea.Println(itemToPrint),
 			cmd,
