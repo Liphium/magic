@@ -11,6 +11,10 @@ type Database struct {
 	name   string
 }
 
+func (db *Database) Type() DatabaseType {
+	return db.dbType
+}
+
 // Get the name of the database
 func (db *Database) Name() string {
 	return db.name

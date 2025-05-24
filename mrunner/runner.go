@@ -4,6 +4,9 @@ import (
 	"github.com/docker/docker/client"
 )
 
+const DefaultStartPort uint = 10000
+const DefaultEndPort uint = 60000
+
 type Runner struct {
 	client    *client.Client
 	databases []*Database
