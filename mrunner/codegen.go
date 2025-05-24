@@ -50,5 +50,5 @@ func GenerateRunFile(deployContainers bool) string {
 	if deployContainers {
 		return fmt.Sprintf(runFile, runFileDeployer)
 	}
-	return fmt.Sprintf(runFile)
+	return fmt.Sprintf(runFile, "")
 }
