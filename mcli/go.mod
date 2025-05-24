@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/Liphium/magic/mconfig v0.0.0-20250524120835-ebc3c27fea5f // indirect
+	github.com/Liphium/magic/mconfig v0.0.0-20250524143131-a6ed6092307a // indirect
 	github.com/Liphium/magic/mtest v0.0.0-20250524143131-a6ed6092307a // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect

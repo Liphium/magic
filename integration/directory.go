@@ -26,7 +26,7 @@ func GetMagicDirectory(amount int) (string, error) {
 
 		// Find the magic folder
 		for _, entry := range files {
-			if entry.IsDir() && entry.Name() == ".magic" {
+			if entry.IsDir() && entry.Name() == "magic" {
 				return filepath.Join(wd, "magic"), nil
 			}
 		}

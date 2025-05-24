@@ -22,15 +22,16 @@ const magicConfig string = `package config
 
 import (
 	"fmt"
+
 	"github.com/Liphium/magic/mconfig"
 )
 
 // This is the function called once you run the project
-func run(ctx *mconfig.Context) {
+func Run(ctx *mconfig.Context) {
 	fmt.Println("Hello magic!")
 }
 
-func start() {
+func Start() {
 	// TODO: Run your application here
 }
 `
@@ -46,10 +47,10 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 
 	// Create the .magic directory
 	log.Println("Creating folder..")
-	if err := os.Mkdir(".magic", 0755); err != nil {
+	if err := os.Mkdir("magic", 0755); err != nil {
 		return err
 	}
-	if err := os.Chdir(".magic"); err != nil {
+	if err := os.Chdir("magic"); err != nil {
 		return err
 	}
 
@@ -67,11 +68,19 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	if err := os.Chdir(".."); err != nil {
 		return err
 	}
+	dir, err := os.Getwd()
+	fmt.Println("currently in ", dir)
 	err = integration.ExecCmdWithFunc(func(s string) {
 		fmt.Println(s)
 	}, false, "go", "mod", "tidy")
 	if err != nil {
 		log.Fatalln("Failed to tidy: ", err)
+	}
+	err = integration.ExecCmdWithFunc(func(s string) {
+		fmt.Println(s)
+	}, false, "go", "get", "github.com/Liphium/magic/mconfig")
+	if err != nil {
+		log.Fatalln("Failed to go get: ", err)
 	}
 
 	// Print success message

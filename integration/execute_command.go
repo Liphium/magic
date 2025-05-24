@@ -2,6 +2,7 @@ package integration
 
 import (
 	"bufio"
+	"fmt"
 	"os/exec"
 )
 
@@ -26,10 +27,13 @@ func ExecCmdWithFunc(funcPrint func(string), shouldReturn bool, name string, arg
 			return err
 		}
 	} else {
+		fmt.Println("hi")
 		if err := cmd.Run(); err != nil {
 			return err
 		}
 	}
+
+	fmt.Println("finished running")
 
 	return nil
 }
