@@ -79,7 +79,6 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 
 	// Replace the first occurrence of the old word with the new word
 	content = strings.Replace(content, "package config", "package main", 1)
-	integration.PrintCurrentDirAll()
 
 	// Write the replaced content to the file
 	err = os.WriteFile(filepath.Join(wd, config+".go"), []byte(content), 0755)
