@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"errors"
 	"os"
 )
 
@@ -10,11 +9,19 @@ func CreateCache() error {
 	if err != nil {
 		return err
 	}
-	if mDir == nil {
-		return errors.New("couldn't find .magic folder")
+	files, err := os.ReadDir(mDir)
+	if err != nil {
+		return err
 	}
 
-	if err := os.Mkdir(".cache", 0755); err != nil {
+	// Find the magic folder
+	for _, entry := range files {
+		if entry.IsDir() && entry.Name() == "cache" {
+			return nil
+		}
+	}
+	os.Chdir(mDir)
+	if err := os.Mkdir("cache", 0755); err != nil {
 		return err
 	}
 

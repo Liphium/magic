@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
-	"os/exec"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/urfave/cli/v3"
@@ -37,8 +34,8 @@ func run(ctx *mconfig.Context) {
 func initCommand(ctx context.Context, c *cli.Command) error {
 
 	// See if the magic directory already exists
-	dir, err := integration.GetMagicDirectory(0)
-	if err == nil && dir != nil {
+	_, err := integration.GetMagicDirectory(0)
+	if err == nil {
 		return errors.New("magic project already exists")
 	}
 
@@ -62,25 +59,11 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 
 	// Run go mod tidy
 	log.Println("Importing packages..")
-	cmd := exec.Command("go", "mod", "tidy")
+	err = integration.ExecCmdWithFunc(func(s string) {
 
-	// Set up the output pipe
-	stdout, err := cmd.StdoutPipe()
+	}, false, "go", "mod", "tidy")
 	if err != nil {
-		log.Fatalln("couldn't open pipe: ", err.Error())
-		return nil
-	}
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			fmt.Println(scanner.Text())
-		}
-	}()
-
-	// Start the command
-	if err := cmd.Run(); err != nil {
-		log.Fatalln("couldn't import: ", err)
-		return err
+		log.Fatalln("Failed to tidy: ", err)
 	}
 
 	// Print success message
