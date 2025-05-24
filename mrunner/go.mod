@@ -26,3 +26,4 @@ require (
 )
 
 replace github.com/Liphium/magic/mconfig => ../mconfig
+replace github.com/Liphium/magic/integration => ../integration

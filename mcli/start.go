@@ -1,37 +1,48 @@
 package main
 
 import (
-	"bufio"
-	"context"
-	"os/exec"
+	"errors"
+	"strings"
 
+	"github.com/Liphium/magic/integration"
+	"github.com/Liphium/magic/mrunner"
 	"github.com/Liphium/magic/tui"
-	"github.com/urfave/cli/v3"
 )
 
 // Command: magic start
-func startCommand(ctx context.Context, c *cli.Command) error {
-	tui.Console.AddItem("Starting...")
-	cmd := exec.Command("go", "run", ".")
-
-	// Set up the output pipe
-	stdout, err := cmd.StdoutPipe()
+func startCommand(filepath string, profile string) error {
+	if filepath == "" {
+		filepath = "./config.go"
+	}
+	if profile == "" {
+		profile = "default"
+	}
+	_, filename, path, err := integration.EvaluatePath(filepath)
 	if err != nil {
-		tui.Console.AddItem(err.Error())
-		return nil
+		return err
 	}
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			tui.Console.AddItem(scanner.Text())
-		}
-	}()
+	if !integration.IsPathSanitized(filename) {
+		return errors.New("filename conatins forbidden chars")
+	}
+	if !integration.IsPathSanitized(profile) {
+		return errors.New("profile conatins forbidden chars")
+	}
+	config := strings.TrimRight(filename, ".go")
 
-	// Start the command
-	if err := cmd.Start(); err != nil {
-		tui.Console.AddItem(err.Error())
-		return nil
+	// generate the cache 
+	mrunner.GenConfig(path, config, profile)
+
+	// See if the magic directory already exists
+	_, err = integration.GetMagicDirectory(3)
+	if err != nil {
+		return err
 	}
+
+	tui.Console.AddItem("Starting...")
+
+	integration.ExecCmdWithFunc(func(s string) {
+		tui.Console.AddItem(s)
+	}, true,"go", "run", ".")
 
 	tui.RunTui()
 
