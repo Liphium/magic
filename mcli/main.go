@@ -29,6 +29,6 @@ func main() {
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		log.Fatal(err)
+		log.Fatalln("ERROR: ", err)
 	}
 }

@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"errors"
+	"log"
 	"os"
+	"os/exec"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/urfave/cli/v3"
@@ -17,6 +19,11 @@ databases/
 
 // Default config.go file for magic
 const magicConfig string = `package config
+
+import (
+	"fmt"
+	"github.com/Liphium/magic/mconfig"
+)
 
 func run(ctx *mconfig.Context) {
 	fmt.Println("Hello magic!")
@@ -33,6 +40,7 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	}
 
 	// Create the .magic directory
+	log.Println("Creating folder..")
 	if err := os.Mkdir(".magic", 0755); err != nil {
 		return err
 	}
@@ -41,12 +49,25 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	}
 
 	// Create all files needed
+	log.Println("Creating files..")
 	if err := createFile(".gitignore", magicGitIgnore); err != nil {
 		return err
 	}
 	if err := createFile("config.go", magicConfig); err != nil {
 		return err
 	}
+
+	// Run go mod tidy
+	log.Println("Importing packages..")
+	if err := exec.Command("go", "mod", "tidy").Run(); err != nil {
+		return err
+	}
+
+	// Print success message
+	log.Println()
+	log.Println("Successfully initialized project.")
+	log.Println("Use magic init script/test <name> to create new tests/scripts.")
+	log.Println("Let's hope you become a good wizard!")
 
 	return nil
 }
