@@ -29,7 +29,7 @@ func startCommand(filepath string, profile string) error {
 	}
 	config := strings.TrimRight(filename, ".go")
 
-	// generate the cache 
+	// generate the cache
 	mrunner.GenConfig(path, config, profile)
 
 	// See if the magic directory already exists
@@ -42,7 +42,7 @@ func startCommand(filepath string, profile string) error {
 
 	integration.ExecCmdWithFunc(func(s string) {
 		tui.Console.AddItem(s)
-	}, true,"go", "run", ".")
+	}, true, "go", "run", ".")
 
 	tui.RunTui()
 

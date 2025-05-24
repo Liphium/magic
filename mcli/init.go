@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -60,7 +61,7 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	// Run go mod tidy
 	log.Println("Importing packages..")
 	err = integration.ExecCmdWithFunc(func(s string) {
-
+		fmt.Println(s)
 	}, false, "go", "mod", "tidy")
 	if err != nil {
 		log.Fatalln("Failed to tidy: ", err)
