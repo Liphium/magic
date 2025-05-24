@@ -5,10 +5,15 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v3"
 )
 
 func main() {
+
+	// Load environment file
+	godotenv.Load()
+
 	var startPath = ""
 	var startProfile = ""
 	cmd := &cli.Command{
@@ -22,23 +27,22 @@ func main() {
 			{
 				Name:        "start",
 				Description: "Magically start your project.",
-				Action:      func(ctx context.Context, c *cli.Command) error {return startCommand(startPath, startProfile);},
+				Action:      func(ctx context.Context, c *cli.Command) error { return startCommand(startPath, startProfile) },
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:  "profile",
-						Aliases: []string{"p"},
-						Value: "",
+						Name:        "profile",
+						Aliases:     []string{"p"},
+						Value:       "",
 						Destination: &startProfile,
-						Usage: "To run multiple instances of the same magic config",
+						Usage:       "To run multiple instances of the same magic config",
 					},
-       			},
+				},
 				Arguments: []cli.Argument{
 					&cli.StringArg{
-						Name: "path",
+						Name:        "path",
 						Destination: &startPath,
 					},
-            	},
-
+				},
 			},
 			{
 				Name:        "test",
