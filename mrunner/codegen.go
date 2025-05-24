@@ -1,6 +1,8 @@
 package mrunner
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const runFile = `package main
 
@@ -9,6 +11,7 @@ import (
 	"log"
 	
 	"github.com/Liphium/magic/mconfig"
+	"github.com/Liphium/magic/mrunner"
 )
 
 func main() {
@@ -20,7 +23,7 @@ func main() {
 
 	// Create context
 	context := mconfig.DefaultContext(config, profile)
-	run(context)
+	Run(context)
 
 	// Create the runner from context
 	runner, err := mrunner.NewRunner(context)
@@ -38,7 +41,7 @@ const runFileDeployer = `
 	runner.Deploy()
 
 	// Start the app
-	start(runner)
+	Start(runner)
 `
 
 // Generate the run file calling the runner
