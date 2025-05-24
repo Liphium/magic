@@ -7,10 +7,10 @@ import (
 
 func CreateCache() error {
 	mDir, err := GetMagicDirectory(3)
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	if mDir == nil{
+	if mDir == nil {
 		return errors.New("couldn't find .magic folder")
 	}
 
