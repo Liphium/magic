@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/Liphium/magic/"
+
 	"github.com/urfave/cli/v3"
 )
 
