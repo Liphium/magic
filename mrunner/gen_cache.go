@@ -2,34 +2,35 @@ package mrunner
 
 import (
 	"bufio"
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/Liphium/magic/integration"
 )
 
-func GenConfig(configPath string, config string, profile string) error {
+func GenConfig(configPath string, config string, profile string, printFunc func(string)) (string, error) {
 
 	err := integration.CreateCache()
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = os.Chdir("cache")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	confName := config + "_" + profile
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return err
+		return "", err
 	}
 	files, err := os.ReadDir(wd)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	folderEx := false
@@ -43,22 +44,21 @@ func GenConfig(configPath string, config string, profile string) error {
 	}
 	if !folderEx {
 		if err := os.Mkdir(confName, 0755); err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	wd = filepath.Join(wd, confName)
 	err = os.Chdir(wd)
 	if err != nil {
-		return err
+		return "", err
 	}
-
 
 	// COPY configfile and change package
 	// Open the file for reading
 	file, err := os.Open(configPath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer file.Close()
 
@@ -71,7 +71,7 @@ func GenConfig(configPath string, config string, profile string) error {
 
 	// Check for errors during scanning
 	if err := scanner.Err(); err != nil {
-		return err
+		return "", err
 	}
 
 	// Replace the first occurrence of the old word with the new word
@@ -81,21 +81,107 @@ func GenConfig(configPath string, config string, profile string) error {
 	}
 
 	// Open the file for writing (this will truncate the file)
-	file, err = os.OpenFile(config + ".go", os.O_WRONLY|os.O_TRUNC, 0644)
+	file, err = os.OpenFile(config+".go", os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer file.Close()
 
 	// Write the modified content back to the file
 	_, err = file.WriteString(content)
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
+		return "", err
 	}
 
-	gomod := "module "+ confName +"\n"
-	fmt.Print(gomod)
+	// load go.mod from conf
+	mDir, err := integration.GetMagicDirectory(3)
+	if err != nil {
+		return "", err
+	}
+	baseDir := filepath.Dir(mDir)
 
+	// Open the file for reading
+	file, err = os.Open(filepath.Join(baseDir, "go.mod"))
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
 
-	return nil
+	// Read the file content
+	content = ""
+	moduleName := ""
+	scanner = bufio.NewScanner(file)
+	for scanner.Scan() {
+		t := scanner.Text()
+		if strings.Contains(t, "module ") {
+			itms := strings.Split(t, " ")
+			ind := slices.Index(itms, "module")
+			if ind == -1 || len(itms) < ind+2 {
+				return "", errors.New("can't find module name in go.mod")
+			}
+			moduleName = itms[ind+1]
+			break
+		}
+	}
+	if moduleName == "" {
+		return "", errors.New("can't find module name in go.mod")
+	}
+
+	// Check for errors during scanning
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	// create base go.mod
+	integration.ExecCmdWithFunc(printFunc, false, "go", "mod", "init", confName)
+
+	// add replace to go.mod
+	toadd := "\nreplace " + moduleName + " => ../../../"
+
+	// Open the file in append mode
+	file, err = os.OpenFile("go.mod", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	// Write the new line to the file
+	if _, err := file.WriteString(toadd); err != nil {
+		return "", err
+	}
+
+	// gen runfile
+	fc := GenerateRunFile(false)
+	// Open the file for writing (this will truncate the file)
+	file, err = os.OpenFile("run.go", os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	// Write the modified content back to the file
+	_, err = file.WriteString(fc)
+	if err != nil {
+		return "", err
+	}
+
+	err = integration.ExecCmdWithFunc(printFunc, false, "go", "get", confName)
+	if err != nil {
+		return "", err
+	}
+	err = integration.ExecCmdWithFunc(printFunc, false, "go", "get", "githum.com/Liphium/migic/mconfig")
+	if err != nil {
+		return "", err
+	}
+	err = integration.ExecCmdWithFunc(printFunc, false, "go", "mod", "tidy")
+	if err != nil {
+		return "", err
+	}
+
+	wd, err = os.Getwd()
+	if err != nil{
+		return "", err
+	}
+
+	return wd, nil
 }

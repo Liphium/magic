@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"os"
 	"strings"
 
 	"github.com/Liphium/magic/integration"
@@ -30,11 +31,14 @@ func startCommand(filepath string, profile string) error {
 	config := strings.TrimRight(filename, ".go")
 
 	// generate the cache
-	mrunner.GenConfig(path, config, profile)
+	wd, err := mrunner.GenConfig(path, config, profile, func(s string) {
+		tui.Console.AddItem(s)
+	})
+	if err != nil{
+		return err
+	}
 
-	// See if the magic directory already exists
-	_, err = integration.GetMagicDirectory(3)
-	if err != nil {
+	if err = os.Chdir(wd); err != nil{
 		return err
 	}
 
