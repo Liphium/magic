@@ -79,7 +79,7 @@ func runTui() {
 			var commands = &cli.Command{
 				HideHelp:        true,
 				OnUsageError:    func(ctx context.Context, cmd *cli.Command, err error, isSubcommand bool) error { return nil },
-				CommandNotFound: func(ctx context.Context, c *cli.Command, s string) {cmdError = "command doesnt exist"},
+				CommandNotFound: func(ctx context.Context, c *cli.Command, s string) { cmdError = "command doesnt exist" },
 				Commands: []*cli.Command{
 					{
 						Name:    "run",
