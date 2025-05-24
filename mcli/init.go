@@ -66,7 +66,7 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	// Set up the output pipe
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalln("couldn't open pipe: ", err.Error())
 		return nil
 	}
 	go func() {
@@ -77,12 +77,8 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	}()
 
 	// Start the command
-	if err := cmd.Start(); err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
 	if err := cmd.Run(); err != nil {
+		log.Fatalln("couldn't import: ", err)
 		return err
 	}
 
@@ -90,7 +86,7 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	log.Println()
 	log.Println("Successfully initialized project.")
 	log.Println("Use magic init script/test <name> to create new tests/scripts.")
-	log.Println("Let's hope you become a good wizard!")
+	log.Println("Let's hope you become a great wizard!")
 
 	return nil
 }
