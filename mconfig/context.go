@@ -33,3 +33,10 @@ func (c *Context) Databases() []*Database {
 func (c *Context) AddDatabase(database *Database) {
 	c.databases = append(c.databases, database)
 }
+
+func DefaultContext(config string, profile string) *Context {
+	return &Context{
+		config:  config,
+		profile: profile,
+	}
+}

@@ -5,5 +5,6 @@ use (
 	./mcli
 	./mconfig
 	./mrunner
+	./mtest
 	./tui
 )

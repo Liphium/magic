@@ -13,7 +13,11 @@ type Runner struct {
 	profile     string
 	client      *client.Client
 	environment *mconfig.Environment
-	databases   []*Database
+	databases   []*mconfig.Database
+}
+
+func (r *Runner) Environment() *mconfig.Environment {
+	return r.environment
 }
 
 // Create a new runner
@@ -25,18 +29,12 @@ func NewRunner(ctx *mconfig.Context) (*Runner, error) {
 		return nil, err
 	}
 
-	// Import databases
-	databases := []*Database{}
-	for _, db := range ctx.Databases() {
-		databases = append(databases, newDB(db))
-	}
-
 	// Create the runner
 	return &Runner{
 		config:      ctx.Config(),
 		profile:     ctx.Profile(),
 		client:      dc,
 		environment: ctx.Environment(),
-		databases:   databases,
+		databases:   ctx.Databases(),
 	}, nil
 }

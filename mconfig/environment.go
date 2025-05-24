@@ -1,17 +1,14 @@
 package mconfig
 
-import "os"
-
 type Environment map[string]EnvironmentValue
 
 // Apply all the environment variables
-func (e *Environment) Apply() error {
+func (e *Environment) Generate() map[string]string {
+	copy := map[string]string{}
 	for value, key := range *e {
-		if err := os.Setenv(value, key.get()); err != nil {
-			return err
-		}
+		copy[value] = key.get()
 	}
-	return nil
+	return copy
 }
 
 type EnvironmentValue struct {
