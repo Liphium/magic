@@ -33,7 +33,7 @@ func GetMagicDirectory(amount int) (string, error) {
 		}
 		wd = filepath.Dir(wd)
 	}
-	return "", errors.New("cant find .magic directory")
+	return "", errors.New("can't find magic directory")
 }
 
 func CreateDirIfNotExist(path string, dir string) error {
