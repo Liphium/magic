@@ -7,12 +7,11 @@ import (
 
 // Get the magic directory
 func GetMagicDirectory(amount int) (os.DirEntry, error) {
-	wd,err := os.Getwd()
+	wd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	
-	
+
 	for i := 0; i < amount; i++ {
 
 		files, err := os.ReadDir(wd)
