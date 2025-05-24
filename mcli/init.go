@@ -29,13 +29,17 @@ import (
 func run(ctx *mconfig.Context) {
 	fmt.Println("Hello magic!")
 }
+
+func start() {
+	// TODO: Run your application here
+}
 `
 
 // Command: magic init
 func initCommand(ctx context.Context, c *cli.Command) error {
 
 	// See if the magic directory already exists
-	_, err := integration.GetMagicDirectory(0)
+	_, err := integration.GetMagicDirectory(1)
 	if err == nil {
 		return errors.New("magic project already exists")
 	}
@@ -60,6 +64,9 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 
 	// Run go mod tidy
 	log.Println("Importing packages..")
+	if err := os.Chdir(".."); err != nil {
+		return err
+	}
 	err = integration.ExecCmdWithFunc(func(s string) {
 		fmt.Println(s)
 	}, false, "go", "mod", "tidy")

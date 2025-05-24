@@ -8,11 +8,14 @@ import (
 
 // Get the magic directory
 func GetMagicDirectory(amount int) (string, error) {
+	if amount <= 0 {
+		return "", errors.New("amount can't be 0 or less")
+	}
+
 	wd, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
-
 
 	for i := 0; i < amount; i++ {
 
@@ -33,12 +36,12 @@ func GetMagicDirectory(amount int) (string, error) {
 }
 
 func CreateDirIfNotExist(path string, dir string) error {
-	if _,err := os.ReadDir(path); err != nil{
+	if _, err := os.ReadDir(path); err != nil {
 		return errors.New("path doesn't exist")
 	}
 	_, err := os.ReadDir(filepath.Join(path, dir))
 	if err == nil {
-		if err = os.Chdir(path); err != nil{
+		if err = os.Chdir(path); err != nil {
 			return err
 		}
 		if err := os.Mkdir(dir, 0755); err != nil {
@@ -47,5 +50,5 @@ func CreateDirIfNotExist(path string, dir string) error {
 		return nil
 	}
 	return errors.New("directory already exists")
-	
+
 }
