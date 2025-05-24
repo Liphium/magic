@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -17,13 +18,13 @@ const refreshDelay = 100
 
 var cmdError = ""
 
-func RunTui(){
+func RunTui() {
 
 	p := tea.NewProgram(initialModel())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
-	
+
 }
 
 type (
@@ -35,6 +36,8 @@ type model struct {
 	err       error
 	width     int
 	height    int
+	history   []string
+	index     int
 }
 
 type sPipe struct {
@@ -136,6 +139,8 @@ func initialModel() model {
 	return model{
 		textInput: ti,
 		err:       nil,
+		index:     -1,
+		history:   []string{},
 	}
 }
 
@@ -167,7 +172,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if value := m.textInput.Value(); value != "" {
 				m.textInput.SetValue("")
 				ctr.AddItem(value)
+				m.history = slices.Insert(m.history, 0, value)
+				m.index = -1
 			}
+		case tea.KeyUp:
+			if m.index + 1 <= len(m.history)-1{
+				m.index++
+				m.textInput.SetValue(m.history[m.index])
+			}
+		case tea.KeyDown:
+			if m.index - 1 >= -1{
+				m.index--
+				if m.index == -1{
+					m.textInput.SetValue("")
+				} else{
+					m.textInput.SetValue(m.history[m.index])
+				}
+				
+			}
+		default:
+			m.index = -1
 		}
 
 	// We handle errors just like any other message

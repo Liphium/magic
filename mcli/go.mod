@@ -4,9 +4,10 @@ go 1.24.3
 
 require (
 	github.com/Liphium/magic/integration v0.0.0-00010101000000-000000000000
-	github.com/Liphium/magic/mconfig v0.0.0-20250524164739-46e74f40a297
+	github.com/Liphium/magic/mconfig v0.0.0-20250524185402-6400dae75f3f
 	github.com/Liphium/magic/mrunner v0.0.0-20250524143131-a6ed6092307a
 	github.com/Liphium/magic/tui v0.0.0-00010101000000-000000000000
+	github.com/joho/godotenv v1.5.1
 	github.com/urfave/cli/v3 v3.3.3
 )
 
@@ -32,7 +33,6 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
