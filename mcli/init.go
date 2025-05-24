@@ -46,7 +46,7 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	}
 
 	// Create the .magic directory
-	log.Println("Creating folder..")
+	log.Println("Creating magic folder..")
 	if err := os.Mkdir("magic", 0755); err != nil {
 		return err
 	}
