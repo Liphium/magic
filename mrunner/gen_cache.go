@@ -3,6 +3,7 @@ package mrunner
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -17,8 +18,10 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	if err != nil {
 		return "", err
 	}
+
 	err = os.Chdir("cache")
 	if err != nil {
+		fmt.Println(os.Getwd())
 		return "", err
 	}
 
@@ -75,26 +78,17 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	}
 
 	// Replace the first occurrence of the old word with the new word
-	index := strings.Index(content, "package config")
-	if index != -1 {
-		content = content[:index] + "package main" + content[index+len("package config"):]
-	}
+	content = strings.Replace(content, "package config", "package main", 1)
+	integration.PrintCurrentDirAll()
 
-	// Open the file for writing (this will truncate the file)
-	file, err = os.OpenFile(config+".go", os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	// Write the modified content back to the file
-	_, err = file.WriteString(content)
+	// Write the replaced content to the file
+	err = os.WriteFile(filepath.Join(wd, config+".go"), []byte(content), 0755)
 	if err != nil {
 		return "", err
 	}
 
 	// load go.mod from conf
-	mDir, err := integration.GetMagicDirectory(3)
+	mDir, err := integration.GetMagicDirectory(5)
 	if err != nil {
 		return "", err
 	}
@@ -153,7 +147,7 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	// gen runfile
 	fc := GenerateRunFile(false)
 	// Open the file for writing (this will truncate the file)
-	file, err = os.OpenFile("run.go", os.O_WRONLY|os.O_TRUNC, 0644)
+	file, err = os.Create("run.go")
 	if err != nil {
 		return "", err
 	}
@@ -173,13 +167,17 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	if err != nil {
 		return "", err
 	}
+	err = integration.ExecCmdWithFunc(printFunc, false, "go", "get", "githum.com/Liphium/migic/mrunner")
+	if err != nil {
+		return "", err
+	}
 	err = integration.ExecCmdWithFunc(printFunc, false, "go", "mod", "tidy")
 	if err != nil {
 		return "", err
 	}
 
 	wd, err = os.Getwd()
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 

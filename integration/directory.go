@@ -2,6 +2,7 @@ package integration
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -50,5 +51,17 @@ func CreateDirIfNotExist(path string, dir string) error {
 		return nil
 	}
 	return errors.New("directory already exists")
+
+}
+
+func PrintCurrentDirAll() {
+	wd, _ := os.Getwd()
+	fmt.Println(wd)
+	files, _ := os.ReadDir(".")
+
+	// Find the magic folder
+	for _, entry := range files {
+		fmt.Println(entry.Name())
+	}
 
 }

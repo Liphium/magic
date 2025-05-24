@@ -13,6 +13,11 @@ func CreateCache() error {
 	if err != nil {
 		return err
 	}
+	
+	err = os.Chdir(mDir)
+	if err != nil {
+		return err
+	}
 
 	// Find the magic folder
 	for _, entry := range files {
@@ -20,7 +25,7 @@ func CreateCache() error {
 			return nil
 		}
 	}
-	os.Chdir(mDir)
+	
 	if err := os.Mkdir("cache", 0755); err != nil {
 		return err
 	}

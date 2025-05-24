@@ -2,8 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mrunner"
@@ -11,34 +12,39 @@ import (
 )
 
 // Command: magic start
-func startCommand(filepath string, profile string) error {
-	if filepath == "" {
-		filepath = "./config.go"
+func startCommand(config string, profile string) error {
+	mDir, err := integration.GetMagicDirectory(3)
+	if err != nil {
+		return err
+	}
+	if config == "" {
+		config = "config"
 	}
 	if profile == "" {
 		profile = "default"
 	}
-	_, filename, path, err := integration.EvaluatePath(filepath)
-	if err != nil {
-		return err
-	}
-	if !integration.IsPathSanitized(filename) {
+
+	if !integration.IsPathSanitized(config) {
 		return errors.New("filename conatins forbidden chars")
 	}
 	if !integration.IsPathSanitized(profile) {
 		return errors.New("profile conatins forbidden chars")
 	}
-	config := strings.TrimRight(filename, ".go")
 
+	_, _, path, err := integration.EvaluatePath(filepath.Join(mDir, config+".go"))
+	if err != nil {
+		fmt.Println(filepath.Join(mDir, config+".go"))
+		return err
+	}
 	// generate the cache
 	wd, err := mrunner.GenConfig(path, config, profile, func(s string) {
 		tui.Console.AddItem(s)
 	})
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	if err = os.Chdir(wd); err != nil{
+	if err = os.Chdir(wd); err != nil {
 		return err
 	}
 

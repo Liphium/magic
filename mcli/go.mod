@@ -4,13 +4,13 @@ go 1.24.3
 
 require (
 	github.com/Liphium/magic/integration v0.0.0-00010101000000-000000000000
+	github.com/Liphium/magic/mconfig v0.0.0-20250524164739-46e74f40a297
 	github.com/Liphium/magic/mrunner v0.0.0-20250524143131-a6ed6092307a
 	github.com/Liphium/magic/tui v0.0.0-00010101000000-000000000000
 	github.com/urfave/cli/v3 v3.3.3
 )
 
 require (
-	github.com/Liphium/magic/mconfig v0.0.0-20250524143131-a6ed6092307a // indirect
 	github.com/Liphium/magic/mtest v0.0.0-20250524143131-a6ed6092307a // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
