@@ -51,9 +51,12 @@ func (c *Context) LoadSecretsToEnvironment(path string) error {
 	}
 	content := string(bytes)
 	for l := range strings.Lines(content) {
+		if strings.HasPrefix(l, "#") {
+			continue
+		}
 		args := strings.Split(l, "=")
 		if len(args) < 2 {
-			return fmt.Errorf("invalid format for secret: %s", l)
+			continue
 		}
 		(*c.environment)[strings.TrimSpace(args[0])] = ValueStatic(strings.Trim(strings.TrimSpace(args[1]), "\"'"))
 	}
