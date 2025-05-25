@@ -1,10 +1,9 @@
-package mtest
+package mconfig
 
 import (
 	"encoding/base64"
 	"encoding/json"
-
-	"github.com/Liphium/magic/mconfig"
+	"errors"
 )
 
 type Plan struct {
@@ -13,9 +12,9 @@ type Plan struct {
 }
 
 type PlannedDatabaseType struct {
-	Port      uint                 `json:"port"`
-	Type      mconfig.DatabaseType `json:"type"`
-	Databases []PlannedDatabase    `json:"databases"`
+	Port      uint              `json:"port"`
+	Type      DatabaseType      `json:"type"`
+	Databases []PlannedDatabase `json:"databases"`
 }
 
 type PlannedDatabase struct {
@@ -24,6 +23,10 @@ type PlannedDatabase struct {
 	Username   string `json:"username"`
 	Password   string `json:"password"`
 	Hostname   string `json:"hostname"`
+
+	// Just for developers to access, not included in actual plan
+	Type DatabaseType `json:"-"`
+	Port uint         `json:"-"`
 }
 
 // Turn the plan into printable form
@@ -47,4 +50,25 @@ func FromPrintable(printable string) (*Plan, error) {
 		return nil, err
 	}
 	return plan, nil
+}
+
+// Get a database by its name.
+func (p *Plan) Database(name string) (PlannedDatabase, error) {
+	foundDB := PlannedDatabase{}
+	found := false
+	for _, t := range p.DatabaseTypes {
+		for _, db := range t.Databases {
+			if db.ConfigName == name {
+				if found {
+					return PlannedDatabase{}, errors.New("this database exists more than once")
+				}
+				found = true
+				foundDB = db
+			}
+		}
+	}
+	if !found {
+		return foundDB, errors.New("database not found")
+	}
+	return foundDB, nil
 }

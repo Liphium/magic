@@ -14,10 +14,10 @@ const defaultScriptBase = `package magic_scripts
 import (
 	"fmt"
 
-	"github.com/Liphium/magic/mtest"
+	"github.com/Liphium/magic/mconfig"
 )
 
-func Run%s(p *mtest.Plan) {
+func Run%s(p *mconfig.Plan) {
 	fmt.Println("I'm a wizzard!")
 }
 `

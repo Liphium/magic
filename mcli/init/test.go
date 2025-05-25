@@ -14,10 +14,10 @@ const defaultTestBase = `package magic_tests
 import (
 	"fmt"
 
-	"github.com/Liphium/magic/mtest"
+	"github.com/Liphium/magic/mconfig"
 )
 
-func Run%s(p *mtest.Plan) {
+func Run%s(p *mconfig.Plan) {
 	fmt.Println("Hello, I'm the greatest wizzard of all time!")
 }
 `

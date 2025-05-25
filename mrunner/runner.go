@@ -9,15 +9,15 @@ const DefaultStartPort uint = 10000
 const DefaultEndPort uint = 60000
 
 type Runner struct {
-	config      string
-	profile     string
-	client      *client.Client
-	environment *mconfig.Environment
-	databases   []*mconfig.Database
+	config  string
+	profile string
+	client  *client.Client
+	ctx     *mconfig.Context
+	plan    *mconfig.Plan
 }
 
 func (r *Runner) Environment() *mconfig.Environment {
-	return r.environment
+	return r.ctx.Environment()
 }
 
 // Create a new runner
@@ -31,10 +31,10 @@ func NewRunner(ctx *mconfig.Context) (*Runner, error) {
 
 	// Create the runner
 	return &Runner{
-		config:      ctx.Config(),
-		profile:     ctx.Profile(),
-		client:      dc,
-		environment: ctx.Environment(),
-		databases:   ctx.Databases(),
+		config:  ctx.Config(),
+		profile: ctx.Profile(),
+		client:  dc,
+		ctx:     ctx,
+		plan:    ctx.Plan(),
 	}, nil
 }
