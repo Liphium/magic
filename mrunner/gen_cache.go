@@ -145,8 +145,8 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	// add replace to go.mod
 	toadd := "\nreplace " + moduleName + " => ../../../"
 	if os.Getenv("MAGIC_DEBUG") == "true" {
-		toadd += "\nreplace github.com/Liphium/magic/mconfig => ../../../../mconfig"
-		toadd += "\nreplace github.com/Liphium/magic/mrunner => ../../../../mrunner"
+		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s", os.Getenv("MAGIC_MCONFIG"))
+		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s", os.Getenv("MAGIC_MRUNNER"))
 	}
 
 	// Open the file in append mode
