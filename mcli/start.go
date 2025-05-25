@@ -47,11 +47,12 @@ func startCommand(config string, profile string) error {
 	}
 
 	tui.Console.AddItem("Starting...")
-	go func ()  {
+
+	go func() {
 		err := integration.ExecCmdWithFunc(func(s string) {
 			tui.Console.AddItem(s)
 		}, "go", "run", ".", config, profile)
-		if err != nil{
+		if err != nil {
 			panic(err)
 		}
 	}()
