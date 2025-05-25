@@ -6,10 +6,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mconfig"
@@ -75,14 +73,13 @@ func startCommand(config string, profile string) error {
 				tui.Console.AddItem(tui.MagicPanicPrefix + "ERROR: couldn't change working directory: " + err.Error())
 			}
 
-			sigs := make(chan os.Signal, 1)
-			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-			go func() {
-				<-sigs
-				cmd.Process.Kill()
-				os.Exit(0)
-			}()
+			tui.ShutdownHook = func() {
+				if err := cmd.Process.Kill(); err != nil {
+					fmt.Println("shutdown err:", err)
+				} else {
+					fmt.Println("successfully killed")
+				}
+			}
 		}, "go", "run", ".", config, profile, mDir)
 		if err != nil {
 			tui.Console.AddItem(tui.MagicPanicPrefix + "" + err.Error())

@@ -14,6 +14,8 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+var ShutdownHook func() = nil
+
 const MagicPanicPrefix = "mgc_pan:"
 
 const refreshDelay = 100
@@ -177,6 +179,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
+			if ShutdownHook != nil {
+				ShutdownHook()
+			}
 			return m, tea.Quit
 		case tea.KeyEnter:
 			if value := m.textInput.Value(); value != "" {
@@ -225,6 +230,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if itemToPrint, shouldPrint := Console.getItem(); shouldPrint {
 		if strings.HasPrefix(itemToPrint, MagicPanicPrefix) {
 			m.quitMsg = strings.TrimLeft(itemToPrint, MagicPanicPrefix)
+			if ShutdownHook != nil {
+				ShutdownHook()
+			}
 			return m, tea.Batch(tea.Println(m.quitMsg), tea.Quit)
 		} else {
 			return m, tea.Batch(
