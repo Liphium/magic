@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	init_command "github.com/Liphium/magic/mcli/init"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v3"
 )
@@ -15,41 +16,11 @@ func main() {
 	godotenv.Load()
 
 	var startPath = ""
-	var initScriptPath = ""
-	var initTestPath = ""
 	var startProfile = ""
 	cmd := &cli.Command{
 		Description: "Testing and debugging like Magic.",
 		Commands: []*cli.Command{
-			{
-				Name:        "init",
-				Description: "Magically initialize a new project.",
-				Action:      initCommand,
-				Commands: []*cli.Command{
-					{
-						Name:        "script",
-						Description: "Magically generates a script template.",
-						Action:      func(ctx context.Context, c *cli.Command) error { return initScriptCommand(initScriptPath) },
-						Arguments: []cli.Argument{
-							&cli.StringArg{
-								Name:        "path",
-								Destination: &initScriptPath,
-							},
-						},
-					},
-					{
-						Name:        "test",
-						Description: "Magically generates a test template.",
-						Action:      func(ctx context.Context, c *cli.Command) error { return initTestCommand(initTestPath) },
-						Arguments: []cli.Argument{
-							&cli.StringArg{
-								Name:        "path",
-								Destination: &initTestPath,
-							},
-						},
-					},
-				},
-			},
+			init_command.BuildCommand(),
 			{
 				Name:        "start",
 				Description: "Magically start your project.",

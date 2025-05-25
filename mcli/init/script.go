@@ -1,4 +1,4 @@
-package main
+package init_command
 
 import (
 	"fmt"
@@ -9,7 +9,20 @@ import (
 	"github.com/Liphium/magic/integration"
 )
 
-// Command: magic init script
+const defaultScriptBase = `package magic_scripts
+
+import (
+	"fmt"
+
+	"github.com/Liphium/magic/mtest"
+)
+
+func Run%s(p *mtest.Plan) {
+	fmt.Println("I'm a wizzard!")
+}
+`
+
+// Command: magic init script <name>
 func initScriptCommand(fp string) error {
 
 	// Get magic dir
@@ -25,10 +38,8 @@ func initScriptCommand(fp string) error {
 	}
 
 	// Generate Script base
-	var scriptCenter = `
-	fmt.Println("I'm a wizzard")
-`
-	scriptBase := "package scripts\n\nimport(\n    \"fmt\"\n)\n\nfunc run" + strings.TrimRight(filename, ".go") + "(){" + scriptCenter + "}"
+	scriptName := integration.SnakeToCamelCase(strings.TrimRight(filename, ".go"), true)
+	scriptBase := fmt.Sprintf(defaultScriptBase, scriptName)
 
 	// Create all files needed
 	log.Println("Creating script..")

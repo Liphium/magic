@@ -1,4 +1,4 @@
-package main
+package init_command
 
 import (
 	"fmt"
@@ -9,7 +9,20 @@ import (
 	"github.com/Liphium/magic/integration"
 )
 
-// Command: magic init test
+const defaultTestBase = `package magic_tests
+
+import (
+	"fmt"
+
+	"github.com/Liphium/magic/mtest"
+)
+
+func Run%s(p *mtest.Plan) {
+	fmt.Println("Hello, I'm the greatest wizzard of all time!")
+}
+`
+
+// Command: magic init test <name>
 func initTestCommand(fp string) error {
 
 	// Get magic dir
@@ -24,15 +37,13 @@ func initTestCommand(fp string) error {
 		return fmt.Errorf("bad path "+fp+": %w", err)
 	}
 
-	// Generate Script base
-	var scriptCenter = `
-	fmt.Println("I'm a wizzard")
-`
-	scriptBase := "package tests\n\nimport(\n    \"fmt\"\n)\n\nfunc run" + strings.TrimRight(filename, ".go") + "(){" + scriptCenter + "}"
+	// Generate test base
+	testName := integration.SnakeToCamelCase(strings.TrimRight(filename, ".go"), true)
+	testBase := fmt.Sprintf(defaultTestBase, testName)
 
 	// Create all files needed
 	log.Println("Creating test..")
-	if err := integration.CreateFileWithContent(path, scriptBase); err != nil {
+	if err := integration.CreateFileWithContent(path, testBase); err != nil {
 		return err
 	}
 

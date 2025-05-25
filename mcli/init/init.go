@@ -1,4 +1,4 @@
-package main
+package init_command
 
 import (
 	"context"
@@ -10,6 +10,47 @@ import (
 	"github.com/Liphium/magic/integration"
 	"github.com/urfave/cli/v3"
 )
+
+func BuildCommand() *cli.Command {
+	var initScriptPath = ""
+	var initTestPath = ""
+	return &cli.Command{
+		Name:        "init",
+		Description: "Magically initialize a new project.",
+		Action:      initCommand,
+		Commands: []*cli.Command{
+			// Sub command for creating scripts
+			{
+				Name:        "script",
+				Description: "Magically generates a script template.",
+				Action: func(ctx context.Context, c *cli.Command) error {
+					return initScriptCommand(initScriptPath)
+				},
+				Arguments: []cli.Argument{
+					&cli.StringArg{
+						Name:        "path",
+						Destination: &initScriptPath,
+					},
+				},
+			},
+
+			// Sub command for creating new tests
+			{
+				Name:        "test",
+				Description: "Magically generates a test template.",
+				Action: func(ctx context.Context, c *cli.Command) error {
+					return initTestCommand(initTestPath)
+				},
+				Arguments: []cli.Argument{
+					&cli.StringArg{
+						Name:        "path",
+						Destination: &initTestPath,
+					},
+				},
+			},
+		},
+	}
+}
 
 // Default gitignore file for magic
 const magicGitIgnore string = `
@@ -78,7 +119,7 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 	dir, err := os.Getwd()
-	if err != nil{
+	if err != nil {
 		log.Fatalln("Failed to get cwd: ", err)
 	}
 	fmt.Println("currently in ", dir)
@@ -103,5 +144,3 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 
 	return nil
 }
-
-

@@ -27,11 +27,5 @@ func CopyFile(source string, destination string) error {
 
 // Create a new file with content.
 func CreateFileWithContent(name string, content string) error {
-	file, err := os.Create(name)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	_, err = file.Write([]byte(content))
-	return err
+	return os.WriteFile(name, []byte(content), 0755)
 }
