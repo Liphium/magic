@@ -38,7 +38,7 @@ func EvaluateNewPath(pta string) (dir string, filename string, path string, _ er
 
 		// extend path with filename
 		if base := filepath.Base(pta); base != "." {
-			pta += base + ".go"
+			pta += ".go"
 		} else {
 			return "", "", "", errors.New("")
 		}

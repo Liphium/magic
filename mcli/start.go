@@ -2,11 +2,14 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Liphium/magic/integration"
+	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
 	"github.com/Liphium/magic/tui"
 )
@@ -54,16 +57,28 @@ func startCommand(config string, profile string) error {
 	go func() {
 		tui.Console.AddItem("Starting...")
 		err := integration.ExecCmdWithFuncStart(func(s string) {
+			if strings.HasPrefix(s, mrunner.PlanPrefix) {
+				mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
+				if err != nil {
+					tui.Console.AddItem(strings.TrimLeft(s, mrunner.PlanPrefix))
+					tui.Console.AddItem(fmt.Sprintf(tui.MagicPanicPrefix+"ERROR: couldn't parse plan: %s", err))
+					return
+				}
+				return
+			}
 			tui.Console.AddItem(s)
 		}, func() {
 			if err = os.Chdir(wbOld); err != nil {
-				log.Fatalln("couldn't change working directory:", err)
+				tui.Console.AddItem(tui.MagicPanicPrefix + "ERROR: couldn't change working directory: " + err.Error())
 			}
 		}, "go", "run", ".", config, profile, mDir)
 		if err != nil {
-			tui.Console.AddItem("mgc_pan:" + err.Error())
+			tui.Console.AddItem(tui.MagicPanicPrefix + "" + err.Error())
 		} else {
-			tui.Console.AddItem("mgc_pan:Application finished.")
+			if os.Getenv("MAGIC_NO_END") == "true" {
+				return
+			}
+			tui.Console.AddItem(tui.MagicPanicPrefix + "Application finished.")
 		}
 	}()
 

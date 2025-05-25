@@ -14,6 +14,8 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+const MagicPanicPrefix = "mgc_pan:"
+
 const refreshDelay = 100
 
 var cmdError = ""
@@ -213,8 +215,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.textInput, cmd = m.textInput.Update(msg)
 
 	if itemToPrint, shouldPrint := Console.getItem(); shouldPrint {
-		if strings.HasPrefix(itemToPrint, "mgc_pan:") {
-			m.quitMsg = strings.TrimLeft(itemToPrint, "mgc_pan:")
+		if strings.HasPrefix(itemToPrint, MagicPanicPrefix) {
+			m.quitMsg = strings.TrimLeft(itemToPrint, MagicPanicPrefix)
 			return m, tea.Batch(tea.Println(m.quitMsg), tea.Quit)
 		} else {
 			return m, tea.Batch(

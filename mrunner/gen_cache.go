@@ -16,7 +16,7 @@ import (
 func GoToCache() error {
 	err := integration.CreateCache()
 	if err != nil {
-		return err
+		return fmt.Errorf("couldn't create cache directory: %s", err)
 	}
 	mDir, err := integration.GetMagicDirectory(5)
 	if err != nil {
@@ -30,13 +30,24 @@ func GoToCache() error {
 	return nil
 }
 
-// wd: ./magic/cache/test_name or script_name if in cache befor
-func GenTSFolder(path string, isTest bool) error {
-	fName := "script_" + filepath.Base(path)
-	if isTest {
-		fName = "test_" + filepath.Base(path)
-	}
+// Expects to be ran with the working directory being the cache folder.
+//
+// Goes to ./magic/cache/script_name in case successful.
+func GenerateScriptFolder(path string) error {
+	return generateCacheFolder("script_" + filepath.Base(path))
+}
 
+// Expects to be ran with the working directory being the cache folder.
+//
+// Goes to ./magic/cache/test_name in case successful.
+func GenerateTestFolder(path string) error {
+	return generateCacheFolder("test_" + filepath.Base(path))
+}
+
+// Helper function for generation of folders inside the cache folder.
+//
+// Expects to be ran in the cache folder.
+func generateCacheFolder(name string) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -50,17 +61,17 @@ func GenTSFolder(path string, isTest bool) error {
 
 	// Check if conf folder already exists
 	for _, entry := range files {
-		if entry.IsDir() && entry.Name() == fName {
+		if entry.IsDir() && entry.Name() == name {
 			folderEx = true
 		}
 	}
 	if !folderEx {
-		if err := os.Mkdir(fName, 0755); err != nil {
+		if err := os.Mkdir(name, 0755); err != nil {
 			return err
 		}
 	}
 
-	wd = filepath.Join(wd, fName)
+	wd = filepath.Join(wd, name)
 	err = os.Chdir(wd)
 	if err != nil {
 		return err
@@ -68,42 +79,8 @@ func GenTSFolder(path string, isTest bool) error {
 	return nil
 }
 
-// wd: ./magic/config/config_profile if in cache folder before
-func GenConfFolder(configPath string, confName string) (string, error) {
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	files, err := os.ReadDir(wd)
-	if err != nil {
-		return "", err
-	}
-
-	folderEx := false
-
-	// Check if conf folder already exists
-	for _, entry := range files {
-		if entry.IsDir() && entry.Name() == confName {
-			folderEx = true
-		}
-	}
-	if !folderEx {
-		if err := os.Mkdir(confName, 0755); err != nil {
-			return "", err
-		}
-	}
-
-	wd = filepath.Join(wd, confName)
-	err = os.Chdir(wd)
-	if err != nil {
-		return "", err
-	}
-	return wd, nil
-}
-
 // no wd change
-func CopyFileReplaceModule(fp string, orgName string, newName string) error {
+func CopyFileAndReplacePackage(fp string, orgName string, newName string) error {
 	// COPY configfile and change package
 	// Open the file for reading
 	file, err := os.Open(fp)
@@ -136,7 +113,7 @@ func CopyFileReplaceModule(fp string, orgName string, newName string) error {
 }
 
 // no wd change
-func GenGoMod(isConfig bool, confName string, mDir string, printFunc func(string)) (string, error) {
+func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 	// load go.mod from conf
 	baseDir := filepath.Dir(mDir)
 
@@ -232,12 +209,8 @@ func CreateRunFile(deployConainers bool) error {
 	return nil
 }
 
-func ImportDependencies(confName string, printFunc func(string)) error {
-	err := integration.ExecCmdWithFunc(printFunc, "go", "get", confName)
-	if err != nil {
-		return err
-	}
-	err = integration.ExecCmdWithFunc(printFunc, "go", "mod", "tidy")
+func ImportDependencies(printFunc func(string)) error {
+	err := integration.ExecCmdWithFunc(printFunc, "go", "mod", "tidy")
 	if err != nil {
 		return err
 	}
@@ -262,16 +235,16 @@ func GenRunConfig(configPath string, config string, profile string, deployConain
 	}
 
 	printFunc("Creating config folder..")
-	if _, err := GenConfFolder(configPath, confName); err != nil {
+	if err := generateCacheFolder(confName); err != nil {
 		return "", err
 	}
 
-	if err := CopyFileReplaceModule(configPath, "config", "main"); err != nil {
+	if err := CopyFileAndReplacePackage(configPath, "config", "main"); err != nil {
 		return "", err
 	}
 
 	printFunc("Initialized module..")
-	version, err := GenGoMod(true, confName, mDir, printFunc)
+	version, err := GenGoMod(mDir, printFunc)
 	if err != nil {
 		return "", err
 	}
@@ -283,12 +256,12 @@ func GenRunConfig(configPath string, config string, profile string, deployConain
 
 	// Generate the go.work file for this to work
 	printFunc("Creating go.work file..")
-	if err = handleWorkFile(version); err != nil {
+	if err = HandleWorkFile(version); err != nil {
 		return "", err
 	}
 
 	printFunc("Importing dependencies")
-	if err := ImportDependencies(confName, printFunc); err != nil {
+	if err := ImportDependencies(printFunc); err != nil {
 		return "", err
 	}
 	printFunc("Imported dependencies.")
@@ -304,7 +277,8 @@ func GenRunConfig(configPath string, config string, profile string, deployConain
 const generatedWorkFile = `go %s
 `
 
-func handleWorkFile(version string) error {
+// Create work file or update in case already there.
+func HandleWorkFile(version string) error {
 
 	// Get the name of the current working directory
 	wd, err := os.Getwd()
