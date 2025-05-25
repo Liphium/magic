@@ -18,9 +18,9 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	if err != nil {
 		return "", err
 	}
-	
+
 	mDir, err := integration.GetMagicDirectory(5)
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 
@@ -140,7 +140,7 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 		return "", fmt.Errorf("couldn't delete go.mod: %s", err)
 	}
 	printFunc("Initializing " + confName + "..")
-	integration.ExecCmdWithFunc(printFunc, false, "go", "mod", "init", confName)
+	integration.ExecCmdWithFunc(printFunc, "go", "mod", "init", confName)
 
 	// add replace to go.mod
 	toadd := "\nreplace " + moduleName + " => ../../../"
@@ -184,15 +184,15 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	}
 
 	printFunc("Importing dependencies..")
-	err = integration.ExecCmdWithFunc(printFunc, false, "go", "get", confName)
+	err = integration.ExecCmdWithFunc(printFunc, "go", "get", confName)
 	if err != nil {
 		return "", err
 	}
-	err = integration.ExecCmdWithFunc(printFunc, false, "go", "mod", "tidy")
+	err = integration.ExecCmdWithFunc(printFunc, "go", "mod", "tidy")
 	if err != nil {
 		return "", err
 	}
-	err = integration.ExecCmdWithFunc(printFunc, false, "go", "work", "use", ".")
+	err = integration.ExecCmdWithFunc(printFunc, "go", "work", "use", ".")
 	if err != nil {
 		return "", err
 	}

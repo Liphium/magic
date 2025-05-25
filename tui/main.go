@@ -19,7 +19,6 @@ const refreshDelay = 100
 var cmdError = ""
 
 func RunTui() {
-
 	p := tea.NewProgram(initialModel())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
@@ -176,19 +175,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.index = -1
 			}
 		case tea.KeyUp:
-			if m.index + 1 <= len(m.history)-1{
+			if m.index+1 <= len(m.history)-1 {
 				m.index++
 				m.textInput.SetValue(m.history[m.index])
 			}
 		case tea.KeyDown:
-			if m.index - 1 >= -1{
+			if m.index-1 >= -1 {
 				m.index--
-				if m.index == -1{
+				if m.index == -1 {
 					m.textInput.SetValue("")
-				} else{
+				} else {
 					m.textInput.SetValue(m.history[m.index])
 				}
-				
+
 			}
 		default:
 			m.index = -1

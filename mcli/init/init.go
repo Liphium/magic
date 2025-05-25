@@ -121,13 +121,13 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	fmt.Println("currently in ", dir)
 	err = integration.ExecCmdWithFunc(func(s string) {
 		fmt.Println(s)
-	}, false, "go", "mod", "tidy")
+	}, "go", "mod", "tidy")
 	if err != nil {
 		log.Fatalln("Failed to tidy: ", err)
 	}
 	err = integration.ExecCmdWithFunc(func(s string) {
 		fmt.Println(s)
-	}, false, "go", "get", "github.com/Liphium/magic/mconfig")
+	}, "go", "get", "github.com/Liphium/magic/mconfig")
 	if err != nil {
 		log.Fatalln("Failed to go get: ", err)
 	}

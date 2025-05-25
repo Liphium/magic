@@ -5,7 +5,7 @@ import (
 	"os/exec"
 )
 
-func ExecCmdWithFunc(funcPrint func(string), shouldReturn bool, name string, args ...string) error {
+func ExecCmdWithFunc(funcPrint func(string), name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 
 	// Read the normal logs from the app
@@ -36,15 +36,8 @@ func ExecCmdWithFunc(funcPrint func(string), shouldReturn bool, name string, arg
 		}
 	}()
 
-	if shouldReturn {
-		// Start the command
-		if err := cmd.Start(); err != nil {
-			return err
-		}
-	} else {
-		if err := cmd.Run(); err != nil {
-			return err
-		}
+	if err := cmd.Run(); err != nil {
+		return err
 	}
 
 	return nil
