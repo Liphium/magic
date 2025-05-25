@@ -12,6 +12,7 @@ import (
 
 // Command: magic start
 func startCommand(config string, profile string) error {
+
 	mDir, err := integration.GetMagicDirectory(3)
 	if err != nil {
 		return err

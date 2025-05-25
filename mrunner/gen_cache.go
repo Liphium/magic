@@ -18,6 +18,11 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	if err != nil {
 		return "", err
 	}
+	
+	mDir, err := integration.GetMagicDirectory(5)
+	if err != nil{
+		return "", err
+	}
 
 	err = os.Chdir("cache")
 	if err != nil {
@@ -86,10 +91,6 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	}
 
 	// load go.mod from conf
-	mDir, err := integration.GetMagicDirectory(5)
-	if err != nil {
-		return "", err
-	}
 	baseDir := filepath.Dir(mDir)
 
 	// Open the file for reading
