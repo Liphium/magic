@@ -125,6 +125,7 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 	defer file.Close()
 
 	// Read the file content
+	toadd := ""
 	moduleName := ""
 	version := ""
 	scanner := bufio.NewScanner(file)
@@ -145,11 +146,21 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 				return "", errors.New("can't find module name in go.mod")
 			}
 			version = itms[ind+1]
-			break
+		}
+		if strings.HasPrefix(strings.TrimSpace(t), "replace"){
+			toadd += "\n"+ strings.Replace(strings.TrimSpace(t), "../", "../../../../", 1)
 		}
 	}
 	if moduleName == "" {
 		return "", errors.New("can't find module name in go.mod")
+	}
+	
+	// add replace to go.mod
+	toadd += "\nreplace " + moduleName + " => ../../../"
+	if os.Getenv("MAGIC_DEBUG") == "true" {
+		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s", os.Getenv("MAGIC_MCONFIG"))
+		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s", os.Getenv("MAGIC_MRUNNER"))
+		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s", os.Getenv("MAGIC_INTEGRATION")) // Add or else
 	}
 
 	// Check for errors during scanning
@@ -168,14 +179,6 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 		return "", err
 	}
 	integration.ExecCmdWithFunc(printFunc, "go", "mod", "init", filepath.Base(wd))
-
-	// add replace to go.mod
-	toadd := "\nreplace " + moduleName + " => ../../../"
-	if os.Getenv("MAGIC_DEBUG") == "true" {
-		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s", os.Getenv("MAGIC_MCONFIG"))
-		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s", os.Getenv("MAGIC_MRUNNER"))
-		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s", os.Getenv("MAGIC_INTEGRATION")) // Add or else
-	}
 
 	// Open the file in append mode
 	file, err = os.OpenFile("go.mod", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

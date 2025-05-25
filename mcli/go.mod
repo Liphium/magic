@@ -2,6 +2,8 @@ module github.com/Liphium/magic/mcli
 
 go 1.24.3
 
+
+
 require (
 	github.com/Liphium/magic/integration v0.0.0-00010101000000-000000000000
 	github.com/Liphium/magic/mconfig v0.0.0-20250525110829-3f6510184afa
