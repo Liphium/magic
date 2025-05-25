@@ -13,6 +13,10 @@ import (
 
 // Command: magic start
 func startCommand(config string, profile string) error {
+	wbOld, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 	mDir, err := integration.GetMagicDirectory(3)
 	if err != nil {
 		return err
@@ -44,13 +48,17 @@ func startCommand(config string, profile string) error {
 		log.Fatalln("couldn't generate config:", err)
 	}
 	if err = os.Chdir(wd); err != nil {
-		log.Fatalln("couldn't get working directory:", err)
+		log.Fatalln("couldn't change working directory:", err)
 	}
 
 	go func() {
 		tui.Console.AddItem("Starting...")
-		err := integration.ExecCmdWithFunc(func(s string) {
+		err := integration.ExecCmdWithFuncStart(func(s string) {
 			tui.Console.AddItem(s)
+		}, func() {
+			if err = os.Chdir(wbOld); err != nil {
+				log.Fatalln("couldn't change working directory:", err)
+			}
 		}, "go", "run", ".", config, profile)
 		if err != nil {
 			tui.Console.AddItem("mgc_pan:" + err.Error())

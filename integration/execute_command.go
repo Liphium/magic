@@ -6,12 +6,32 @@ import (
 )
 
 func ExecCmdWithFunc(funcPrint func(string), name string, args ...string) error {
+	cmd, err := execHelper(funcPrint, name, args...)
+	if err != nil{
+		return err
+	}
+	return cmd.Run()
+}
+
+func ExecCmdWithFuncStart(funcPrint func(string), funcStart func(), name string, args ...string) error {
+	cmd, err := execHelper(funcPrint, name, args...)
+	if err != nil{
+		return err
+	}
+	if err = cmd.Start(); err != nil{
+		return err
+	}
+	funcStart()
+	return cmd.Wait()
+}
+
+func execHelper(funcPrint func(string), name string, args ...string) (*exec.Cmd, error){
 	cmd := exec.Command(name, args...)
 
 	// Read the normal logs from the app
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return err
+		return nil,err
 	}
 	go func() {
 		scanner := bufio.NewScanner(stdout)
@@ -23,7 +43,7 @@ func ExecCmdWithFunc(funcPrint func(string), name string, args ...string) error 
 	// Read the errors output from the app
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	go func() {
 		scanner := bufio.NewScanner(stderr)
@@ -35,10 +55,5 @@ func ExecCmdWithFunc(funcPrint func(string), name string, args ...string) error 
 			}
 		}
 	}()
-
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return cmd, nil
 }

@@ -10,7 +10,7 @@ import (
 func runCommand(fp string, console *sPipe) error {
 
 	// set sripts as dir
-	mDir, err := integration.GetMagicDirectory(5) // beacause cwd is inside ./magic/cache/config_default
+	mDir, err := integration.GetMagicDirectory(5) // because cwd is inside ./magic/cache/config_default
 	if err != nil {
 		console.AddItem(err.Error())
 		return nil
