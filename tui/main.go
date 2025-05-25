@@ -37,6 +37,7 @@ type model struct {
 	height    int
 	history   []string
 	index     int
+	quitMsg   string
 }
 
 type sPipe struct {
@@ -192,6 +193,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			m.index = -1
 		}
+	case tea.QuitMsg:
+		// TODO: shutdown docker usw
+		return m, tea.Println(m.quitMsg)
 
 	// We handle errors just like any other message
 	case errMsg:
@@ -212,14 +216,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.textInput, cmd = m.textInput.Update(msg)
 
 	if itemToPrint, shouldPrint := Console.getItem(); shouldPrint {
-		return m, tea.Batch(
-			tea.Println(itemToPrint),
-			cmd,
-			setUpdateTime(),
-		)
-	} else {
-		return m, tea.Batch(cmd, setUpdateTime())
+		if strings.HasPrefix(itemToPrint, "mgc_pan:"){
+			m.quitMsg = strings.TrimLeft(itemToPrint, "mgc_pan:")
+			return m, tea.Quit
+		} else {
+			return m, tea.Batch(
+				tea.Println(itemToPrint),
+				cmd,
+				setUpdateTime(),
+			)
+		}
 	}
+	return m, tea.Batch(cmd, setUpdateTime())
 }
 
 func (m model) View() string {

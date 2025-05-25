@@ -52,7 +52,7 @@ func startCommand(config string, profile string) error {
 			tui.Console.AddItem(s)
 		}, "go", "run", ".", config, profile)
 		if err != nil {
-			panic(err)
+			tui.Console.AddItem("mgc_pan:"+err.Error())
 		}
 	}()
 
