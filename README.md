@@ -1,44 +1,43 @@
-# Liphium Magic: Test your applications with confidence.
+# Liphium Magic: Database testing for everyone.
 
 This project contains lots of experimental tools for database testing and more. None of the tools in this repository are fully featured and tested, please use with caution and do not use in mission-critical projects.
 
-The goal of Liphium Magic is to built a testing toolkit so powerful that testing software is actually fun. Unit testing is easy and can be a nice way to test your projects. I want to make testing your complex backend just as easy as unit testing.
+The goal of Liphium Magic is to built tools to make testing applications written in Go that rely on a database connection to work easy. Unit testing was always easy and can be a nice way to test your projects if you have just one function to test. Magic makes testing your complex logic and backend as easy as unit testing by leveraging Docker and code generation.
 
-## Hackathon Goals
+## Usage
 
-Folder structure:
-- .magic
-    - .gitignore (contains database folder and local persistence)
-    - config.go (synced, for configuration what the app needs)
-    - local.json (contains default profile for running the app with ``magic debug``)
-    - databases/ (for all databases, locally persisted)
-    - scripts/ (all scripts, synced with repository)
-    - tests/
+**1.** Download and install Magic (distribution is still work in progress, please wait until we provide official guides here).
 
-### Definitely
+**2.** Run ``magic init``. This will create a new directory in your project called ``magic``. In there you can edit the ``config.go`` file to create databases. Here's an example:
 
-- General CLI
-    - Help command
-    - ``magic init`` for generating gitignore and basic configuration
-- Magic SDK
-    - Control databases and stuff (and create connections)
-    - Communicate with the Runner
-- Magic Config SDK
-    - Can run the Runner
-- Magic Runner
-    - Run the project, database containers, etc.
-- Debugging of local apps
-    - Create databases from configuration using Docker
-    - Create local persistence in the local.json file (for databases used in the app)
-    - Database management using the magic CLI
+```go
+// ...
 
-### If there is time
+// This is the function called once you run the project
+func Run(ctx *mconfig.Context) {
+	// Create a new PostgreSQL database called main
+	db := mconfig.NewPostgresDatabase("main")
+	ctx.AddDatabase(db)
 
-- Docker configuration and setup
-    - Build a Docker image from the current repository (using Dockerfile)
-- Base for testing and scripting
-    - A directory with files/directories for tests and scripts written in Go
-    - Do code generation that can execute the functions in those tests
+	// Add environment variables so you can access the database later
+	ctx.WithEnvironment(&mconfig.Environment{
+		"DB_HOST":     db.Host(ctx),
+		"DB_PORT":     db.Port(ctx),
+		"DB_USERNAME": db.Username(),
+		"DB_PASSWORD": db.Password(),
+		"DB_NAME":     db.DatabaseName(ctx),
+	})
+}
 
+func Start() {
+    // Start your application here (you may have to rename your main function or move it to a different module, sorry, otherwise Magic can't work)
+}
 
-Wichtig: https://excalidraw.com/#json=RhQtkM0Ufq11Sf7CrvYMa,YdBfJ9cxWAhoMhTQ1AYgNw
+// ...
+```
+
+**3.** You can now use ``magic start`` to run your app. Become a great wizzard!
+
+## Status
+
+Magic is still in very early development. We'll continue developing it until it can be used to test our own backend which is going to still require some complex problems to be solved. However, we already see a lot of potential in this tool to provide a really nice developer experience.
