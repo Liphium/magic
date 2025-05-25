@@ -36,6 +36,22 @@ func GetMagicDirectory(amount int) (string, error) {
 	return "", errors.New("can't find magic directory")
 }
 
+func DoesDirExist(dirPath string) (bool, error){
+	_, err := os.Stat(filepath.Dir(dirPath));
+	if err != nil{
+		return false, fmt.Errorf("path to dir does not exist: %w", err)
+	} else {
+		s, err := os.Stat(dirPath);
+		if err != nil{
+			return true, nil
+		} else if !s.IsDir(){
+			return false, errors.New("path leads to an existing file not a dir")
+		} else{
+			return false, nil
+		}
+	}
+}
+
 func CreateDirIfNotExist(path string, dir string) error {
 	if _, err := os.ReadDir(path); err != nil {
 		return errors.New("path doesn't exist")

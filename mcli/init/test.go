@@ -3,6 +3,7 @@ package init_command
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -31,10 +32,20 @@ func initTestCommand(fp string) error {
 		return err
 	}
 
+	// Create magic/tests if it doesn't exist
+	if sE, err := integration.DoesDirExist(filepath.Join(mDir, "tests")); err != nil {
+		return err
+	} else if sE {
+		log.Println("Creating tests folder..")
+		if err = os.Mkdir(filepath.Join(mDir, "tests"), 0755); err != nil {
+			log.Fatalln("Failed to create tests folder: %w", err)
+		}
+	}
+
 	// Evaluate the filepath
 	_, filename, path, err := integration.EvaluateNewPath(filepath.Join(mDir, "tests", fp))
 	if err != nil {
-		return fmt.Errorf("bad path "+fp+": %w", err)
+		return fmt.Errorf("bad path %q: %w", fp, err)
 	}
 
 	// Generate test base

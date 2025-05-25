@@ -3,6 +3,7 @@ package init_command
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -29,6 +30,16 @@ func initScriptCommand(fp string) error {
 	mDir, err := integration.GetMagicDirectory(5)
 	if err != nil {
 		return err
+	}
+
+	// Create magic/scripts if it doesn't exist
+	if sE, err := integration.DoesDirExist(filepath.Join(mDir, "scripts")); err != nil {
+		return err
+	} else if sE {
+		log.Println("Creating scripts folder..")
+		if err = os.Mkdir(filepath.Join(mDir, "scripts"), 0755); err != nil {
+			log.Fatalln("Failed to create scripts folder: %w", err)
+		}
 	}
 
 	// Evaluate the filepath

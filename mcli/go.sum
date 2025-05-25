@@ -2,8 +2,8 @@ github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c h1:udKWzYgxTojEK
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/Liphium/magic/mrunner v0.0.0-20250524143131-a6ed6092307a h1:nPhJBkpI7oBYti+bvq8DVkwxnJ+d69BLXtHIxfu6pXk=
 github.com/Liphium/magic/mrunner v0.0.0-20250524143131-a6ed6092307a/go.mod h1:1sXEO+d/vDfDJrRP9FvFOyfTYbbZ6wookEmLPncPbOw=
-github.com/Liphium/magic/mtest v0.0.0-20250524143131-a6ed6092307a h1:h+ZXglXrv+jrWq0ip1OKeNt39WreL6EoYkunsyX81Eo=
-github.com/Liphium/magic/mtest v0.0.0-20250524143131-a6ed6092307a/go.mod h1:ZtO5Ww8iuMvAH3bB/UtKrIHf6Kqzh9Ghp76XThF1JkE=
+github.com/Liphium/magic/mtest v0.0.0-20250525061918-fe395ad61d00 h1:A0X1ePGXG+IKKxIULC4k8PWPKOhAouS+nElTbZpyjUs=
+github.com/Liphium/magic/mtest v0.0.0-20250525061918-fe395ad61d00/go.mod h1:ZtO5Ww8iuMvAH3bB/UtKrIHf6Kqzh9Ghp76XThF1JkE=
 github.com/Microsoft/go-winio v0.4.14 h1:+hMXMk01us9KgxGb7ftKQt2Xpf5hH/yky+TDA+qxleU=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=

@@ -109,15 +109,6 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	// Create all directories needed
-	log.Println("Creating directories..")
-	if err := os.Mkdir("scripts", 0755); err != nil {
-		log.Fatalln("Failed to create scripts folder: ", err)
-	}
-	if err := os.Mkdir("tests", 0755); err != nil {
-		log.Fatalln("Failed to create tests folder: ", err)
-	}
-
 	// Run go mod tidy
 	log.Println("Importing packages..")
 	if err := os.Chdir(".."); err != nil {
