@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -35,19 +37,20 @@ func startCommand(config string, profile string) error {
 	if err != nil {
 		return err
 	}
+
 	// generate the cache
 	wd, err := mrunner.GenConfig(path, config, profile, true, func(s string) {
-		tui.Console.AddItem(s)
+		fmt.Println(s)
 	})
 	if err != nil {
-		return err
+		log.Fatalln("couldn't generate config:", err)
 	}
 	if err = os.Chdir(wd); err != nil {
-		return err
+		log.Fatalln("couldn't get working directory:", err)
 	}
 
-	tui.Console.AddItem("Starting...")
 	go func() {
+		tui.Console.AddItem("Starting...")
 		err := integration.ExecCmdWithFunc(func(s string) {
 			tui.Console.AddItem(s)
 		}, "go", "run", ".", config, profile)

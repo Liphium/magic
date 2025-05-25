@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Liphium/magic/mconfig"
@@ -22,6 +23,7 @@ func (r *Runner) Deploy() {
 	for _, dbType := range r.plan.DatabaseTypes {
 		ctx := context.Background()
 		name := fmt.Sprintf("mgc-%s-%s-%d", r.config, r.profile, dbType.Type)
+		fmt.Println("Creating database container", name+"...")
 
 		// Check if the container already exists
 		f := filters.NewArgs()
@@ -35,7 +37,8 @@ func (r *Runner) Deploy() {
 		containerId := ""
 		for _, c := range summary {
 			for _, n := range c.Names {
-				if n == name {
+				if n == "/"+name {
+					fmt.Println("Found existing container...")
 					containerId = c.ID
 				}
 			}
@@ -43,19 +46,22 @@ func (r *Runner) Deploy() {
 
 		// Create container if it doesn't exist
 		if containerId == "" {
+			fmt.Println("Creating new container...")
 			containerId = r.createDatabaseContainer(ctx, dbType, name)
 		}
 
 		// Start the container
+		fmt.Println("Trying to start container...")
 		if err := r.client.ContainerStart(ctx, containerId, container.StartOptions{}); err != nil {
 			log.Fatalln("couldn't start postgres container:", err)
 		}
 
-		fmt.Println("hello wrold")
-
 		// Wait for the container to start (with pg_isready)
+		fmt.Println("Waiting for PostgreSQL to be ready...")
+		readyCommand := "pg_isready -d postgres"
+		cmd := strings.Split(readyCommand, " ")
 		execConfig := container.ExecOptions{
-			Cmd:          []string{"pg_isready"},
+			Cmd:          cmd,
 			AttachStdout: true,
 			AttachStderr: true,
 		}
@@ -64,22 +70,23 @@ func (r *Runner) Deploy() {
 			if err != nil {
 				log.Fatalln("couldn't create command for readiness of container:", err)
 			}
+			execStartCheck := container.ExecStartOptions{Detach: false, Tty: false}
+			if err := r.client.ContainerExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
+				log.Fatalln("couldn't start command for readiness of container:", err)
+			}
 			respInspect, err := r.client.ContainerExecInspect(ctx, execIDResp.ID)
 			if err != nil {
 				log.Fatalln("couldn't inspect command for readiness of container:", err)
 			}
-			if err := r.client.ContainerExecStart(ctx, execIDResp.ID, container.ExecStartOptions{}); err != nil {
-				log.Fatalln("couldn't start command for readiness of container:", err)
-			}
 			if respInspect.ExitCode == 0 {
 				break
 			}
+
 			time.Sleep(200 * time.Millisecond)
 		}
 
-		fmt.Println("creating..")
-
 		// Create all of the databases
+		fmt.Println("Connecting to PostgreSQL...")
 		r.createDatabases(dbType)
 	}
 }
@@ -120,18 +127,18 @@ func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.Pla
 // Connect to postgres and create all the needed databases.
 func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) {
 	connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=postgres sslmode=disable", dbType.Port)
-	fmt.Println("Connect string:", connStr)
 
 	// Connect to the database
 	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln("couldn't connect to postgres:", err)
 	}
 	defer conn.Close()
 
 	for _, db := range dbType.Databases {
+		fmt.Println("Creating database", db.Name+"...")
 		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db.Name))
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "already exists") {
 			log.Fatalln("couldn't create postgres database:", err)
 		}
 	}

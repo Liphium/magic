@@ -115,7 +115,7 @@ func DefaultUsername(dbType DatabaseType) string {
 
 // Get the default database name for a database.
 func DefaultDatabaseName(config string, profile string, databaseName string) string {
-	return "mgc-" + config + "-" + profile + "-" + databaseName
+	return databaseName
 }
 
 // Create a new Postgres database.
