@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 var CurrentPlan *Plan = nil
@@ -66,6 +67,7 @@ func (p *Plan) Database(name string) (PlannedDatabase, error) {
 				}
 				found = true
 				foundDB = db
+				foundDB.Port = t.Port
 			}
 		}
 	}
@@ -73,4 +75,9 @@ func (p *Plan) Database(name string) (PlannedDatabase, error) {
 		return foundDB, errors.New("database not found")
 	}
 	return foundDB, nil
+}
+
+// Generate a connection string for the database.
+func (db *PlannedDatabase) ConnectString() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", db.Hostname, db.Port, db.Username, db.Password, db.Name)
 }

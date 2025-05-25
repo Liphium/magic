@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mconfig"
@@ -67,10 +70,19 @@ func startCommand(config string, profile string) error {
 				return
 			}
 			tui.Console.AddItem(s)
-		}, func() {
+		}, func(cmd *exec.Cmd) {
 			if err = os.Chdir(wbOld); err != nil {
 				tui.Console.AddItem(tui.MagicPanicPrefix + "ERROR: couldn't change working directory: " + err.Error())
 			}
+
+			sigs := make(chan os.Signal, 1)
+			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+			go func() {
+				<-sigs
+				cmd.Process.Kill()
+				os.Exit(0)
+			}()
 		}, "go", "run", ".", config, profile, mDir)
 		if err != nil {
 			tui.Console.AddItem(tui.MagicPanicPrefix + "" + err.Error())

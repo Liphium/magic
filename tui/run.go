@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -108,7 +109,7 @@ func runCommand(fp string, console *sPipe) error {
 	}
 	if err := integration.ExecCmdWithFuncStart(func(s string) {
 		console.AddItem(s)
-	}, func() {
+	}, func(cmd *exec.Cmd) {
 		if err = os.Chdir(wOld); err != nil {
 			console.AddItem(MagicPanicPrefix + "ERROR: couldn't change working directory: " + err.Error())
 		}
