@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -89,6 +90,17 @@ func (r *Runner) Deploy() {
 		fmt.Println("Connecting to PostgreSQL...")
 		r.createDatabases(dbType)
 	}
+
+	// Load environment variables into current application
+	fmt.Println("Loading environment...")
+	for key, value := range r.plan.Environment {
+		if err := os.Setenv(key, value); err != nil {
+			log.Fatalln("couldn't set environment variable", key+":", err)
+		}
+	}
+
+	fmt.Println("Deployment finished.")
+	fmt.Println(" ")
 }
 
 // Create a new container for a postgres database. Returns container id.

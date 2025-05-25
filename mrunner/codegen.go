@@ -16,14 +16,15 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 3 {
-		log.Fatalln("Please specify config and profile (as first and second argument)!")
+	if len(os.Args) < 4 {
+		log.Fatalln("Please specify config, profile and magic directory!")
 	}
 	config := os.Args[1]
 	profile := os.Args[2]
+	magicDir := os.Args[3]
 
 	// Create context
-	context := mconfig.DefaultContext(config, profile)
+	context := mconfig.DefaultContext(config, profile, magicDir)
 	Run(context)
 
 	// Create the runner from context

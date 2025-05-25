@@ -1,8 +1,15 @@
 package mconfig
 
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
 type Context struct {
 	config      string       // Name of the current config
 	profile     string       // Name of the current profile
+	magicDir    string       // Current Magic directory
 	environment *Environment // Environment for environment variables (can be nil)
 	databases   []*Database
 	plan        **Plan // For later filling in with actual information
@@ -25,6 +32,39 @@ func (c *Context) WithEnvironment(env *Environment) {
 	c.environment = env
 }
 
+// Note: In case you use a relative path, expect it to start in the Magic directory.
+func (c *Context) LoadSecretsToEnvironment(path string) error {
+	oldWd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("couldn't get working directory: %s", err)
+	}
+
+	// Change to magic directory
+	if err := os.Chdir(c.magicDir); err != nil {
+		return fmt.Errorf("couldn't change to magic directory: %s", err)
+	}
+
+	// Load all the secrets from the file
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("couldn't read file: %s", err)
+	}
+	content := string(bytes)
+	for l := range strings.Lines(content) {
+		args := strings.Split(l, "=")
+		if len(args) < 2 {
+			return fmt.Errorf("invalid format for secret: %s", l)
+		}
+		(*c.environment)[strings.TrimSpace(args[0])] = ValueStatic(strings.Trim(strings.TrimSpace(args[1]), "\"'"))
+	}
+
+	// Change back into the old working directory
+	if err := os.Chdir(oldWd); err != nil {
+		return fmt.Errorf("couldn't change back to old working directory: %s", err)
+	}
+	return nil
+}
+
 // Get the databases.
 func (c *Context) Databases() []*Database {
 	return c.databases
@@ -45,11 +85,12 @@ func (c *Context) AddDatabase(database *Database) {
 	c.databases = append(c.databases, database)
 }
 
-func DefaultContext(config string, profile string) *Context {
+func DefaultContext(config string, profile string, magicDir string) *Context {
 	plan := &Plan{}
 	return &Context{
 		config:    config,
 		profile:   profile,
+		magicDir:  magicDir,
 		databases: []*Database{},
 		plan:      &plan,
 	}

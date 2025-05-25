@@ -59,9 +59,11 @@ func startCommand(config string, profile string) error {
 			if err = os.Chdir(wbOld); err != nil {
 				log.Fatalln("couldn't change working directory:", err)
 			}
-		}, "go", "run", ".", config, profile)
+		}, "go", "run", ".", config, profile, mDir)
 		if err != nil {
 			tui.Console.AddItem("mgc_pan:" + err.Error())
+		} else {
+			tui.Console.AddItem("mgc_pan:Application finished.")
 		}
 	}()
 
