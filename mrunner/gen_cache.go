@@ -12,7 +12,7 @@ import (
 	"github.com/Liphium/magic/integration"
 )
 
-func GenConfig(configPath string, config string, profile string, printFunc func(string)) (string, error) {
+func GenConfig(configPath string, config string, profile string, deployConainers bool, printFunc func(string)) (string, error) {
 
 	err := integration.CreateCache()
 	if err != nil {
@@ -162,7 +162,7 @@ func GenConfig(configPath string, config string, profile string, printFunc func(
 	}
 
 	// gen runfile
-	fc := GenerateRunFile(false)
+	fc := GenerateRunFile(deployConainers)
 	// Open the file for writing (this will truncate the file)
 	file, err = os.Create("run.go")
 	if err != nil {

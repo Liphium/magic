@@ -36,7 +36,7 @@ func startCommand(config string, profile string) error {
 		return err
 	}
 	// generate the cache
-	wd, err := mrunner.GenConfig(path, config, profile, func(s string) {
+	wd, err := mrunner.GenConfig(path, config, profile, true, func(s string) {
 		tui.Console.AddItem(s)
 	})
 	if err != nil {
@@ -47,7 +47,6 @@ func startCommand(config string, profile string) error {
 	}
 
 	tui.Console.AddItem("Starting...")
-
 	go func() {
 		err := integration.ExecCmdWithFunc(func(s string) {
 			tui.Console.AddItem(s)
