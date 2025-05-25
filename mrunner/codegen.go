@@ -42,7 +42,7 @@ const runFileDeployer = `
 	runner.Deploy()
 
 	// Start the app
-	Start(runner)
+	Start()
 `
 
 // Generate the run file calling the runner
