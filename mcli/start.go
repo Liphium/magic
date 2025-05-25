@@ -87,7 +87,7 @@ func startCommand(config string, profile string) error {
 		if err != nil {
 			tui.Console.AddItem(tui.MagicPanicPrefix + "" + err.Error())
 		} else {
-			
+
 			if os.Getenv("MAGIC_NO_END") == "true" {
 				return
 			}
