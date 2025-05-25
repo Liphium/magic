@@ -61,7 +61,6 @@ func (c *Context) LoadSecretsToEnvironment(path string) error {
 		key := strings.TrimSpace(args[0])
 		value := strings.Trim(strings.TrimSpace(args[1]), "\"'")
 		(*c.environment)[key] = ValueStatic(value)
-		fmt.Println(key+":", value)
 	}
 
 	// Change back into the old working directory
