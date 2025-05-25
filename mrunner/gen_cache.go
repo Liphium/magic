@@ -131,7 +131,7 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		t := scanner.Text()
-		if strings.Contains(t, "module ") {
+		if strings.HasPrefix(t, "module ") {
 			itms := strings.Split(t, " ")
 			ind := slices.Index(itms, "module")
 			if ind == -1 || len(itms) < ind+2 {
@@ -139,11 +139,11 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 			}
 			moduleName = itms[ind+1]
 		}
-		if strings.Contains(t, "go ") {
+		if strings.HasPrefix(t, "go ") {
 			itms := strings.Split(t, " ")
 			ind := slices.Index(itms, "go")
 			if ind == -1 || len(itms) < ind+2 {
-				return "", errors.New("can't find module name in go.mod")
+				return "", errors.New("can't find go version in go.mod")
 			}
 			version = itms[ind+1]
 		}
