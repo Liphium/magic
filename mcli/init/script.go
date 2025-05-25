@@ -34,7 +34,7 @@ func initScriptCommand(fp string) error {
 	// Evaluate the filepath
 	_, filename, path, err := integration.EvaluateNewPath(filepath.Join(mDir, "scripts", fp))
 	if err != nil {
-		return fmt.Errorf("bad path "+fp+": %w", err)
+		return fmt.Errorf("bad path %s: %w", fp, err)
 	}
 
 	// Generate Script base

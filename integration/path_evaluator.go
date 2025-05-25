@@ -9,7 +9,7 @@ import (
 )
 
 func EvaluatePath(pta string) (dir string, filename string, path string, _ error) {
-	pta = strings.Trim(pta, " ")
+	pta = strings.TrimSpace(pta)
 
 	if isValidPathFile(pta) {
 		// working filepath with filename
@@ -31,32 +31,34 @@ func EvaluatePath(pta string) (dir string, filename string, path string, _ error
 }
 
 func EvaluateNewPath(pta string) (dir string, filename string, path string, _ error) {
-	pta = strings.Trim(pta, " ")
-	
+	pta = strings.TrimSpace(pta)
+
+	// Split into path and
+
 	// check if path is a file
-	if strings.HasSuffix(pta, ".go"){
+	if strings.HasSuffix(pta, ".go") {
 
 		// check if file already exists
-		if inf, err := os.Stat(pta); err == nil && !inf.IsDir(){
+		if inf, err := os.Stat(pta); err == nil && !inf.IsDir() {
 			return "", "", "", errors.New("file already exists")
 		}
 
 		// check if folder exists
 		dir, filename := filepath.Split(pta)
-		if _, err := os.Stat(dir); err != nil{
+		if _, err := os.Stat(dir); err != nil {
 
 			// check if subfolder exists
-			if inf, err := os.Stat(filepath.Dir(dir)); err == nil && inf.IsDir(){
-				
+			if inf, err := os.Stat(filepath.Dir(dir)); err == nil && inf.IsDir() {
+
 				// subfolder exists create dir ontop
-				if err = os.Mkdir(filepath.Base(dir), 0755); err != nil{
+				if err = os.Mkdir(filepath.Base(dir), 0755); err != nil {
 					return "", "", "", fmt.Errorf("failed to create folder: %w", err)
 				}
 				return dir, filename, pta, nil
-			} else{
+			} else {
 				return "", "", "", errors.New("one or more subfolders don't exist, or the path is wrong")
 			}
-		}else{
+		} else {
 			// folder exists
 			return dir, filename, pta, nil
 		}
@@ -64,27 +66,27 @@ func EvaluateNewPath(pta string) (dir string, filename string, path string, _ er
 		sdir, dir := filepath.Split(pta)
 
 		// check if file already exists
-		if inf, err := os.Stat(filepath.Join(pta, dir+".go")); err == nil && !inf.IsDir(){
+		if inf, err := os.Stat(filepath.Join(pta, dir+".go")); err == nil && !inf.IsDir() {
 			return "", "", "", errors.New("file already exists")
 		}
 
 		// check if folder exists
-		if _, err := os.Stat(pta); err != nil{ // this/folder
+		if _, err := os.Stat(pta); err != nil { // this/folder
 
 			// check if subfolder exists
-			if inf, err := os.Stat(sdir); err == nil && inf.IsDir(){
-				
+			if inf, err := os.Stat(sdir); err == nil && inf.IsDir() {
+
 				// subfolder exists create dir ontop
-				if err = os.Mkdir(pta, 0755); err != nil{
+				if err = os.Mkdir(pta, 0755); err != nil {
 					return "", "", "", fmt.Errorf("failed to create folder: %w", err)
 				}
-				return pta, dir+".go", filepath.Join(pta, dir+".go"), nil
-			} else{
+				return pta, dir + ".go", filepath.Join(pta, dir+".go"), nil
+			} else {
 				return "", "", "", errors.New("one or more subfolders don't exist, or the path is wrong")
 			}
-		}else{
+		} else {
 			// folder exists
-			return pta, dir+".go", filepath.Join(pta, dir+".go"), nil
+			return pta, dir + ".go", filepath.Join(pta, dir+".go"), nil
 		}
 	}
 }
@@ -94,13 +96,4 @@ func isValidPathFile(path string) bool {
 		return true
 	}
 	return false
-}
-
-func TestEval() {
-	fmt.Println(EvaluatePath("./Scripts/script1/"))
-	fmt.Println(EvaluatePath("./Scripts/script1"))
-	fmt.Println(EvaluatePath("./Scripts/script1.go"))
-	fmt.Println(EvaluatePath("./"))
-	fmt.Println(EvaluatePath("./Scripts/script1/script7"))
-	fmt.Println(EvaluatePath("./Scripts/script1/script7/test.go"))
 }
