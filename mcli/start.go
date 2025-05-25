@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -39,7 +38,7 @@ func startCommand(config string, profile string) error {
 
 	// generate the cache
 	wd, err := mrunner.GenRunConfig(path, config, profile, true, func(s string) {
-		tui.Console.AddItem(s)
+		log.Println(s)
 	})
 	if err != nil {
 		log.Fatalln("couldn't generate config:", err)

@@ -38,7 +38,7 @@ func GetMagicDirectory(amount int) (string, error) {
 		if foundMg{
 			return filepath.Join(wd, "magic"), nil
 		} else if foundGm {
-			return "", errors.New("can't find magic directory, too far back")
+			return "", fmt.Errorf("can't find magic directory, too far back, found go.mod in: %q", wd)
 		}
 		wd = filepath.Dir(wd)
 	}

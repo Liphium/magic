@@ -136,13 +136,7 @@ func CopyFileReplaceModule(fp string, orgName string, newName string) error {
 }
 
 // no wd change
-func GenGoMod(isConfig bool, confName string, printFunc func(string)) (string, error) {
-
-	mDir, err := integration.GetMagicDirectory(5)
-	if err != nil {
-		return "", err
-	}
-
+func GenGoMod(isConfig bool, confName string, mDir string, printFunc func(string)) (string, error) {
 	// load go.mod from conf
 	baseDir := filepath.Dir(mDir)
 
@@ -262,6 +256,11 @@ func GenRunConfig(configPath string, config string, profile string, deployConain
 		return "", err
 	}
 
+	mDir, err := integration.GetMagicDirectory(5)
+	if err != nil {
+		return "", err
+	}
+
 	printFunc("Creating config folder..")
 	if _, err := GenConfFolder(configPath, confName); err != nil {
 		return "", err
@@ -272,7 +271,7 @@ func GenRunConfig(configPath string, config string, profile string, deployConain
 	}
 
 	printFunc("Initialized module..")
-	version, err := GenGoMod(true, confName, printFunc)
+	version, err := GenGoMod(true, confName, mDir, printFunc)
 	if err != nil {
 		return "", err
 	}
