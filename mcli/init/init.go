@@ -74,11 +74,11 @@ import (
 
 // This is the function called once you run the project
 func Run(ctx *mconfig.Context) {
-	fmt.Println("Hello magic!")
+	fmt.Println("Generating config..")
 }
 
 func Start() {
-	// TODO: Run your application here
+	fmt.Println("Hello magic!")
 }
 `
 
