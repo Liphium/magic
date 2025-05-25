@@ -14,7 +14,6 @@ import (
 
 // Command: magic start
 func startCommand(config string, profile string) error {
-
 	mDir, err := integration.GetMagicDirectory(3)
 	if err != nil {
 		return err
@@ -39,8 +38,8 @@ func startCommand(config string, profile string) error {
 	}
 
 	// generate the cache
-	wd, err := mrunner.GenConfig(path, config, profile, true, func(s string) {
-		fmt.Println(s)
+	wd, err := mrunner.GenRunConfig(path, config, profile, true, func(s string) {
+		tui.Console.AddItem(s)
 	})
 	if err != nil {
 		log.Fatalln("couldn't generate config:", err)

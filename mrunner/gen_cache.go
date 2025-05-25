@@ -12,24 +12,64 @@ import (
 	"github.com/Liphium/magic/integration"
 )
 
-func GenConfig(configPath string, config string, profile string, deployConainers bool, printFunc func(string)) (string, error) {
-
+// wd: ./magic/cache/
+func GoToCache() error {
 	err := integration.CreateCache()
 	if err != nil {
-		return "", err
+		return err
 	}
-
 	mDir, err := integration.GetMagicDirectory(5)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	err = os.Chdir("cache")
+	err = os.Chdir(filepath.Join(mDir, "cache"))
 	if err != nil {
-		return "", err
+		return fmt.Errorf("failed to cd into %q: %w", filepath.Join(mDir, "cache"), err)
+	}
+	return nil
+}
+
+// wd: ./magic/cache/test_name or script_name if in cache befor
+func GenTSFolder(path string, isTest bool) error {
+	fName := "script_" + filepath.Base(path)
+	if isTest {
+		fName = "test_" + filepath.Base(path)
 	}
 
-	confName := config + "_" + profile
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	files, err := os.ReadDir(wd)
+	if err != nil {
+		return err
+	}
+
+	folderEx := false
+
+	// Check if conf folder already exists
+	for _, entry := range files {
+		if entry.IsDir() && entry.Name() == fName {
+			folderEx = true
+		}
+	}
+	if !folderEx {
+		if err := os.Mkdir(fName, 0755); err != nil {
+			return err
+		}
+	}
+
+	wd = filepath.Join(wd, fName)
+	err = os.Chdir(wd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// wd: ./magic/config/config_profile if in cache folder before
+func GenConfFolder(configPath string, confName string) (string, error) {
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -45,7 +85,6 @@ func GenConfig(configPath string, config string, profile string, deployConainers
 	// Check if conf folder already exists
 	for _, entry := range files {
 		if entry.IsDir() && entry.Name() == confName {
-			// folder already exists check for go.mod
 			folderEx = true
 		}
 	}
@@ -60,12 +99,16 @@ func GenConfig(configPath string, config string, profile string, deployConainers
 	if err != nil {
 		return "", err
 	}
+	return wd, nil
+}
 
+// no wd change
+func CopyFileReplaceModule(fp string, orgName string, newName string) error {
 	// COPY configfile and change package
 	// Open the file for reading
-	file, err := os.Open(configPath)
+	file, err := os.Open(fp)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer file.Close()
 
@@ -78,14 +121,24 @@ func GenConfig(configPath string, config string, profile string, deployConainers
 
 	// Check for errors during scanning
 	if err := scanner.Err(); err != nil {
-		return "", err
+		return err
 	}
 
 	// Replace the first occurrence of the old word with the new word
-	content = strings.Replace(content, "package config", "package main", 1)
+	content = strings.Replace(content, "package "+orgName, "package "+newName, 1)
 
 	// Write the replaced content to the file
-	err = os.WriteFile(filepath.Join(wd, config+".go"), []byte(content), 0755)
+	err = os.WriteFile(filepath.Join(filepath.Base(fp)), []byte(content), 0755)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// no wd change
+func GenGoMod(isConfig bool, confName string, printFunc func(string)) (string, error) {
+
+	mDir, err := integration.GetMagicDirectory(5)
 	if err != nil {
 		return "", err
 	}
@@ -94,18 +147,16 @@ func GenConfig(configPath string, config string, profile string, deployConainers
 	baseDir := filepath.Dir(mDir)
 
 	// Open the file for reading
-	file, err = os.Open(filepath.Join(baseDir, "go.mod"))
+	file, err := os.Open(filepath.Join(baseDir, "go.mod"))
 	if err != nil {
 		return "", err
 	}
 	defer file.Close()
 
 	// Read the file content
-	printFunc("Finding version and module name..")
-	content = ""
 	moduleName := ""
 	version := ""
-	scanner = bufio.NewScanner(file)
+	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		t := scanner.Text()
 		if strings.Contains(t, "module ") {
@@ -139,14 +190,20 @@ func GenConfig(configPath string, config string, profile string, deployConainers
 	if err := os.RemoveAll("go.mod"); err != nil {
 		return "", fmt.Errorf("couldn't delete go.mod: %s", err)
 	}
-	printFunc("Initializing " + confName + "..")
-	integration.ExecCmdWithFunc(printFunc, "go", "mod", "init", confName)
+
+	// init go module
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	integration.ExecCmdWithFunc(printFunc, "go", "mod", "init", filepath.Base(wd))
 
 	// add replace to go.mod
 	toadd := "\nreplace " + moduleName + " => ../../../"
 	if os.Getenv("MAGIC_DEBUG") == "true" {
 		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s", os.Getenv("MAGIC_MCONFIG"))
 		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s", os.Getenv("MAGIC_MRUNNER"))
+		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s", os.Getenv("MAGIC_INTEGRATION")) // Add or else
 	}
 
 	// Open the file in append mode
@@ -160,46 +217,85 @@ func GenConfig(configPath string, config string, profile string, deployConainers
 	if _, err := file.WriteString(toadd); err != nil {
 		return "", err
 	}
+	return version, nil
+}
 
+func CreateRunFile(deployConainers bool) error {
 	// gen runfile
 	fc := GenerateRunFile(deployConainers)
 	// Open the file for writing (this will truncate the file)
-	file, err = os.Create("run.go")
+	file, err := os.Create("run.go")
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer file.Close()
 
 	// Write the modified content back to the file
 	_, err = file.WriteString(fc)
 	if err != nil {
-		return "", err
+		return err
 	}
-	printFunc("Initialized module.")
+	return nil
+}
 
-	// Generate the go.work file for this to work
-	printFunc("Creating go.work file..")
-	if err := handleWorkFile(version); err != nil {
-		return "", fmt.Errorf("couldn't generate work file: %s", err)
-	}
-
-	printFunc("Importing dependencies..")
-	err = integration.ExecCmdWithFunc(printFunc, "go", "get", confName)
+func ImportDependencies(confName string, printFunc func(string)) error {
+	err := integration.ExecCmdWithFunc(printFunc, "go", "get", confName)
 	if err != nil {
-		return "", err
+		return err
 	}
 	err = integration.ExecCmdWithFunc(printFunc, "go", "mod", "tidy")
 	if err != nil {
-		return "", err
+		return err
 	}
 	err = integration.ExecCmdWithFunc(printFunc, "go", "work", "use", ".")
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GenRunConfig(configPath string, config string, profile string, deployConainers bool, printFunc func(string)) (string, error) {
+
+	confName := config + "_" + profile
+
+	if err := GoToCache(); err != nil {
+		return "", err
+	}
+
+	printFunc("Creating config folder..")
+	if _, err := GenConfFolder(configPath, confName); err != nil {
+		return "", err
+	}
+
+	if err := CopyFileReplaceModule(configPath, "config", "main"); err != nil {
+		return "", err
+	}
+
+	printFunc("Initialized module..")
+	version, err := GenGoMod(true, confName, printFunc)
+	if err != nil {
+		return "", err
+	}
+
+	printFunc("Creating runfile..")
+	if err := CreateRunFile(true); err != nil {
+		return "", err
+	}
+
+	// Generate the go.work file for this to work
+	printFunc("Creating go.work file..")
+	if err = handleWorkFile(version); err != nil {
+		return "", err
+	}
+
+	printFunc("Importing dependencies")
+	if err := ImportDependencies(confName, printFunc); err != nil {
 		return "", err
 	}
 	printFunc("Imported dependencies.")
 
 	// Return the directory of the config
-	wd, err = os.Getwd()
+	wd, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
