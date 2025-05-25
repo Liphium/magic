@@ -148,6 +148,11 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 			version = itms[ind+1]
 		}
 		if strings.HasPrefix(strings.TrimSpace(t), "replace"){
+			if strings.Contains(t, "replace github.com/Liphium/magic/mconfig") ||strings.Contains(t, "replace github.com/Liphium/magic/mrunner") || strings.Contains(t, "replace github.com/Liphium/magic/integration"){
+				if os.Getenv("MAGIC_DEBUG") == "true" {
+					continue
+				}
+			}
 			toadd += "\n"+ strings.Replace(strings.TrimSpace(t), "../", "../../../../", 1)
 		}
 	}

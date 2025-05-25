@@ -124,6 +124,14 @@ func runTui() {
 							return nil
 						},
 					},
+					{
+						Name:  "clear",
+						Usage: "Clears the console.",
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							tea.ClearScreen()
+							return nil
+						},
+					},
 				},
 			}
 			if err := commands.Run(context.Background(), append([]string{""}, strings.Split(strings.Trim(cmd, " "), " ")...)); err != nil {
