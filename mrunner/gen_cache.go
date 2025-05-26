@@ -125,7 +125,7 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 	defer file.Close()
 
 	// Read the file content
-	toadd := ""
+	toAdd := ""
 	moduleName := ""
 	version := ""
 	scanner := bufio.NewScanner(file)
@@ -147,25 +147,25 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 			}
 			version = itms[ind+1]
 		}
-		if strings.HasPrefix(strings.TrimSpace(t), "replace"){
-			if strings.Contains(t, "replace github.com/Liphium/magic/mconfig") ||strings.Contains(t, "replace github.com/Liphium/magic/mrunner") || strings.Contains(t, "replace github.com/Liphium/magic/integration"){
+		if strings.HasPrefix(strings.TrimSpace(t), "replace") {
+			if strings.Contains(t, "replace github.com/Liphium/magic/mconfig") || strings.Contains(t, "replace github.com/Liphium/magic/mrunner") || strings.Contains(t, "replace github.com/Liphium/magic/integration") {
 				if os.Getenv("MAGIC_DEBUG") == "true" {
 					continue
 				}
 			}
-			toadd += "\n"+ strings.Replace(strings.TrimSpace(t), "../", "../../../../", 1)
+			toAdd += "\n" + strings.Replace(strings.TrimSpace(t), "../", "../../../../", 1)
 		}
 	}
 	if moduleName == "" {
 		return "", errors.New("can't find module name in go.mod")
 	}
-	
+
 	// add replace to go.mod
-	toadd += "\nreplace " + moduleName + " => ../../../"
+	toAdd += "\nreplace " + moduleName + " => ../../../"
 	if os.Getenv("MAGIC_DEBUG") == "true" {
-		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s", os.Getenv("MAGIC_MCONFIG"))
-		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s", os.Getenv("MAGIC_MRUNNER"))
-		toadd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s", os.Getenv("MAGIC_INTEGRATION")) // Add or else
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s", os.Getenv("MAGIC_MCONFIG"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s", os.Getenv("MAGIC_MRUNNER"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s", os.Getenv("MAGIC_INTEGRATION")) // Add or else
 	}
 
 	// Check for errors during scanning
@@ -193,7 +193,7 @@ func GenGoMod(mDir string, printFunc func(string)) (string, error) {
 	defer file.Close()
 
 	// Write the new line to the file
-	if _, err := file.WriteString(toadd); err != nil {
+	if _, err := file.WriteString(toAdd); err != nil {
 		return "", err
 	}
 	return version, nil
