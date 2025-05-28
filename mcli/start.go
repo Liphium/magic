@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
 	"github.com/Liphium/magic/tui"
+	"github.com/urfave/cli/v3"
 )
 
 // Command: magic start
@@ -55,44 +57,115 @@ func startCommand(config string, profile string) error {
 		log.Fatalln("couldn't change working directory:", err)
 	}
 
+	// Configure tui
+	logLeaf := tui.NewStringLeaf()
+	quitLeaf := tui.NewLeaf[error]()
+	commandLeaf := tui.NewStringLeaf()
+	exitLeaf := tui.NewLeaf[func()]()
+
 	go func() {
-		tui.Console.AddItem("Starting...")
+		logLeaf.Println("Starting...")
 		err := integration.ExecCmdWithFuncStart(func(s string) {
 			if strings.HasPrefix(s, mrunner.PlanPrefix) {
 				mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
 				if err != nil {
-					tui.Console.AddItem(strings.TrimLeft(s, mrunner.PlanPrefix))
-					tui.Console.AddItem(fmt.Sprintf(tui.MagicPanicPrefix+"ERROR: couldn't parse plan: %s", err))
+					logLeaf.Println(strings.TrimLeft(s, mrunner.PlanPrefix))
+					quitLeaf.Append(fmt.Errorf("ERROR: couldn't parse plan: %w", err))
 					return
 				}
 				return
 			}
-			tui.Console.AddItem(s)
+			logLeaf.Println(strings.TrimRight(s, "\n"))
 		}, func(cmd *exec.Cmd) {
 			if err = os.Chdir(wbOld); err != nil {
-				tui.Console.AddItem(tui.MagicPanicPrefix + "ERROR: couldn't change working directory: " + err.Error())
+				quitLeaf.Append(fmt.Errorf("ERROR: couldn't change working directory: %w", err))
 			}
 
-			tui.ShutdownHook = func() {
+			exitLeaf.Append(func() {
 				if err := cmd.Process.Kill(); err != nil {
-					fmt.Println("shutdown err:", err)
+
+					// test for err process already finished
+					if os.ErrProcessDone != err{
+						logLeaf.Println("shutdown err:", err)
+					} else {
+						logLeaf.Println("process already finished")
+					}
 				} else {
-					fmt.Println("successfully killed")
+					logLeaf.Println("successfully killed")
 				}
-			}
+			})
 		}, "go", "run", ".", config, profile, mDir)
 		if err != nil {
-			tui.Console.AddItem(tui.MagicPanicPrefix + "" + err.Error())
+			quitLeaf.Append(fmt.Errorf("ERROR: failed to start config: %w", err))
 		} else {
 
 			if os.Getenv("MAGIC_NO_END") == "true" {
 				return
 			}
-			tui.Console.AddItem(tui.MagicPanicPrefix + "Application finished.")
+			quitLeaf.Append(fmt.Errorf("Application finished."))
 		}
 	}()
 
-	tui.RunTui()
+	// Config for tui
+	greenTeaConfig := &tui.GreenTeaConfig{
+		RefreshDelay: 100,
+		Commands:     getCommands(logLeaf, quitLeaf, exitLeaf),
+		LogLeaf:      logLeaf,
+		QuitLeaf:     quitLeaf,
+		CommandLeaf:  commandLeaf,
+		ExitLeaf:     exitLeaf,
+	}
+
+	// Start tui
+	tui.StartTui(greenTeaConfig)
 
 	return nil
+}
+
+func getCommands(logLeaf *tui.StringLeaf, quitLeaf *tui.Leaf[error], exitLeaf *tui.Leaf[func()]) []*cli.Command {
+
+	// Implement commands
+	var scriptPath string
+	var testPath string
+	commands := []*cli.Command{
+		{
+			Name:    "run",
+			Usage:   "",
+			Aliases: []string{"r"},
+			Arguments: []cli.Argument{
+				&cli.StringArg{
+					Name:        "path",
+					Destination: &scriptPath,
+				},
+			},
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				if scriptPath != "" {
+					go tui.RunCommand(scriptPath, logLeaf, quitLeaf)
+				} else {
+					tui.CommandError = "usage: run [path]"
+				}
+				return nil
+			},
+		},
+		{
+			Name:    "test",
+			Usage:   "",
+			Aliases: []string{"t"},
+			Arguments: []cli.Argument{
+				&cli.StringArg{
+					Name:        "path",
+					Destination: &testPath,
+				},
+			},
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				if testPath != "" {
+					go tui.TestCommand(testPath, logLeaf)
+				} else {
+					tui.CommandError = "usage: test [path]"
+				}
+				return nil
+			},
+		},
+	}
+	return commands
 }
