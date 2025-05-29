@@ -10,9 +10,9 @@ type Leaf[T any] struct {
 	items []T
 }
 
-type StringLeaf Leaf[string]
-
-// Functions for generic Leaf
+type StringLeaf struct {
+	Leaf[string]
+}
 
 // Creates and return a new empty leaf
 func NewLeaf[T any]() *Leaf[T] {
@@ -81,8 +81,10 @@ func (leaf *Leaf[T]) HarvestAll() []T {
 // Creates and return a new empty string leaf
 func NewStringLeaf() *StringLeaf {
 	return &StringLeaf{
-		mutex: &sync.Mutex{},
-		items: []string{},
+		Leaf: Leaf[string]{
+			mutex: &sync.Mutex{},
+			items: []string{},
+		},
 	}
 }
 
@@ -100,48 +102,4 @@ func (leaf *StringLeaf) Printlnf(format string, a ...any) {
 	defer leaf.mutex.Unlock()
 
 	leaf.items = append(leaf.items, fmt.Sprintf(format, a...))
-}
-
-// Removes all remaining items for leaf
-func (leaf *StringLeaf) Clear() {
-	leaf.mutex.Lock()
-	defer leaf.mutex.Unlock()
-
-	leaf.items = []string{}
-}
-
-// Return a slice of all items in leaf
-func (leaf *StringLeaf) GetAll() []string {
-	leaf.mutex.Lock()
-	defer leaf.mutex.Unlock()
-
-	return leaf.items
-}
-
-// Returns the oldest element and true, then removes it from the leaf.
-// Return an empty string and false if leaf has no elements
-func (leaf *StringLeaf) Harvest() (string, bool) {
-	leaf.mutex.Lock()
-	defer leaf.mutex.Unlock()
-
-	if len(leaf.items) == 0 {
-		var zeroValue string
-		return zeroValue, false
-	}
-
-	harvest := leaf.items[0]
-	leaf.items = leaf.items[1:]
-
-	return harvest, true
-}
-
-// Returns all items from leaf and clears it.
-func (leaf *StringLeaf) HarvestAll() []string {
-	leaf.mutex.Lock()
-	defer leaf.mutex.Unlock()
-
-	harvest := leaf.items
-	leaf.items = []string{}
-
-	return harvest
 }
