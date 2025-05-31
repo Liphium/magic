@@ -53,3 +53,18 @@ func (r *CommentCleaner) Replace(old string) string {
 
 	return new
 }
+
+type GoPackageReplacer struct {
+	NewPackage string // New package name instead of the old one
+}
+
+func (r GoPackageReplacer) Replace(old string) string {
+	trimmed := strings.TrimSpace(old)
+
+	// Check for the package line
+	if strings.HasPrefix(trimmed, "package") {
+		return "package " + r.NewPackage
+	}
+
+	return old
+}

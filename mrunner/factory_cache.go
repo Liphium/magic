@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/Liphium/magic/integration"
 )
 
 // Get the cache directory
@@ -53,4 +56,92 @@ func (f Factory) CreateCacheWorkFile(version string) error {
 	}
 
 	return nil
+}
+
+// Generate the default mod file for any script, test or config.
+//
+// Returns go version and error.
+func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, error) {
+
+	// Get the module directory
+	modDir, err := f.ModuleDirectory()
+	if err != nil {
+		return "", fmt.Errorf("couldn't get mod dir: %s", err)
+	}
+
+	// Change working directory to module directory
+	oldWd, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("couldn't get working directory: %s", err)
+	}
+	if err := os.Chdir(modDir); err != nil {
+		return "", fmt.Errorf("couldn't change working directory to mod: %s", err)
+	}
+
+	// Search for  module name, go version and replace statement
+	content, err := os.ReadFile(filepath.Join(modDir, "go.mod"))
+	if err != nil {
+		return "", fmt.Errorf("couldn't read go.mod: %s", err)
+	}
+	filters := []Filter{FilterModFileGoVersion, FilterModFileModuleName, FilterModFileReplacers}
+	results := ScanLinesSanitize(string(content), filters, &OneLineCommentReplacer{})
+
+	// Make sure the searching actually returned good results
+	ver := results[FilterModFileGoVersion]
+	mod := results[FilterModFileModuleName]
+	replacers := results[FilterModFileReplacers]
+	if len(ver) != 1 || len(mod) != 1 {
+		return "", fmt.Errorf("couldn't find module name or version")
+	}
+
+	// Delete the old go mod file (in case there)
+	if err := os.RemoveAll(filepath.Join(dir, "go.mod")); err != nil {
+		return "", fmt.Errorf("couldn't delete go.mod: %s", err)
+	}
+
+	// Initialize the new one
+	if err := integration.ExecCmdWithFunc(printFunc, "go", "mod", "init", filepath.Base(dir)); err != nil {
+		return "", fmt.Errorf("couldn't initialize go.mod: %s", err)
+	}
+
+	// Put together all the replacers for the new go mod file
+	toAdd := ""
+	for _, replacer := range replacers {
+		args := strings.Split(replacer, ";")
+
+		// Exclude magic debug replacers
+		if os.Getenv("MAGIC_DEBUG") == "true" && (strings.Contains(args[0], "replace github.com/Liphium/magic/mconfig") || strings.Contains(args[0], "replace github.com/Liphium/magic/mrunner") || strings.Contains(args[0], "replace github.com/Liphium/magic/integration")) {
+			continue
+		}
+
+		// Add the replacer
+		toAdd += fmt.Sprintf("replace %s => %s", args[0], integration.ModulePathToAbsolutePath(args[1]))
+	}
+
+	// Add a replacer for the original module
+	toAdd += fmt.Sprintf("replace %s => %s", mod, modDir)
+
+	// Add additional replacers in debug mode to make sure go doesn't pull from the internet
+	if os.Getenv("MAGIC_DEBUG") == "true" {
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s", os.Getenv("MAGIC_MCONFIG"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s", os.Getenv("MAGIC_MRUNNER"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s", os.Getenv("MAGIC_INTEGRATION"))
+	}
+
+	// Append everything to the new go.mod file
+	file, err := os.OpenFile("go.mod", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return "", fmt.Errorf("couldn't open go.mod in append mode: %s", err)
+	}
+	defer file.Close()
+	if _, err := file.WriteString(toAdd); err != nil {
+		return "", fmt.Errorf("couldn't write changes to go.mod: %s", err)
+	}
+
+	// Change back to original working directory
+	if err := os.Chdir(oldWd); err != nil {
+		return "", fmt.Errorf("couldn't back to original working dir: %s", err)
+	}
+
+	return ver[0], nil
 }

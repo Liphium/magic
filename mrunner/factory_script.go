@@ -2,6 +2,7 @@ package mrunner
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -13,6 +14,26 @@ func (f Factory) GenerateScriptFolder(path string, printFunc func(string)) error
 		return fmt.Errorf("can't execute with absolute paths")
 	}
 	path = filepath.Clean(path)
+
+	// Create the folder for the script
+	modName := ScriptPathToSnakeCase(path)
+	if err := os.MkdirAll(f.ScriptCacheDirectory(modName), 0755); err != nil {
+		return fmt.Errorf("couldn't create script directory: %s", err)
+	}
+
+	// Get the module name and version
+	/*
+		modDir, err := f.ModuleDirectory()
+		if err != nil {
+			return fmt.Errorf("couldn't find module directory: %s", err)
+		}
+		mod, ver, err := f.ModuleNameAndVersion()
+		if err != nil {
+			return fmt.Errorf("couldn't get module name: %s", err)
+		}
+	*/
+
+	// TODO: Generate the rest of the folder
 
 	return nil
 }

@@ -80,3 +80,47 @@ func TestCommentCleaner(t *testing.T) {
 		})
 	}
 }
+
+func TestPackageReplacer(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		newPkg   string
+		expected string
+	}{
+		{
+			name:     "replace package name",
+			input:    "package oldname",
+			newPkg:   "newname",
+			expected: "package newname",
+		},
+		{
+			name:     "no package line",
+			input:    "import \"fmt\"",
+			newPkg:   "main",
+			expected: "import \"fmt\"",
+		},
+		{
+			name:     "package line with spaces",
+			input:    "   package   old",
+			newPkg:   "foo",
+			expected: "package foo",
+		},
+		{
+			name:     "empty input",
+			input:    "",
+			newPkg:   "bar",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			replacer := mrunner.GoPackageReplacer{NewPackage: tt.newPkg}
+			actual := replacer.Replace(tt.input)
+			if actual != tt.expected {
+				t.Errorf("with input %q and newPkg %q expected %q, got %q", tt.input, tt.newPkg, tt.expected, actual)
+			}
+		})
+	}
+}
