@@ -1,6 +1,7 @@
 package mrunner
 
 import (
+	"slices"
 	"strings"
 	"unicode"
 )
@@ -57,5 +58,54 @@ func (f *FilterGoFileImports) Scan(content string) (bool, string) {
 		return true, split[1]
 	}
 
+	return false, ""
+}
+
+// A filter for searching function names by the parameters the function takes in.
+type FilterGoFileFunctionParameter struct {
+	Parameters []string // The parameter types you want to look for (e.g. string, string)
+}
+
+func (f *FilterGoFileFunctionParameter) Scan(content string) (bool, string) {
+	trimmed := strings.TrimSpace(content)
+
+	// Search for functions
+	if !strings.HasPrefix(trimmed, "func") {
+		return false, ""
+	}
+
+	// Extract the function arguments by getting everything inside the brackets
+	arguments := strings.TrimFunc(trimmed, func(r rune) bool {
+		return r != '(' && r != ')'
+	})
+
+	// Get the name of the function for later
+	fnName := strings.TrimRightFunc(trimmed, func(r rune) bool {
+		return r != '('
+	})
+	fnName = strings.TrimLeftFunc(fnName, func(r rune) bool {
+		return !unicode.IsSpace(r)
+	})
+	fnName = strings.TrimSpace(fnName)
+	fnName = strings.Trim(fnName, "()")
+
+	// Go through all parameters and extract the types
+	parameters := []string{}
+	for param := range strings.SplitSeq(arguments, ",") {
+		param = strings.TrimSpace(param)
+		param = strings.Trim(param, "()")
+		param = strings.TrimLeftFunc(param, func(r rune) bool {
+			return !unicode.IsSpace(r)
+		})
+		if param == "" {
+			continue
+		}
+		parameters = append(parameters, strings.TrimSpace(param))
+	}
+
+	// If they match, return the result
+	if slices.Equal(parameters, f.Parameters) {
+		return true, fnName
+	}
 	return false, ""
 }

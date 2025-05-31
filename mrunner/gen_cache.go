@@ -282,9 +282,6 @@ func GenRunConfig(configPath string, config string, profile string, deployConain
 	return wd, nil
 }
 
-const generatedWorkFile = `go %s
-`
-
 // Create work file or update in case already there.
 func HandleWorkFile(version string) error {
 

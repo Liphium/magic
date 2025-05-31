@@ -22,7 +22,7 @@ func TestScanLines(t *testing.T) {
 		for i, mod := range modules {
 			t.Run(fmt.Sprintf("mod name %d", i), func(t *testing.T) {
 				goMod := fmt.Sprintf(simpleGoMod, mod, "1.23")
-				results := mrunner.ScanLines(goMod, []mrunner.Filter{mrunner.FilterModFileModuleName})
+				results := mrunner.ScanLinesSanitize(goMod, []mrunner.Filter{mrunner.FilterModFileModuleName}, &mrunner.OneLineCommentReplacer{})
 				if results[mrunner.FilterModFileModuleName][0] != mod {
 					t.Fatalf("expected module name %s, got %s", mod, results[mrunner.FilterModFileModuleName][0])
 				}
@@ -40,7 +40,7 @@ func TestScanLines(t *testing.T) {
 		for i, ver := range versions {
 			t.Run(fmt.Sprintf("version %d", i), func(t *testing.T) {
 				goMod := fmt.Sprintf(simpleGoMod, "github.com/Liphium/magic", ver)
-				results := mrunner.ScanLines(goMod, []mrunner.Filter{mrunner.FilterModFileGoVersion})
+				results := mrunner.ScanLinesSanitize(goMod, []mrunner.Filter{mrunner.FilterModFileGoVersion}, &mrunner.OneLineCommentReplacer{})
 				if results[mrunner.FilterModFileGoVersion][0] != ver {
 					t.Fatalf("expected version %s, got %s", ver, results[mrunner.FilterModFileGoVersion][0])
 				}
@@ -51,7 +51,7 @@ func TestScanLines(t *testing.T) {
 	t.Run("multiple filters", func(t *testing.T) {
 		goMod := fmt.Sprintf(simpleGoMod, "github.com/example/test", "1.21")
 		filters := []mrunner.Filter{mrunner.FilterModFileModuleName, mrunner.FilterModFileGoVersion}
-		results := mrunner.ScanLines(goMod, filters)
+		results := mrunner.ScanLinesSanitize(goMod, filters, &mrunner.OneLineCommentReplacer{})
 
 		if results[mrunner.FilterModFileModuleName][0] != "github.com/example/test" {
 			t.Fatalf("expected module name github.com/example/test, got %s", results[mrunner.FilterModFileModuleName][0])
@@ -62,7 +62,7 @@ func TestScanLines(t *testing.T) {
 	})
 
 	t.Run("empty input", func(t *testing.T) {
-		results := mrunner.ScanLines("", []mrunner.Filter{mrunner.FilterModFileModuleName})
+		results := mrunner.ScanLinesSanitize("", []mrunner.Filter{mrunner.FilterModFileModuleName}, &mrunner.OneLineCommentReplacer{})
 		if len(results[mrunner.FilterModFileModuleName]) != 0 {
 			t.Fatalf("expected no results for empty input, got %v", results[mrunner.FilterModFileModuleName])
 		}
@@ -70,7 +70,7 @@ func TestScanLines(t *testing.T) {
 
 	t.Run("no filters", func(t *testing.T) {
 		goMod := fmt.Sprintf(simpleGoMod, "github.com/example/test", "1.21")
-		results := mrunner.ScanLines(goMod, []mrunner.Filter{})
+		results := mrunner.ScanLinesSanitize(goMod, []mrunner.Filter{}, &mrunner.OneLineCommentReplacer{})
 		if len(results) != 0 {
 			t.Fatalf("expected no results with no filters, got %v", results)
 		}
@@ -78,7 +78,7 @@ func TestScanLines(t *testing.T) {
 
 	t.Run("missing module line", func(t *testing.T) {
 		goMod := "go 1.21\n\nrequire (\n\tgithub.com/example/dep v1.0.0\n)"
-		results := mrunner.ScanLines(goMod, []mrunner.Filter{mrunner.FilterModFileModuleName})
+		results := mrunner.ScanLinesSanitize(goMod, []mrunner.Filter{mrunner.FilterModFileModuleName}, &mrunner.OneLineCommentReplacer{})
 		if len(results[mrunner.FilterModFileModuleName]) != 0 {
 			t.Fatalf("expected no module results when module line missing, got %v", results[mrunner.FilterModFileModuleName])
 		}
@@ -86,7 +86,7 @@ func TestScanLines(t *testing.T) {
 
 	t.Run("missing version line", func(t *testing.T) {
 		goMod := "module github.com/example/test\n\nrequire (\n\tgithub.com/example/dep v1.0.0\n)"
-		results := mrunner.ScanLines(goMod, []mrunner.Filter{mrunner.FilterModFileGoVersion})
+		results := mrunner.ScanLinesSanitize(goMod, []mrunner.Filter{mrunner.FilterModFileGoVersion}, &mrunner.OneLineCommentReplacer{})
 		if len(results[mrunner.FilterModFileGoVersion]) != 0 {
 			t.Fatalf("expected no version results when go version line missing, got %v", results[mrunner.FilterModFileGoVersion])
 		}
@@ -105,7 +105,7 @@ require (
 
 replace github.com/example/dep1 => ./local/dep1`
 
-		results := mrunner.ScanLines(complexGoMod, []mrunner.Filter{mrunner.FilterModFileModuleName, mrunner.FilterModFileGoVersion})
+		results := mrunner.ScanLinesSanitize(complexGoMod, []mrunner.Filter{mrunner.FilterModFileModuleName, mrunner.FilterModFileGoVersion}, &mrunner.OneLineCommentReplacer{})
 
 		if results[mrunner.FilterModFileModuleName][0] != "github.com/example/complex" {
 			t.Fatalf("expected module name github.com/example/complex, got %s", results[mrunner.FilterModFileModuleName][0])
@@ -124,7 +124,7 @@ replace github.com/example/dep1 => ./local/dep1`
 
 		for i, goMod := range variations {
 			t.Run(fmt.Sprintf("variation %d", i), func(t *testing.T) {
-				results := mrunner.ScanLines(goMod, []mrunner.Filter{mrunner.FilterModFileModuleName, mrunner.FilterModFileGoVersion})
+				results := mrunner.ScanLinesSanitize(goMod, []mrunner.Filter{mrunner.FilterModFileModuleName, mrunner.FilterModFileGoVersion}, &mrunner.OneLineCommentReplacer{})
 
 				if results[mrunner.FilterModFileModuleName][0] != "github.com/example/test" {
 					t.Fatalf("expected module name github.com/example/test, got %s", results[mrunner.FilterModFileModuleName][0])

@@ -21,6 +21,11 @@ func ScanLines(content string, filters []Filter) map[Filter][]string {
 func ScanLinesSanitize(content string, filters []Filter, sanitizer Replacer) map[Filter][]string {
 	results := map[Filter][]string{}
 
+	// Fill to make sure the map isn't empty
+	for _, filter := range filters {
+		results[filter] = []string{}
+	}
+
 	// Scan all lines in the content using the filters
 	for line := range strings.Lines(content) {
 		line = sanitizer.Replace(line)
