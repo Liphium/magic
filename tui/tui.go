@@ -67,7 +67,6 @@ func runTui(config *GreenTeaConfig) {
 				if err != nil {
 					log.Fatal(err)
 				}
-				//fmt.Print("\033[H\033[2J")
 
 				return nil
 			},

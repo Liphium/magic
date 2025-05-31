@@ -119,7 +119,7 @@ func RunCommand(fp string, logLeaf *StringLeaf, quitLeaf *Leaf[error]) {
 		return
 	}
 	if err := integration.ExecCmdWithFuncStart(func(s string) {
-		logLeaf.Println(s)
+		logLeaf.Println(integration.ColorizeScript(s, filepath.Base(fp), "green"))
 	}, func(cmd *exec.Cmd) {
 		if err = os.Chdir(wOld); err != nil {
 			quitLeaf.Append(fmt.Errorf("ERROR: couldn't change working directory: %s", err))
