@@ -19,7 +19,7 @@ func (f moduleNameFilter) Scan(line string) (bool, string) {
 
 	// Remove the module prefix and check if it truely is the module name
 	line = strings.TrimPrefix(line, "module")
-	if !unicode.IsSpace(rune(line[0])) {
+	if len(line) == 0 || !unicode.IsSpace(rune(line[0])) {
 		return false, ""
 	}
 
