@@ -39,16 +39,18 @@ func main() {
 `
 
 // Command: run [path]
-func runCommand(fp string, console *sPipe) error {
+func RunCommand(fp string, logLeaf *StringLeaf, quitLeaf *Leaf[error]) {
 	wOld, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("couldn't get working directory: %s", err)
+		logLeaf.Printlnf("couldn't get working directory: %s", err)
+		return
 	}
 
 	// Get the magic directory
 	mDir, err := integration.GetMagicDirectory(5) // because cwd is inside ./magic/cache/config_default
 	if err != nil {
-		return fmt.Errorf("can't get magic directory: %s", err)
+		logLeaf.Printlnf("can't get magic directory: %s", err)
+		return
 	}
 	originalFp := fp
 	fp = filepath.Join(mDir, "scripts", fp)
@@ -56,67 +58,75 @@ func runCommand(fp string, console *sPipe) error {
 	// Verify the file path
 	_, fileName, path, err := integration.EvaluatePath(fp)
 	if err != nil {
-		return fmt.Errorf("can't find %s: %s", fp, err)
+		logLeaf.Printlnf("can't find %s: %s", fp, err)
+		return
 	}
 
 	// Run the script
 	if err := mrunner.GoToCache(); err != nil {
-		return fmt.Errorf("can't go to cache: %s", err)
+		logLeaf.Printlnf("can't go to cache: %s", err)
+		return
 	}
 
 	// Generate the folder for the script
 	if err := mrunner.GenerateScriptFolder(strings.ReplaceAll(strings.TrimRight(originalFp, ".go"), "/", "_")); err != nil {
-		return fmt.Errorf("couldn't generate script folder: %s", err)
+		logLeaf.Printlnf("couldn't generate script folder: %s", err)
+		return
 	}
 
 	// Copy the script file into the folder
 	if err := mrunner.CopyFileAndReplacePackage(path, "magic_scripts", "main"); err != nil {
-		return fmt.Errorf("couldn't copy script file: %s", err)
+		logLeaf.Printlnf("couldn't copy script file: %s", err)
+		return
 	}
 
 	// Copy mod file into the script's execution directory
 	version, err := mrunner.GenGoMod(mDir, func(s string) {
-		console.AddItem(s)
+		logLeaf.Println(s)
 	})
 	if err != nil {
-		return fmt.Errorf("couldn't copy mod file: %s", err)
+		logLeaf.Printlnf("couldn't copy mod file: %s", err)
+		return
 	}
 
 	// Generate a run file to run the script
 	scriptName := strings.TrimRight(fileName, ".go")
 	content := fmt.Sprintf(defaultScriptRunFile, integration.SnakeToCamelCase(scriptName, true))
 	if err := integration.CreateFileWithContent("run_magic_script.go", content); err != nil {
-		return fmt.Errorf("couldn't create script run file: %s", err)
+		logLeaf.Printlnf("couldn't create script run file: %s", err)
+		return
 	}
 
 	// Update or create work file
 	if err := mrunner.HandleWorkFile(version); err != nil {
-		return fmt.Errorf("couldn't update/create work file: %s", err)
+		logLeaf.Printlnf("couldn't update/create work file: %s", err)
+		return
 	}
 
 	// Import all dependencies
 	if err := mrunner.ImportDependencies(func(s string) {
-		console.AddItem(s)
+		logLeaf.Println(s)
 	}); err != nil {
-		return fmt.Errorf("can't import dependencies: %s", err)
+		logLeaf.Printlnf("can't import dependencies: %s", err)
+		return
 	}
 
 	// Run the script
-	console.AddItem("Executing script " + fp + "...")
+	logLeaf.Printlnf("Executing script %s...", fp)
 	printable, err := mconfig.CurrentPlan.ToPrintable()
 	if err != nil {
-		return fmt.Errorf("couldn't stringify plan: %s", err)
+		logLeaf.Printlnf("couldn't stringify plan: %s", err)
+		return
 	}
 	if err := integration.ExecCmdWithFuncStart(func(s string) {
-		console.AddItem(s)
+		logLeaf.Println(s)
 	}, func(cmd *exec.Cmd) {
 		if err = os.Chdir(wOld); err != nil {
-			console.AddItem(MagicPanicPrefix + "ERROR: couldn't change working directory: " + err.Error())
+			quitLeaf.Append(fmt.Errorf("ERROR: couldn't change working directory: %s", err))
 		}
 	}, "go", "run", ".", printable); err != nil {
-		return fmt.Errorf("couldn't run script: %s", err)
+		logLeaf.Printlnf("couldn't run script: %s", err)
+		return
 	}
-	console.AddItem("Successfully executed script " + fp + ".")
-
-	return nil
+	logLeaf.Printlnf("Successfully executed script %s.", fp)
 }

@@ -7,12 +7,12 @@ import (
 )
 
 // Command: test [path]
-func testCommand(fp string, console *sPipe) error {
+func TestCommand(fp string, console *StringLeaf) error {
 
 	// set tests as dir
 	mDir, err := integration.GetMagicDirectory(5) // beacause cwd is inside ./magic/cache/config_default
 	if err != nil {
-		console.AddItem(err.Error())
+		console.Printlnf("failed to get magic dir: %s", err)
 		return nil
 	}
 	fp = filepath.Join(mDir, "tests", fp)
@@ -20,11 +20,11 @@ func testCommand(fp string, console *sPipe) error {
 	// verify filepath
 	_, filename, _, err := integration.EvaluatePath(fp)
 	if err != nil {
-		console.AddItem("can't find " + fp + ": " + err.Error())
+		console.Printlnf("can't find %s: %s", fp, err.Error())
 		return nil
 	}
 
 	// run test
-	console.AddItem("Starting test: " + filename)
+	console.Printlnf("Starting test: %s", filename)
 	return nil
 }
