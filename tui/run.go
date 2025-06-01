@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"strings"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mconfig"
@@ -34,7 +32,7 @@ func main() {
 	}
 
 	// Run the script
-	Run%s(plan)
+	%s(plan)
 }
 `
 
@@ -52,62 +50,22 @@ func RunCommand(fp string, logLeaf *StringLeaf, quitLeaf *Leaf[error]) {
 		logLeaf.Printlnf("can't get magic directory: %s", err)
 		return
 	}
-	originalFp := fp
-	fp = filepath.Join(mDir, "scripts", fp)
 
-	// Verify the file path
-	_, fileName, path, err := integration.EvaluatePath(fp)
+	// Create a new factory
+	factory := mrunner.NewFactory(mDir)
+
+	// Prepare the folder using the factory
+	scriptDir, err := factory.GenerateScriptFolder(fp, defaultScriptRunFile, func(s string) {
+		logLeaf.Println(s)
+	})
 	if err != nil {
-		logLeaf.Printlnf("can't find %s: %s", fp, err)
-		return
-	}
-
-	// Run the script
-	if err := mrunner.GoToCache(); err != nil {
-		logLeaf.Printlnf("can't go to cache: %s", err)
-		return
-	}
-
-	// Generate the folder for the script
-	if err := mrunner.GenerateScriptFolder(strings.ReplaceAll(strings.TrimRight(originalFp, ".go"), "/", "_")); err != nil {
 		logLeaf.Printlnf("couldn't generate script folder: %s", err)
 		return
 	}
 
-	// Copy the script file into the folder
-	if err := mrunner.CopyFileAndReplacePackage(path, "magic_scripts", "main"); err != nil {
-		logLeaf.Printlnf("couldn't copy script file: %s", err)
-		return
-	}
-
-	// Copy mod file into the script's execution directory
-	version, err := mrunner.GenGoMod(mDir, func(s string) {
-		logLeaf.Println(s)
-	})
-	if err != nil {
-		logLeaf.Printlnf("couldn't copy mod file: %s", err)
-		return
-	}
-
-	// Generate a run file to run the script
-	scriptName := strings.TrimRight(fileName, ".go")
-	content := fmt.Sprintf(defaultScriptRunFile, integration.SnakeToCamelCase(scriptName, true))
-	if err := integration.CreateFileWithContent("run_magic_script.go", content); err != nil {
-		logLeaf.Printlnf("couldn't create script run file: %s", err)
-		return
-	}
-
-	// Update or create work file
-	if err := mrunner.HandleWorkFile(version); err != nil {
-		logLeaf.Printlnf("couldn't update/create work file: %s", err)
-		return
-	}
-
-	// Import all dependencies
-	if err := mrunner.ImportDependencies(func(s string) {
-		logLeaf.Println(s)
-	}); err != nil {
-		logLeaf.Printlnf("can't import dependencies: %s", err)
+	// Change working directory to module directory
+	if err := os.Chdir(scriptDir); err != nil {
+		logLeaf.Println("ERROR: couldn't change working dir to script dir: ", err)
 		return
 	}
 

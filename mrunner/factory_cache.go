@@ -116,7 +116,7 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, er
 		args := strings.Split(replacer, ";")
 
 		// Exclude magic debug replacers
-		if os.Getenv("MAGIC_DEBUG") == "true" && (strings.Contains(args[0], "replace github.com/Liphium/magic/mconfig") || strings.Contains(args[0], "replace github.com/Liphium/magic/mrunner") || strings.Contains(args[0], "replace github.com/Liphium/magic/integration")) {
+		if os.Getenv("MAGIC_DEBUG") == "true" && (strings.Contains(args[0], "github.com/Liphium/magic/mconfig") || strings.Contains(args[0], "github.com/Liphium/magic/mrunner") || strings.Contains(args[0], "github.com/Liphium/magic/integration")) {
 			continue
 		}
 
@@ -145,4 +145,61 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, er
 	}
 
 	return ver[0], nil
+}
+
+// Prepare a new folder in the cache including creating the mod file, etc.
+func (f Factory) PrepareFolderInCache(directory string, printFunc func(string)) error {
+
+	// Initialize the module
+	printFunc("Initializing module...")
+	version, err := f.GenerateModFile(directory, printFunc)
+	if err != nil {
+		return fmt.Errorf("couldn't generate go.mod: %s", err)
+	}
+
+	// Update the work file in cache
+	if err := f.UpdateCacheWorkFileVersion(version); err != nil {
+		return fmt.Errorf("couldn't update or generate cache go.work: %s", err)
+	}
+
+	// Change working directory to module directory to make sure Go commands don't fail
+	printFunc("Importing dependencies...")
+	oldWd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("couldn't get working directory: %s", err)
+	}
+	if err := os.Chdir(directory); err != nil {
+		return fmt.Errorf("couldn't change working directory to mod: %s", err)
+	}
+	defer os.Chdir(oldWd) // Change back in case of return (to prevent errors)
+
+	// Add the current module to the go.work
+	if err := integration.ExecCmdWithFunc(printFunc, "go", "work", "use", "."); err != nil {
+		return fmt.Errorf("couldn't add mod to work: %s", err)
+	}
+
+	// Import all the dependencies from the go.mod
+	if err := integration.ExecCmdWithFunc(printFunc, "go", "mod", "tidy"); err != nil {
+		return fmt.Errorf("couldn't tidy go.mod: %s", err)
+	}
+	printFunc("Imported dependencies.")
+
+	return nil
+}
+
+// Copy a file to the target directory and replace its package
+//
+// target should be the full path including the file name
+func (f Factory) CopyToCacheWithReplacedPackage(file string, target string, newPackage string) ([]byte, error) {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		return content, fmt.Errorf("couldn't read file %s: %s", file, err)
+	}
+	newContent := ReplaceLinesSanitized(string(content), GoPackageReplacer{
+		NewPackage: "main",
+	}, &CommentCleaner{})
+	if err := os.WriteFile(target, []byte(newContent), 0755); err != nil {
+		return content, fmt.Errorf("couldn't write new config file: %s", err)
+	}
+	return content, nil
 }
