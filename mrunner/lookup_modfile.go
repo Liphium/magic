@@ -41,7 +41,7 @@ func (f goVersionFilter) Scan(line string) (bool, string) {
 
 	// Remove the go prefix to check if it really is the version
 	line = strings.TrimPrefix(line, "go")
-	if !unicode.IsSpace(rune(line[0])) {
+	if len(line) == 0 || !unicode.IsSpace(rune(line[0])) {
 		return false, ""
 	}
 
