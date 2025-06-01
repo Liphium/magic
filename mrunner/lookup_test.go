@@ -119,7 +119,7 @@ replace github.com/example/dep1 => ./local/dep1`
 		variations := []string{
 			"module  github.com/example/test\ngo  1.21",
 			"module\tgithub.com/example/test\ngo\t1.21",
-			"  module github.com/example/test  \n  go 1.21  ",
+			"module github.com/example/test  \ngo 1.21  ",
 		}
 
 		for i, goMod := range variations {

@@ -11,18 +11,20 @@ var FilterModFileModuleName = moduleNameFilter{}
 type moduleNameFilter struct{}
 
 func (f moduleNameFilter) Scan(line string) (bool, string) {
-	line = strings.TrimSpace(line)
 
 	// Make sure module is at the beginning of the line
 	if !strings.HasPrefix(line, "module") {
 		return false, ""
 	}
 
+	// Remove the module prefix and check if it truely is the module name
+	line = strings.TrimPrefix(line, "module")
+	if !unicode.IsSpace(rune(line[0])) {
+		return false, ""
+	}
+
 	// Get the module name by removing all content until the space
-	name := strings.TrimLeftFunc(line, func(r rune) bool {
-		return !unicode.IsSpace(r)
-	})
-	return true, strings.TrimSpace(name)
+	return true, strings.TrimSpace(line)
 }
 
 // A filter for getting the module name from a go.mod file
@@ -31,18 +33,20 @@ var FilterModFileGoVersion = goVersionFilter{}
 type goVersionFilter struct{}
 
 func (f goVersionFilter) Scan(line string) (bool, string) {
-	line = strings.TrimSpace(line)
 
 	// Make sure module is at the beginning of the line
 	if !strings.HasPrefix(line, "go") {
 		return false, ""
 	}
 
+	// Remove the go prefix to check if it really is the version
+	line = strings.TrimPrefix(line, "go")
+	if !unicode.IsSpace(rune(line[0])) {
+		return false, ""
+	}
+
 	// Get the module name by removing all content until the space
-	version := strings.TrimLeftFunc(line, func(r rune) bool {
-		return !unicode.IsSpace(r)
-	})
-	return true, strings.TrimSpace(version)
+	return true, strings.TrimSpace(line)
 }
 
 // A filter for getting all replacers and where they point (separated by ;).

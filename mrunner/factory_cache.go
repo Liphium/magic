@@ -33,7 +33,7 @@ const generatedWorkFile = `go %s
 `
 
 // Create work file or update in case already there.
-func (f Factory) CreateCacheWorkFile(version string) error {
+func (f Factory) UpdateCacheWorkFileVersion(version string) error {
 
 	// Create work file if it doesn't exist
 	workPath := filepath.Join(f.CacheDirectory(), "go.work")
@@ -41,7 +41,7 @@ func (f Factory) CreateCacheWorkFile(version string) error {
 	if err != nil {
 
 		// Create the work file with the version from the go mod
-		if err := os.WriteFile("go.work", []byte(fmt.Sprintf(generatedWorkFile, version)), 0755); err != nil {
+		if err := os.WriteFile(workPath, []byte(fmt.Sprintf(generatedWorkFile, version)), 0755); err != nil {
 			return fmt.Errorf("couldn't write go.work: %s", err)
 		}
 		return nil
@@ -74,11 +74,12 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, er
 	if err != nil {
 		return "", fmt.Errorf("couldn't get working directory: %s", err)
 	}
-	if err := os.Chdir(modDir); err != nil {
-		return "", fmt.Errorf("couldn't change working directory to mod: %s", err)
+	if err := os.Chdir(dir); err != nil {
+		return "", fmt.Errorf("couldn't change working directory to cache: %s", err)
 	}
+	defer os.Chdir(oldWd) // Change back to prevent errors
 
-	// Search for  module name, go version and replace statement
+	// Search for module name, go version and replace statement
 	content, err := os.ReadFile(filepath.Join(modDir, "go.mod"))
 	if err != nil {
 		return "", fmt.Errorf("couldn't read go.mod: %s", err)
@@ -104,6 +105,11 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, er
 		return "", fmt.Errorf("couldn't initialize go.mod: %s", err)
 	}
 
+	// Change working directory to module directory for the replacer conversion to work properly
+	if err := os.Chdir(modDir); err != nil {
+		return "", fmt.Errorf("couldn't change working directory to mod: %s", err)
+	}
+
 	// Put together all the replacers for the new go mod file
 	toAdd := ""
 	for _, replacer := range replacers {
@@ -115,32 +121,27 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, er
 		}
 
 		// Add the replacer
-		toAdd += fmt.Sprintf("replace %s => %s", args[0], integration.ModulePathToAbsolutePath(args[1]))
+		toAdd += fmt.Sprintf("\nreplace %s => %s\n", args[0], integration.ModulePathToAbsolutePath(args[1]))
 	}
 
 	// Add a replacer for the original module
-	toAdd += fmt.Sprintf("replace %s => %s", mod, modDir)
+	toAdd += fmt.Sprintf("\nreplace %s => %s\n", mod[0], modDir)
 
 	// Add additional replacers in debug mode to make sure go doesn't pull from the internet
 	if os.Getenv("MAGIC_DEBUG") == "true" {
-		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s", os.Getenv("MAGIC_MCONFIG"))
-		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s", os.Getenv("MAGIC_MRUNNER"))
-		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s", os.Getenv("MAGIC_INTEGRATION"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s\n", os.Getenv("MAGIC_MCONFIG"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s\n", os.Getenv("MAGIC_MRUNNER"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s\n", os.Getenv("MAGIC_INTEGRATION"))
 	}
 
 	// Append everything to the new go.mod file
-	file, err := os.OpenFile("go.mod", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(filepath.Join(dir, "go.mod"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return "", fmt.Errorf("couldn't open go.mod in append mode: %s", err)
 	}
 	defer file.Close()
 	if _, err := file.WriteString(toAdd); err != nil {
 		return "", fmt.Errorf("couldn't write changes to go.mod: %s", err)
-	}
-
-	// Change back to original working directory
-	if err := os.Chdir(oldWd); err != nil {
-		return "", fmt.Errorf("couldn't back to original working dir: %s", err)
 	}
 
 	return ver[0], nil

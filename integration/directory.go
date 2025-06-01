@@ -75,7 +75,9 @@ func PrintCurrentDirAll() {
 	}
 }
 
-// Convert a path from the go.mod file to an absolute path
+// Convert a path from the go.mod file to an absolute path.
+//
+// For relative paths to be properly parsed you need to be in the correct directory.
 func ModulePathToAbsolutePath(path string) string {
 	trimmed := strings.TrimSpace(path)
 	if strings.HasPrefix(trimmed, "./") || strings.HasPrefix(trimmed, "../") {
