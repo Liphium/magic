@@ -35,10 +35,10 @@ func startCommand(config string, profile string) error {
 		profile = "default"
 	}
 	if !integration.IsPathSanitized(config) {
-		return errors.New("config path conatins forbidden chars")
+		return errors.New("config path contains forbidden chars")
 	}
 	if !integration.IsPathSanitized(profile) {
-		return errors.New("profile conatins forbidden chars")
+		return errors.New("profile contains forbidden chars")
 	}
 
 	// Create a new factory for creating the directory
@@ -83,7 +83,7 @@ func startCommand(config string, profile string) error {
 				if err := cmd.Process.Kill(); err != nil {
 
 					// test for err process already finished
-					if os.ErrProcessDone != err{
+					if os.ErrProcessDone != err {
 						logLeaf.Println("shutdown err:", err)
 					} else {
 						logLeaf.Println("process already finished")
