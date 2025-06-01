@@ -196,7 +196,7 @@ func (f Factory) CopyToCacheWithReplacedPackage(file string, target string, newP
 		return content, fmt.Errorf("couldn't read file %s: %s", file, err)
 	}
 	newContent := ReplaceLinesSanitized(string(content), GoPackageReplacer{
-		NewPackage: "main",
+		NewPackage: newPackage,
 	}, &CommentCleaner{})
 	if err := os.WriteFile(target, []byte(newContent), 0755); err != nil {
 		return content, fmt.Errorf("couldn't write new config file: %s", err)
