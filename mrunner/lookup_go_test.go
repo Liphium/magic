@@ -73,3 +73,29 @@ func noParams() {}
 		}
 	}
 }
+
+func TestPackageNameFilter(t *testing.T) {
+	cases := []struct {
+		line     string
+		expected bool
+		name     string
+	}{
+		{"package main", true, "main"},
+		{"package mrunner", true, "mrunner"},
+		{"package 123abc", true, "123abc"},
+		{"package", false, ""},
+		{"import fmt", false, ""},
+		{"func main()", false, ""},
+		{"package main extra", false, ""},
+	}
+
+	for _, c := range cases {
+		ok, name := mrunner.FilterGoFilePackageName.Scan(c.line)
+		if ok != c.expected {
+			t.Errorf("For line '%s', expected match=%v, got %v", c.line, c.expected, ok)
+		}
+		if ok && name != c.name {
+			t.Errorf("For line '%s', expected name '%s', got '%s'", c.line, c.name, name)
+		}
+	}
+}

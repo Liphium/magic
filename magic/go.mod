@@ -1,15 +1,15 @@
-module github.com/Liphium/magic/mcli
+module github.com/Liphium/magic/magic
 
 go 1.24.3
 
 require (
 	github.com/Liphium/magic/integration v0.0.0-00010101000000-000000000000
-	github.com/Liphium/magic/mconfig v0.0.0-20250529094857-43aa2ebe4c44
+	github.com/Liphium/magic/mconfig v0.0.0-20250602145912-5a8a5faca955
 	github.com/Liphium/magic/mrunner v0.0.0-20250524143131-a6ed6092307a
+	github.com/Liphium/magic/msdk v0.0.0-00010101000000-000000000000
 	github.com/Liphium/magic/tui v0.0.0-00010101000000-000000000000
 	github.com/joho/godotenv v1.5.1
 	github.com/urfave/cli/v3 v3.3.3
-	github.com/Liphium/magic/msdk v0.0.0-00010101000000-000000000000
 )
 
 require (

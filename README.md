@@ -6,9 +6,9 @@ The goal of Liphium Magic is to built tools to make testing applications written
 
 ## Usage
 
-**1.** Download and install Magic (distribution is still work in progress, please wait until we provide official guides here).
+**1.** To download and install Magic just run `go install github.com/Liphium/magic/magic@latest` (Yes, you need magic twice since we use sub modules...).
 
-**2.** Run ``magic init``. This will create a new directory in your project called ``magic``. In there you can edit the ``config.go`` file to create databases. Here's an example:
+**2.** Run `magic init`. This will create a new directory in your project called `magic`. In there you can edit the `config.go` file to create databases. Here's an example:
 
 ```go
 // ...
@@ -36,7 +36,7 @@ func Start() {
 // ...
 ```
 
-**3.** You can now use ``magic start`` to run your app. Become a great wizzard!
+**3.** You can now use `magic start` to run your app. Become a great wizzard!
 
 ## Status
 

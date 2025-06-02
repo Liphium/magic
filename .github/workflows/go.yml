@@ -5,21 +5,20 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: 'stable'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "stable"
 
-    - name: Test all modules
-      run: go test ./integration/... ./mcli/... ./mrunner/... ./tui/... ./mconfig/...
+      - name: Test all modules
+        run: go test ./integration/... ./magic/... ./mrunner/... ./tui/... ./mconfig/... ./msdk/...

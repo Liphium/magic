@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	init_command "github.com/Liphium/magic/mcli/init"
-	start_command "github.com/Liphium/magic/mcli/start"
-	test_command "github.com/Liphium/magic/mcli/test"
+	init_command "github.com/Liphium/magic/magic/init"
+	start_command "github.com/Liphium/magic/magic/start"
+	test_command "github.com/Liphium/magic/magic/test"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v3"
 )
