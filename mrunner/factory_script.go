@@ -23,9 +23,14 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 	}
 	path = filepath.Clean(path)
 
-	// Create the folder for the script
+	// Clean the folder
 	modName := ScriptPathToSnakeCase(path)
 	scriptDir := f.ScriptCacheDirectory(modName)
+	if err := os.RemoveAll(scriptDir); err != nil {
+		return "", fmt.Errorf("couldn't clean script directory: %s", err)
+	}
+
+	// Create the folder for the script
 	if err := os.MkdirAll(scriptDir, 0755); err != nil {
 		return "", fmt.Errorf("couldn't create script directory: %s", err)
 	}
@@ -49,7 +54,6 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 	}
 
 	// Scan the directory for functions in case it's a script
-	fileToCopy := ""
 	functionToCall := ""
 	if data.IsDir() {
 		files, err := os.ReadDir(ogScriptDir)
@@ -74,7 +78,6 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 				return "", errors.New("there can only be one run function in a script")
 			}
 			functionToCall = fn
-			fileToCopy = filepath.Join(ogScriptDir, f.Name())
 		}
 	} else {
 		// Scan the file for functions taking in a plan
@@ -82,13 +85,37 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 		if err != nil {
 			return "", err
 		}
-		fileToCopy = f.ScriptDirectory(path)
+		if functionToCall == "" {
+			return "", fmt.Errorf("couldn't find a valid run function")
+		}
 	}
 
-	// Copy over the script file
-	_, err = f.CopyToCacheWithReplacedPackage(fileToCopy, filepath.Join(scriptDir, "script.go"), "main")
-	if err != nil {
-		return "", fmt.Errorf("couldn't copy and replace: %s", err)
+	if data.IsDir() {
+		// Copy everything over (in case it's a directory)
+		if err := os.CopyFS(scriptDir, os.DirFS(ogScriptDir)); err != nil {
+			return "", fmt.Errorf("couldn't copy files to cache: %s", err)
+		}
+
+		// Replace the package on all the files in the new directory
+		files, err := os.ReadDir(ogScriptDir)
+		if err != nil {
+			return "", fmt.Errorf("couldn't list script directory: %s", err)
+		}
+		for _, file := range files {
+			startFile := filepath.Join(scriptDir, file.Name())
+			endFile := filepath.Join(scriptDir, file.Name())
+			_, err = f.CopyToCacheWithReplacedPackage(startFile, endFile, "main")
+			if err != nil {
+				return "", fmt.Errorf("couldn't copy and replace: %s", err)
+			}
+		}
+	} else {
+
+		// Copy over the script file
+		_, err = f.CopyToCacheWithReplacedPackage(f.ScriptDirectory(path), filepath.Join(scriptDir, "script.go"), "main")
+		if err != nil {
+			return "", fmt.Errorf("couldn't copy and replace: %s", err)
+		}
 	}
 
 	// Generate the run file
@@ -118,8 +145,13 @@ func scanScriptFileForFunction(file string) (string, error) {
 	if res, ok := results[filter]; ok {
 
 		// Make sure there is only one function
-		if len(res) != 1 {
+		if len(res) > 1 {
 			return "", errors.New("found more than one function")
+		}
+
+		// Return nothing in case there isn't a function
+		if len(res) == 0 {
+			return "", nil
 		}
 
 		return res[0], nil
