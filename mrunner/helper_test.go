@@ -62,6 +62,16 @@ func TestSingleLineComments(t *testing.T) {
 			input:    "code // hello world // more comments",
 			expected: "code ",
 		},
+		{
+			name:     "string var with // in string",
+			input:    "test := \"some code \\\" // this in a string\"",
+			expected: "test := \"some code \\\" // this in a string\"",
+		},
+		{
+			name:     "string var with // in string and comment at end",
+			input:    "test := \"some code // this in a string\" // comment",
+			expected: "test := \"some code // this in a string\" ",
+		},
 	}
 
 	for _, tt := range tests {
