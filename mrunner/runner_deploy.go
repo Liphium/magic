@@ -24,7 +24,7 @@ func (r *Runner) Deploy() {
 	for _, dbType := range r.plan.DatabaseTypes {
 		ctx := context.Background()
 		name := dbType.ContainerName(r.module, r.config, r.profile)
-		fmt.Println("Creating database container", name+"...")
+		log.Println("Creating database container", name+"...")
 
 		// Check if the container already exists
 		f := filters.NewArgs()
@@ -39,7 +39,7 @@ func (r *Runner) Deploy() {
 		for _, c := range summary {
 			for _, n := range c.Names {
 				if n == "/"+name {
-					fmt.Println("Found existing container...")
+					log.Println("Found existing container...")
 					containerId = c.ID
 				}
 			}
@@ -47,18 +47,18 @@ func (r *Runner) Deploy() {
 
 		// Create container if it doesn't exist
 		if containerId == "" {
-			fmt.Println("Creating new container...")
+			log.Println("Creating new container...")
 			containerId = r.createDatabaseContainer(ctx, dbType, name)
 		}
 
 		// Start the container
-		fmt.Println("Trying to start container...")
+		log.Println("Trying to start container...")
 		if err := r.client.ContainerStart(ctx, containerId, container.StartOptions{}); err != nil {
 			log.Fatalln("couldn't start postgres container:", err)
 		}
 
 		// Wait for the container to start (with pg_isready)
-		fmt.Println("Waiting for PostgreSQL to be ready...")
+		log.Println("Waiting for PostgreSQL to be ready...")
 		readyCommand := "pg_isready -d postgres"
 		cmd := strings.Split(readyCommand, " ")
 		execConfig := container.ExecOptions{
@@ -88,20 +88,20 @@ func (r *Runner) Deploy() {
 		time.Sleep(200 * time.Millisecond) // Some additional time, sometimes takes longer
 
 		// Create all of the databases
-		fmt.Println("Connecting to PostgreSQL...")
+		log.Println("Connecting to PostgreSQL...")
 		r.createDatabases(dbType)
 	}
 
 	// Load environment variables into current application
-	fmt.Println("Loading environment...")
+	log.Println("Loading environment...")
 	for key, value := range r.plan.Environment {
 		if err := os.Setenv(key, value); err != nil {
 			log.Fatalln("couldn't set environment variable", key+":", err)
 		}
 	}
 
-	fmt.Println("Deployment finished.")
-	fmt.Println(" ")
+	log.Println("Deployment finished.")
+	log.Println(" ")
 }
 
 // Create a new container for a postgres database. Returns container id.
@@ -149,7 +149,7 @@ func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) {
 	defer conn.Close()
 
 	for _, db := range dbType.Databases {
-		fmt.Println("Creating database", db.Name+"...")
+		log.Println("Creating database", db.Name+"...")
 		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db.Name))
 		if err != nil && !strings.Contains(err.Error(), "already exists") {
 			log.Fatalln("couldn't create postgres database:", err)
@@ -159,5 +159,40 @@ func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) {
 
 // Delete all containers and reset all state
 func (r *Runner) Clear() {
-	// TODO: Delete db container
+	ctx := context.Background()
+	for _, dbType := range r.plan.DatabaseTypes {
+
+		// Try to find the container for the type
+		f := filters.NewArgs()
+		name := dbType.ContainerName(r.module, r.config, r.profile)
+		f.Add("name", name)
+		summary, err := r.client.ContainerList(ctx, container.ListOptions{
+			Filters: f,
+		})
+		if err != nil {
+			log.Fatalln("Couldn't list containers:", err)
+		}
+		containerId := ""
+		for _, c := range summary {
+			for _, n := range c.Names {
+				if n == "/"+name {
+					containerId = c.ID
+				}
+			}
+		}
+
+		// If there is no container, nothing to delete
+		if containerId == "" {
+			continue
+		}
+
+		// Delete the container
+		log.Println("Deleting container", name+"...")
+		if err := r.client.ContainerRemove(ctx, containerId, container.RemoveOptions{
+			RemoveVolumes: true,
+			RemoveLinks:   true,
+		}); err != nil {
+			log.Fatalln("Couldn't delete database container:", err)
+		}
+	}
 }
