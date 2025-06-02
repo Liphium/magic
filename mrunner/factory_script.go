@@ -67,6 +67,11 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 				continue
 			}
 
+			// Make sure there is no file named run.go (would conflict with the generated run file)
+			if f.Name() == "run.go" {
+				return "", errors.New("found a run.go file in your script directory: not allowed due to collision with run file")
+			}
+
 			// Scan the file for functions taking in a plan
 			fn, err := scanScriptFileForFunction(filepath.Join(ogScriptDir, f.Name()))
 			if err != nil {
