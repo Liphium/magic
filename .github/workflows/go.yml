@@ -21,8 +21,5 @@ jobs:
       with:
         go-version: 'stable'
 
-    - name: Build
-      run: go build -v ./...
-
-    - name: Test
-      run: go test -v ./...
+    - name: Test all modules
+      run: go test ./integration/... ./mcli/... ./mrunner/... ./tui/... ./msdk/... ./mconfig/...
