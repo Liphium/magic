@@ -44,6 +44,11 @@ func (c *Context) LoadSecretsToEnvironment(path string) error {
 		return fmt.Errorf("couldn't change to magic directory: %s", err)
 	}
 
+	// Add an environment in case there isn't one
+	if c.environment == nil {
+		c.WithEnvironment(&Environment{})
+	}
+
 	// Load all the secrets from the file
 	bytes, err := os.ReadFile(path)
 	if err != nil {

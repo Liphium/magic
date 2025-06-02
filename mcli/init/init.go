@@ -113,11 +113,6 @@ func initCommand(ctx context.Context, c *cli.Command) error {
 	if err := os.Chdir(".."); err != nil {
 		return err
 	}
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalln("Failed to get cwd: ", err)
-	}
-	fmt.Println("currently in ", dir)
 	err = integration.ExecCmdWithFunc(func(s string) {
 		fmt.Println(s)
 	}, "go", "mod", "tidy")

@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/Liphium/magic/integration"
@@ -27,27 +26,26 @@ func startCommand(config string, profile string) error {
 	if err != nil {
 		return err
 	}
+
+	// Make sure config and profile are valid and don't contain weird characters or letters
 	if config == "" {
 		config = "config"
 	}
 	if profile == "" {
 		profile = "default"
 	}
-
 	if !integration.IsPathSanitized(config) {
-		return errors.New("filename conatins forbidden chars")
+		return errors.New("config path contains forbidden chars")
 	}
 	if !integration.IsPathSanitized(profile) {
-		return errors.New("profile conatins forbidden chars")
+		return errors.New("profile contains forbidden chars")
 	}
 
-	_, _, path, err := integration.EvaluatePath(filepath.Join(mDir, config+".go"))
-	if err != nil {
-		return err
-	}
+	// Create a new factory for creating the directory
+	factory := mrunner.NewFactory(mDir)
 
-	// generate the cache
-	wd, err := mrunner.GenRunConfig(path, config, profile, true, func(s string) {
+	// Generate the folder for running in the cache directory
+	wd, err := factory.GenerateConfigModule(config, profile, true, func(s string) {
 		log.Println(s)
 	})
 	if err != nil {
@@ -85,7 +83,7 @@ func startCommand(config string, profile string) error {
 				if err := cmd.Process.Kill(); err != nil {
 
 					// test for err process already finished
-					if os.ErrProcessDone != err{
+					if os.ErrProcessDone != err {
 						logLeaf.Println("shutdown err:", err)
 					} else {
 						logLeaf.Println("process already finished")
