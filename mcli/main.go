@@ -7,6 +7,7 @@ import (
 
 	init_command "github.com/Liphium/magic/mcli/init"
 	start_command "github.com/Liphium/magic/mcli/start"
+	test_command "github.com/Liphium/magic/mcli/test"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v3"
 )
@@ -21,10 +22,7 @@ func main() {
 		Commands: []*cli.Command{
 			init_command.BuildCommand(),
 			start_command.BuildCommand(),
-			{
-				Name:        "test",
-				Description: "Magically test your project.",
-			},
+			test_command.BuildCommand(),
 		},
 	}
 

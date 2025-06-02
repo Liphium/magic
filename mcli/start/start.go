@@ -56,7 +56,8 @@ func startCommand(config string, profile string) error {
 	}
 
 	// Create all the folders and stuff
-	mod, err := CreateStartEnvironment(config, profile, mDir, false)
+	var mod string
+	config, profile, mod, err = CreateStartEnvironment(config, profile, mDir, false)
 	if err != nil {
 		return err
 	}
@@ -129,7 +130,7 @@ func startCommand(config string, profile string) error {
 // Create the environment for starting from config and profile arguments
 //
 // Also changes working directory to the folder generated.
-func CreateStartEnvironment(config string, profile string, mDir string, deleteContainers bool) (string, error) {
+func CreateStartEnvironment(config string, profile string, mDir string, deleteContainers bool) (newConfig string, newProfile string, modName string, err error) {
 	// Make sure config and profile are valid and don't contain weird characters or letters
 	if config == "" {
 		config = "config"
@@ -138,10 +139,10 @@ func CreateStartEnvironment(config string, profile string, mDir string, deleteCo
 		profile = "default"
 	}
 	if !integration.IsPathSanitized(config) {
-		return "", errors.New("config path contains forbidden chars")
+		return "", "", "", errors.New("config path contains forbidden chars")
 	}
 	if !integration.IsPathSanitized(profile) {
-		return "", errors.New("profile contains forbidden chars")
+		return "", "", "", errors.New("profile contains forbidden chars")
 	}
 
 	// Create a new factory for creating the directory
@@ -152,13 +153,13 @@ func CreateStartEnvironment(config string, profile string, mDir string, deleteCo
 		log.Println(s)
 	})
 	if err != nil {
-		return "", fmt.Errorf("couldn't generate config: %s", err)
+		return "", "", "", fmt.Errorf("couldn't generate config: %s", err)
 	}
 	if err = os.Chdir(wd); err != nil {
-		return "", fmt.Errorf("couldn't change working directory: %s", err)
+		return "", "", "", fmt.Errorf("couldn't change working directory: %s", err)
 	}
 
-	return mod, err
+	return config, profile, mod, err
 }
 
 func getCommands(logLeaf *tui.StringLeaf, quitLeaf *tui.Leaf[error], exitLeaf *tui.Leaf[func()]) []*cli.Command {

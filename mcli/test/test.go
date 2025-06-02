@@ -55,7 +55,9 @@ func runTestCommand(path string, config string) error {
 	}
 
 	// Create all the folders and stuff
-	mod, err := start_command.CreateStartEnvironment(config, "test", mDir, true)
+	var mod string
+	var profile string
+	config, profile, mod, err = start_command.CreateStartEnvironment(config, "test", mDir, true)
 	if err != nil {
 		return err
 	}
@@ -84,7 +86,7 @@ func runTestCommand(path string, config string) error {
 			log.Println(s)
 		}, func(c *exec.Cmd) {
 			processChan <- c
-		}, "go", "run", ".", mod, config, "test", mDir); err != nil {
+		}, "go", "run", ".", mod, config, profile, mDir); err != nil {
 			log.Fatalln("couldn't run the app:", err)
 		}
 	}()
@@ -99,7 +101,35 @@ func runTestCommand(path string, config string) error {
 		return fmt.Errorf("couldn't change to old working dir: %s", err)
 	}
 
-	// TODO: Run the test
+	// Create a factory for the test creation
+	factory := mrunner.NewFactory(mDir)
 
+	// Create the folder for the test
+	testCacheDir, err := factory.GenerateTestFolder(path, func(s string) {
+		log.Println(s)
+	})
+	if err != nil {
+		return fmt.Errorf("couldn't generate test folder: %s", err)
+	}
+
+	// Change the working directory to the test folder
+	if err := os.Chdir(testCacheDir); err != nil {
+		return fmt.Errorf("couldn't go to test dir: %s", err)
+	}
+
+	// Make a new version of the plan as printable
+	printable, err := mconfig.CurrentPlan.ToPrintable()
+	if err != nil {
+		return fmt.Errorf("couldn't generate printable plan: %s", err)
+	}
+
+	// Run go test with the arguments
+	if err := integration.ExecCmdWithFunc(func(s string) {
+		log.Println(s)
+	}, "go", "test", "-args", "plan:"+printable); err != nil {
+		return fmt.Errorf("couldn't run test command: %s", err)
+	}
+
+	log.Println("Successfully executed test.")
 	return nil
 }

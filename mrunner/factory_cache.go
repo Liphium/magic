@@ -116,7 +116,7 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, st
 		args := strings.Split(replacer, ";")
 
 		// Exclude magic debug replacers
-		if os.Getenv("MAGIC_DEBUG") == "true" && (strings.Contains(args[0], "github.com/Liphium/magic/mconfig") || strings.Contains(args[0], "github.com/Liphium/magic/mrunner") || strings.Contains(args[0], "github.com/Liphium/magic/integration")) {
+		if os.Getenv("MAGIC_DEBUG") == "true" && (strings.Contains(args[0], "github.com/Liphium/magic/mconfig") || strings.Contains(args[0], "github.com/Liphium/magic/mrunner") || strings.Contains(args[0], "github.com/Liphium/magic/integration") || strings.Contains(args[0], "github.com/Liphium/magic/msdk")) {
 			continue
 		}
 
@@ -132,6 +132,7 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, st
 		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s\n", os.Getenv("MAGIC_MCONFIG"))
 		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s\n", os.Getenv("MAGIC_MRUNNER"))
 		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s\n", os.Getenv("MAGIC_INTEGRATION"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/msdk => %s\n", os.Getenv("MAGIC_SDK"))
 	}
 
 	// Append everything to the new go.mod file

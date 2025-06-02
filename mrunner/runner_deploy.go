@@ -85,6 +85,7 @@ func (r *Runner) Deploy() {
 
 			time.Sleep(200 * time.Millisecond)
 		}
+		time.Sleep(200 * time.Millisecond) // Some additional time, sometimes takes longer
 
 		// Create all of the databases
 		fmt.Println("Connecting to PostgreSQL...")
