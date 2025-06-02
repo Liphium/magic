@@ -8,7 +8,7 @@ import (
 )
 
 // Run a config using the runner (returns the path the go module was generated at)
-func (f Factory) GenerateConfigModule(config string, profile string, deleteContainers bool, deployContainers bool, printFunc func(string)) (module string, cachePath string, err error) {
+func (f Factory) GenerateConfigModule(config string, profile string, deployContainers bool, deleteContainers bool, printFunc func(string)) (module string, cachePath string, err error) {
 
 	// Generate the folder for the config
 	configModPath := f.ConfigCacheDirectory(config, profile)

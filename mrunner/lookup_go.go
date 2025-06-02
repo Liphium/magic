@@ -109,3 +109,25 @@ func (f *FilterGoFileFunctionParameter) Scan(content string) (bool, string) {
 	}
 	return false, ""
 }
+
+// Get the package name in the file
+var FilterGoFilePackageName = filterGoFilePackageName{}
+
+type filterGoFilePackageName struct{}
+
+func (f filterGoFilePackageName) Scan(content string) (bool, string) {
+
+	// Make sure the line starts with package
+	if !strings.HasPrefix(content, "package") {
+		return false, ""
+	}
+	content, _ = strings.CutPrefix(content, "package")
+	content = strings.TrimSpace(content)
+
+	// Make sure what's remaining is truely the package
+	if strings.ContainsFunc(content, unicode.IsSpace) || content == "" {
+		return false, ""
+	}
+
+	return true, content
+}
