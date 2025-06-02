@@ -13,10 +13,35 @@ func (r OneLineCommentReplacer) Replace(old string) string {
 
 // Removes all block comments and one line comments (/* */ and //)
 type CommentCleaner struct {
-	started bool
+	commentStarted    bool
+	blockQuoteStarted bool
 }
 
 func (r *CommentCleaner) Replace(old string) string {
+
+	// Scan for block comments
+	new := ""
+	quoteCount := 0
+	for text := range strings.SplitSeq(old, "`") {
+		quoteCount++
+
+		// Don't replace comments when inside of a block quote
+		if quoteCount >= 2 {
+			r.blockQuoteStarted = !r.blockQuoteStarted
+		}
+
+		if r.blockQuoteStarted {
+			new += text + "`"
+			continue
+		}
+		new += r.replaceComments(text) + "`"
+	}
+
+	new, _ = strings.CutSuffix(new, "`")
+	return new
+}
+
+func (r *CommentCleaner) replaceComments(old string) string {
 	old = RemoveOneLineComments(old)
 
 	// Remove everything that's in block comments
@@ -26,8 +51,8 @@ func (r *CommentCleaner) Replace(old string) string {
 		startCount++
 
 		// If we're inside of a block comment, look for the end and mark as started
-		if startCount >= 2 || r.started {
-			r.started = true
+		if startCount >= 2 || r.commentStarted {
+			r.commentStarted = true
 
 			// Look for the end of block comments
 			endCount := 0
@@ -35,19 +60,19 @@ func (r *CommentCleaner) Replace(old string) string {
 				endCount++
 
 				// If we found an end, mark as ended and add to new string
-				if endCount%2 == 0 || !r.started {
-					r.started = false
+				if endCount%2 == 0 || !r.commentStarted {
+					r.commentStarted = false
 					new += end
 					continue
 				}
 
-				r.started = true
+				r.commentStarted = true
 			}
 			continue
 		}
 
 		// Add in case we're behind a block comment start sequence
-		r.started = false
+		r.commentStarted = false
 		new += start
 	}
 
