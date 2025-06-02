@@ -68,6 +68,16 @@ func TestCommentCleaner(t *testing.T) {
 			input:    "1 /* 2 3 /* \n 4 \n */ 5 /* 6 */",
 			expected: "1 \n 5 ",
 		},
+		{
+			name:     "block quote and block comments",
+			input:    "hello `why? /*`\n wassup \n hello /* a comment */",
+			expected: "hello `why? /*`\n wassup \n hello ",
+		},
+		{
+			name:     "block quote and one line comments",
+			input:    "hello `why? // more`\n wassup // hello \n hello /* a comment */",
+			expected: "hello `why? // more`\n wassup \n hello ",
+		},
 	}
 
 	for _, tt := range tests {

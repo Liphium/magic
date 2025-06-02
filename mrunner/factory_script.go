@@ -67,6 +67,11 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 				continue
 			}
 
+			// Make sure there is no file named run.go (would conflict with the generated run file)
+			if f.Name() == "run.go" {
+				return "", errors.New("found a run.go file in your script directory: not allowed due to collision with run file")
+			}
+
 			// Scan the file for functions taking in a plan
 			fn, err := scanScriptFileForFunction(filepath.Join(ogScriptDir, f.Name()))
 			if err != nil {
@@ -102,6 +107,9 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 			return "", fmt.Errorf("couldn't list script directory: %s", err)
 		}
 		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
 			startFile := filepath.Join(scriptDir, file.Name())
 			endFile := filepath.Join(scriptDir, file.Name())
 			_, err = f.CopyToCacheWithReplacedPackage(startFile, endFile, "main")
@@ -125,7 +133,7 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 	}
 
 	// Prepare the folder
-	if err := f.PrepareFolderInCache(scriptDir, printFunc); err != nil {
+	if _, err := f.PrepareFolderInCache(scriptDir, printFunc); err != nil {
 		return "", fmt.Errorf("couldn't prepare cache: %s", err)
 	}
 

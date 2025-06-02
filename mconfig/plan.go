@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"unicode"
 )
 
 var CurrentPlan *Plan = nil
@@ -18,6 +20,12 @@ type PlannedDatabaseType struct {
 	Port      uint              `json:"port"`
 	Type      DatabaseType      `json:"type"`
 	Databases []PlannedDatabase `json:"databases"`
+}
+
+// Name for the database Docker container
+func (p *PlannedDatabaseType) ContainerName(modName string, config string, profile string) string {
+	modName = EverythingToSnakeCase(modName)
+	return fmt.Sprintf("mgc-%s-%s-%s-%d", modName, config, profile, p.Type)
 }
 
 type PlannedDatabase struct {
@@ -80,4 +88,17 @@ func (p *Plan) Database(name string) (PlannedDatabase, error) {
 // Generate a connection string for the database.
 func (db *PlannedDatabase) ConnectString() string {
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", db.Hostname, db.Port, db.Username, db.Password, db.Name)
+}
+
+// Convert every character except for letters and digits directly to _
+func EverythingToSnakeCase(s string) string {
+	newString := ""
+	for _, r := range s {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			newString += string(unicode.ToLower(r))
+		} else if !strings.HasSuffix(newString, "_") {
+			newString += "_"
+		}
+	}
+	return newString
 }

@@ -61,28 +61,28 @@ func (f Factory) UpdateCacheWorkFileVersion(version string) error {
 // Generate the default mod file for any script, test or config.
 //
 // Returns go version and error.
-func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, error) {
+func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, string, error) {
 
 	// Get the module directory
 	modDir, err := f.ModuleDirectory()
 	if err != nil {
-		return "", fmt.Errorf("couldn't get mod dir: %s", err)
+		return "", "", fmt.Errorf("couldn't get mod dir: %s", err)
 	}
 
 	// Change working directory to module directory
 	oldWd, err := os.Getwd()
 	if err != nil {
-		return "", fmt.Errorf("couldn't get working directory: %s", err)
+		return "", "", fmt.Errorf("couldn't get working directory: %s", err)
 	}
 	if err := os.Chdir(dir); err != nil {
-		return "", fmt.Errorf("couldn't change working directory to cache: %s", err)
+		return "", "", fmt.Errorf("couldn't change working directory to cache: %s", err)
 	}
 	defer os.Chdir(oldWd) // Change back to prevent errors
 
 	// Search for module name, go version and replace statement
 	content, err := os.ReadFile(filepath.Join(modDir, "go.mod"))
 	if err != nil {
-		return "", fmt.Errorf("couldn't read go.mod: %s", err)
+		return "", "", fmt.Errorf("couldn't read go.mod: %s", err)
 	}
 	filters := []Filter{FilterModFileGoVersion, FilterModFileModuleName, FilterModFileReplacers}
 	results := ScanLinesSanitize(string(content), filters, &OneLineCommentReplacer{})
@@ -92,22 +92,22 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, er
 	mod := results[FilterModFileModuleName]
 	replacers := results[FilterModFileReplacers]
 	if len(ver) != 1 || len(mod) != 1 {
-		return "", fmt.Errorf("couldn't find module name or version")
+		return "", "", fmt.Errorf("couldn't find module name or version")
 	}
 
 	// Delete the old go mod file (in case there)
 	if err := os.RemoveAll(filepath.Join(dir, "go.mod")); err != nil {
-		return "", fmt.Errorf("couldn't delete go.mod: %s", err)
+		return "", "", fmt.Errorf("couldn't delete go.mod: %s", err)
 	}
 
 	// Initialize the new one
 	if err := integration.ExecCmdWithFunc(printFunc, "go", "mod", "init", filepath.Base(dir)); err != nil {
-		return "", fmt.Errorf("couldn't initialize go.mod: %s", err)
+		return "", "", fmt.Errorf("couldn't initialize go.mod: %s", err)
 	}
 
 	// Change working directory to module directory for the replacer conversion to work properly
 	if err := os.Chdir(modDir); err != nil {
-		return "", fmt.Errorf("couldn't change working directory to mod: %s", err)
+		return "", "", fmt.Errorf("couldn't change working directory to mod: %s", err)
 	}
 
 	// Put together all the replacers for the new go mod file
@@ -116,7 +116,7 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, er
 		args := strings.Split(replacer, ";")
 
 		// Exclude magic debug replacers
-		if os.Getenv("MAGIC_DEBUG") == "true" && (strings.Contains(args[0], "github.com/Liphium/magic/mconfig") || strings.Contains(args[0], "github.com/Liphium/magic/mrunner") || strings.Contains(args[0], "github.com/Liphium/magic/integration")) {
+		if os.Getenv("MAGIC_DEBUG") == "true" && (strings.Contains(args[0], "github.com/Liphium/magic/mconfig") || strings.Contains(args[0], "github.com/Liphium/magic/mrunner") || strings.Contains(args[0], "github.com/Liphium/magic/integration") || strings.Contains(args[0], "github.com/Liphium/magic/msdk")) {
 			continue
 		}
 
@@ -132,59 +132,62 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, er
 		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s\n", os.Getenv("MAGIC_MCONFIG"))
 		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s\n", os.Getenv("MAGIC_MRUNNER"))
 		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s\n", os.Getenv("MAGIC_INTEGRATION"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/msdk => %s\n", os.Getenv("MAGIC_SDK"))
 	}
 
 	// Append everything to the new go.mod file
 	file, err := os.OpenFile(filepath.Join(dir, "go.mod"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return "", fmt.Errorf("couldn't open go.mod in append mode: %s", err)
+		return "", "", fmt.Errorf("couldn't open go.mod in append mode: %s", err)
 	}
 	defer file.Close()
 	if _, err := file.WriteString(toAdd); err != nil {
-		return "", fmt.Errorf("couldn't write changes to go.mod: %s", err)
+		return "", "", fmt.Errorf("couldn't write changes to go.mod: %s", err)
 	}
 
-	return ver[0], nil
+	return mod[0], ver[0], nil
 }
 
 // Prepare a new folder in the cache including creating the mod file, etc.
-func (f Factory) PrepareFolderInCache(directory string, printFunc func(string)) error {
+//
+// Returns the module name.
+func (f Factory) PrepareFolderInCache(directory string, printFunc func(string)) (string, error) {
 
 	// Initialize the module
 	printFunc("Initializing module...")
-	version, err := f.GenerateModFile(directory, printFunc)
+	modName, version, err := f.GenerateModFile(directory, printFunc)
 	if err != nil {
-		return fmt.Errorf("couldn't generate go.mod: %s", err)
+		return "", fmt.Errorf("couldn't generate go.mod: %s", err)
 	}
 
 	// Update the work file in cache
 	if err := f.UpdateCacheWorkFileVersion(version); err != nil {
-		return fmt.Errorf("couldn't update or generate cache go.work: %s", err)
+		return "", fmt.Errorf("couldn't update or generate cache go.work: %s", err)
 	}
 
 	// Change working directory to module directory to make sure Go commands don't fail
 	printFunc("Importing dependencies...")
 	oldWd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("couldn't get working directory: %s", err)
+		return "", fmt.Errorf("couldn't get working directory: %s", err)
 	}
 	if err := os.Chdir(directory); err != nil {
-		return fmt.Errorf("couldn't change working directory to mod: %s", err)
+		return "", fmt.Errorf("couldn't change working directory to mod: %s", err)
 	}
 	defer os.Chdir(oldWd) // Change back in case of return (to prevent errors)
 
 	// Add the current module to the go.work
 	if err := integration.ExecCmdWithFunc(printFunc, "go", "work", "use", "."); err != nil {
-		return fmt.Errorf("couldn't add mod to work: %s", err)
+		return "", fmt.Errorf("couldn't add mod to work: %s", err)
 	}
 
 	// Import all the dependencies from the go.mod
 	if err := integration.ExecCmdWithFunc(printFunc, "go", "mod", "tidy"); err != nil {
-		return fmt.Errorf("couldn't tidy go.mod: %s", err)
+		return "", fmt.Errorf("couldn't tidy go.mod: %s", err)
 	}
 	printFunc("Imported dependencies.")
 
-	return nil
+	return modName, nil
 }
 
 // Copy a file to the target directory and replace its package

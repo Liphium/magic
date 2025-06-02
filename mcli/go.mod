@@ -9,6 +9,7 @@ require (
 	github.com/Liphium/magic/tui v0.0.0-00010101000000-000000000000
 	github.com/joho/godotenv v1.5.1
 	github.com/urfave/cli/v3 v3.3.3
+	github.com/Liphium/magic/msdk v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -65,5 +66,7 @@ require (
 replace github.com/Liphium/magic/mconfig => ../mconfig
 
 replace github.com/Liphium/magic/integration => ../integration
+
+replace github.com/Liphium/magic/msdk => ../msdk
 
 replace github.com/Liphium/magic/tui => ../tui
