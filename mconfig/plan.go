@@ -20,6 +20,10 @@ type PlannedDatabaseType struct {
 	Databases []PlannedDatabase `json:"databases"`
 }
 
+func (p *PlannedDatabaseType) ContainerName(modName string, config string, profile string) string {
+	return fmt.Sprintf("mgc-%s-%s-%s-%d", modName, config, profile, p.Type)
+}
+
 type PlannedDatabase struct {
 	ConfigName string `json:"config_name"` // Name in the config
 	Name       string `json:"name"`

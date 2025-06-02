@@ -23,7 +23,7 @@ func (r *Runner) Deploy() {
 	// Deploy the database containers
 	for _, dbType := range r.plan.DatabaseTypes {
 		ctx := context.Background()
-		name := fmt.Sprintf("mgc-%s-%s-%d", r.config, r.profile, dbType.Type)
+		name := dbType.ContainerName(r.module, r.config, r.profile)
 		fmt.Println("Creating database container", name+"...")
 
 		// Check if the container already exists
@@ -154,4 +154,9 @@ func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) {
 			log.Fatalln("couldn't create postgres database:", err)
 		}
 	}
+}
+
+// Delete all containers and reset all state
+func (r *Runner) Clear() {
+	// TODO: Delete db container
 }

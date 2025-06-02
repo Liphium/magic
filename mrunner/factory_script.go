@@ -130,7 +130,7 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 	}
 
 	// Prepare the folder
-	if err := f.PrepareFolderInCache(scriptDir, printFunc); err != nil {
+	if _, err := f.PrepareFolderInCache(scriptDir, printFunc); err != nil {
 		return "", fmt.Errorf("couldn't prepare cache: %s", err)
 	}
 

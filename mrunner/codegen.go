@@ -19,15 +19,16 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 4 {
-		log.Fatalln("Please specify config, profile and magic directory!")
+	if len(os.Args) < 5 {
+		log.Fatalln("Please specify module name, config, profile and magic directory!")
 	}
-	config := os.Args[1]
-	profile := os.Args[2]
-	magicDir := os.Args[3]
+	modName := os.Args[1]
+	config := os.Args[2]
+	profile := os.Args[3]
+	magicDir := os.Args[4]
 
 	// Create context
-	context := mconfig.DefaultContext(config, profile, magicDir)
+	context := mconfig.DefaultContext(modName, config, profile, magicDir)
 	Run(context)
 
 	// Create the runner from context
@@ -37,8 +38,15 @@ func main() {
 	}
 
 	fmt.Println(mrunner.PlanPrefix + runner.GeneratePlan())
+
+%s
 %s
 }
+`
+
+const runFileDeleter = `
+	// Delete all the containers and state
+	runner.Clear()
 `
 
 const runFileDeployer = `
@@ -50,9 +58,14 @@ const runFileDeployer = `
 `
 
 // Generate the run file calling the runner
-func GenerateRunFile(deployContainers bool) string {
+func GenerateRunFile(deployContainers bool, deleteContainers bool) string {
+	deleter := ""
+	deployer := ""
 	if deployContainers {
-		return fmt.Sprintf(runFile, runFileDeployer)
+		deployer = runFileDeployer
 	}
-	return fmt.Sprintf(runFile, "")
+	if deleteContainers {
+		deleter = runFileDeleter
+	}
+	return fmt.Sprintf(runFile, deleter, deployer)
 }

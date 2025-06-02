@@ -9,10 +9,15 @@ import (
 type Context struct {
 	config      string       // Name of the current config
 	profile     string       // Name of the current profile
+	module      string       // Name of the current module
 	magicDir    string       // Current Magic directory
 	environment *Environment // Environment for environment variables (can be nil)
 	databases   []*Database
 	plan        **Plan // For later filling in with actual information
+}
+
+func (c *Context) Module() string {
+	return c.module
 }
 
 func (c *Context) Config() string {
@@ -95,9 +100,10 @@ func (c *Context) AddDatabase(database *Database) {
 	c.databases = append(c.databases, database)
 }
 
-func DefaultContext(config string, profile string, magicDir string) *Context {
+func DefaultContext(module string, config string, profile string, magicDir string) *Context {
 	plan := &Plan{}
 	return &Context{
+		module:    module,
 		config:    config,
 		profile:   profile,
 		magicDir:  magicDir,

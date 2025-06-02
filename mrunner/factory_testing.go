@@ -131,7 +131,7 @@ func (f Factory) GenerateTestFolder(path string, printFunc func(string)) (string
 	}
 
 	// Prepare the folder
-	if err := f.PrepareFolderInCache(testDir, printFunc); err != nil {
+	if _, err := f.PrepareFolderInCache(testDir, printFunc); err != nil {
 		return "", fmt.Errorf("couldn't prepare cache: %s", err)
 	}
 

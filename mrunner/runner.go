@@ -9,6 +9,7 @@ const DefaultStartPort uint = 10000
 const DefaultEndPort uint = 60000
 
 type Runner struct {
+	module  string
 	config  string
 	profile string
 	client  *client.Client
@@ -31,6 +32,7 @@ func NewRunner(ctx *mconfig.Context) (*Runner, error) {
 
 	// Create the runner
 	return &Runner{
+		module:  ctx.Module(),
 		config:  ctx.Config(),
 		profile: ctx.Profile(),
 		client:  dc,
