@@ -108,6 +108,9 @@ func (f Factory) GenerateTestFolder(path string, printFunc func(string)) (string
 			return "", fmt.Errorf("couldn't list script directory: %s", err)
 		}
 		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
 			startFile := filepath.Join(testDir, file.Name())
 			endFile := filepath.Join(testDir, file.Name())
 			_, err = f.CopyToCacheWithReplacedPackage(startFile, endFile, "main")
