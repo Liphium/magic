@@ -18,6 +18,8 @@ func main() {
 	godotenv.Load()
 
 	cmd := &cli.Command{
+		Name:        "magic",
+		Usage:       "a tool for testing by Liphium.",
 		Description: "Testing and debugging like Magic.",
 		Commands: []*cli.Command{
 			init_command.BuildCommand(),
