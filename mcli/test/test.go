@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/Liphium/magic/integration"
-	start_command "github.com/Liphium/magic/magic/start"
+	start_command "github.com/Liphium/magic/mcli/start"
 	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
 	"github.com/Liphium/magic/msdk"
