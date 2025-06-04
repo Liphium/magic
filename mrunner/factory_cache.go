@@ -116,7 +116,7 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, st
 		args := strings.Split(replacer, ";")
 
 		// Exclude magic debug replacers
-		if os.Getenv("MAGIC_DEBUG") == "true" && (strings.Contains(args[0], "github.com/Liphium/magic/mconfig") || strings.Contains(args[0], "github.com/Liphium/magic/mrunner") || strings.Contains(args[0], "github.com/Liphium/magic/integration") || strings.Contains(args[0], "github.com/Liphium/magic/msdk")) {
+		if os.Getenv("MAGIC_DEBUG") == "true" && strings.Contains(args[0], "github.com/Liphium/magic") {
 			continue
 		}
 
@@ -129,10 +129,7 @@ func (f Factory) GenerateModFile(dir string, printFunc func(string)) (string, st
 
 	// Add additional replacers in debug mode to make sure go doesn't pull from the internet
 	if os.Getenv("MAGIC_DEBUG") == "true" {
-		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mconfig => %s\n", os.Getenv("MAGIC_MCONFIG"))
-		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/mrunner => %s\n", os.Getenv("MAGIC_MRUNNER"))
-		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/integration => %s\n", os.Getenv("MAGIC_INTEGRATION"))
-		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic/msdk => %s\n", os.Getenv("MAGIC_SDK"))
+		toAdd += fmt.Sprintf("\nreplace github.com/Liphium/magic => %s\n", os.Getenv("MAGIC_FOLDER"))
 	}
 
 	// Append everything to the new go.mod file
@@ -179,6 +176,13 @@ func (f Factory) PrepareFolderInCache(directory string, printFunc func(string)) 
 	// Add the current module to the go.work
 	if err := integration.ExecCmdWithFunc(printFunc, "go", "work", "use", "."); err != nil {
 		return "", fmt.Errorf("couldn't add mod to work: %s", err)
+	}
+
+	// Add magic as a dependency (only when not in debug mode)
+	if os.Getenv("MAGIC_DEBUG") == "false" {
+		if err := integration.ExecCmdWithFunc(printFunc, "go", "get", "-u", "github.com/Liphium/magic@"+integration.MagicVersion); err != nil {
+			return "", fmt.Errorf("couldn't add Magic as a dependency: %s", err)
+		}
 	}
 
 	// Import all the dependencies from the go.mod

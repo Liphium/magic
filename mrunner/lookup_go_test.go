@@ -74,6 +74,44 @@ func noParams() {}
 	}
 }
 
+func TestFunctionParameterLookupStartsWith(t *testing.T) {
+	sampleCode := `
+package main
+
+func foo(a string, b int) {}
+func bar(x int, y int) {}
+func baz(a string, b int) {}
+func qux(a string, b string) {}
+func noParams() {}
+`
+
+	cases := []struct {
+		params   []string
+		expected []string
+	}{
+		{[]string{"string"}, []string{"foo", "baz", "qux"}},
+		{[]string{"int", "int"}, []string{"bar"}},
+		{[]string{"int"}, []string{"bar"}},
+		{[]string{"string", "string"}, []string{"qux"}},
+		{[]string{"float64"}, []string{}},
+		{[]string{}, []string{"foo", "bar", "baz", "qux", "noParams"}},
+	}
+
+	for _, c := range cases {
+		filter := &mrunner.FilterGoFileFunctionParameter{Parameters: c.params, StartsWith: true}
+		found := mrunner.ScanLinesSanitize(sampleCode, []mrunner.Filter{filter}, &mrunner.CommentCleaner{})[filter]
+		if len(found) != len(c.expected) {
+			t.Errorf("For params %v, expected %d matches, got %d", c.params, len(c.expected), len(found))
+			continue
+		}
+		for i, name := range c.expected {
+			if found[i] != name {
+				t.Errorf("For params %v, expected function '%s', got '%s'", c.params, name, found[i])
+			}
+		}
+	}
+}
+
 func TestPackageNameFilter(t *testing.T) {
 	cases := []struct {
 		line     string

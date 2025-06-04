@@ -165,25 +165,15 @@ func CreateStartEnvironment(config string, profile string, mDir string, deleteCo
 func getCommands(logLeaf *tui.StringLeaf, quitLeaf *tui.Leaf[error], exitLeaf *tui.Leaf[func()]) []*cli.Command {
 
 	// Implement commands
-	var scriptPath string
 	var testPath string
 	commands := []*cli.Command{
 		{
-			Name:    "run",
-			Usage:   "",
-			Aliases: []string{"r"},
-			Arguments: []cli.Argument{
-				&cli.StringArg{
-					Name:        "path",
-					Destination: &scriptPath,
-				},
-			},
+			Name:      "run",
+			Usage:     "",
+			Aliases:   []string{"r"},
+			Arguments: cli.AnyArguments,
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				if scriptPath != "" {
-					go tui.RunCommand(scriptPath, logLeaf, quitLeaf)
-				} else {
-					tui.CommandError = "usage: run [path]"
-				}
+				go tui.RunCommand(cmd, logLeaf, quitLeaf)
 				return nil
 			},
 		},
