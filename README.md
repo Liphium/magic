@@ -45,3 +45,5 @@ func Start() {
 ## Status
 
 Magic is still in very early development. We'll continue developing it until it can be used to test our own backend which is going to still require some complex problems to be solved. However, we already see a lot of potential in this tool to provide a really nice developer experience.
+
+Current version: v1.0.0-rc2.
