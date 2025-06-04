@@ -168,10 +168,9 @@ func getCommands(logLeaf *tui.StringLeaf, quitLeaf *tui.Leaf[error], exitLeaf *t
 	var testPath string
 	commands := []*cli.Command{
 		{
-			Name:      "run",
-			Usage:     "",
-			Aliases:   []string{"r"},
-			Arguments: cli.AnyArguments,
+			Name:    "run",
+			Usage:   "",
+			Aliases: []string{"r"},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				go tui.RunCommand(cmd, logLeaf, quitLeaf)
 				return nil

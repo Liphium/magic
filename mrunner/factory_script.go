@@ -17,7 +17,7 @@ func (f Factory) ScriptDirectory(script string) string {
 // Generate a folder for a script
 //
 // runFileFormat should have one %s in it that will be replaced with the run function of the script.
-func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFunc func(string)) (string, error) {
+func (f Factory) GenerateScriptFolder(path string, runFileFormat string, arguments []string, printFunc func(string)) (string, error) {
 	if filepath.IsAbs(path) {
 		return "", fmt.Errorf("can't execute with absolute paths")
 	}
@@ -55,6 +55,7 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 
 	// Scan the directory for functions in case it's a script
 	functionToCall := ""
+	functionParams := []string{}
 	if data.IsDir() {
 		files, err := os.ReadDir(ogScriptDir)
 		if err != nil {
@@ -73,7 +74,7 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 			}
 
 			// Scan the file for functions taking in a plan
-			fn, err := scanScriptFileForFunction(filepath.Join(ogScriptDir, f.Name()))
+			fn, params, err := scanScriptFileForFunction(filepath.Join(ogScriptDir, f.Name()))
 			if err != nil {
 				return "", err
 			}
@@ -83,10 +84,11 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 				return "", errors.New("there can only be one run function in a script")
 			}
 			functionToCall = fn
+			functionParams = params
 		}
 	} else {
 		// Scan the file for functions taking in a plan
-		functionToCall, err = scanScriptFileForFunction(f.ScriptDirectory(path))
+		functionToCall, functionParams, err = scanScriptFileForFunction(f.ScriptDirectory(path))
 		if err != nil {
 			return "", err
 		}
@@ -126,8 +128,21 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 		}
 	}
 
+	// Parse the function parameters
+	if len(functionParams)-1 != len(arguments) {
+		return "", fmt.Errorf("invalid amount of arguments, required is: %s", strings.Join(functionParams[1:], ", "))
+	}
+	functionParamString := ""
+	for i, param := range functionParams[1:] {
+		if param == "string" {
+			functionParamString += fmt.Sprintf(", %q", arguments[i])
+		} else {
+			functionParamString += fmt.Sprintf(", %s", arguments[i])
+		}
+	}
+
 	// Generate the run file
-	runFile := fmt.Sprintf(runFileFormat, functionToCall)
+	runFile := fmt.Sprintf(runFileFormat, functionToCall, functionParamString)
 	if err := os.WriteFile(filepath.Join(scriptDir, "run.go"), []byte(runFile), 0755); err != nil {
 		return "", fmt.Errorf("couldn't create run file: %s", err)
 	}
@@ -141,12 +156,13 @@ func (f Factory) GenerateScriptFolder(path string, runFileFormat string, printFu
 }
 
 // Helper function to scan a script for the function that takes in the plan.
-func scanScriptFileForFunction(file string) (string, error) {
+func scanScriptFileForFunction(file string) (fnName string, params []string, err error) {
 	content, err := os.ReadFile(file)
 	if err != nil {
-		return "", fmt.Errorf("couldn't read file %s: %s", file, err)
+		return "", nil, fmt.Errorf("couldn't read file %s: %s", file, err)
 	}
 	filter := &FilterGoFileFunctionParameter{
+		StartsWith: true,
 		Parameters: []string{"*mconfig.Plan"},
 	}
 	results := ScanLinesSanitize(string(content), []Filter{filter}, &CommentCleaner{})
@@ -154,17 +170,20 @@ func scanScriptFileForFunction(file string) (string, error) {
 
 		// Make sure there is only one function
 		if len(res) > 1 {
-			return "", errors.New("found more than one function")
+			return "", nil, errors.New("found more than one function")
 		}
 
 		// Return nothing in case there isn't a function
 		if len(res) == 0 {
-			return "", nil
+			return "", nil, nil
 		}
 
-		return res[0], nil
+		// Parse to params and function name
+		args := strings.Split(res[0], ";")
+
+		return args[0], args[1:], nil
 	}
-	return "", nil
+	return "", nil, nil
 }
 
 // Convert a script path to its snake case name (script/dir/script1.go to script_dir_script1).

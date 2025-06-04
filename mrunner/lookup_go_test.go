@@ -89,12 +89,12 @@ func noParams() {}
 		params   []string
 		expected []string
 	}{
-		{[]string{"string"}, []string{"foo", "baz", "qux"}},
-		{[]string{"int", "int"}, []string{"bar"}},
-		{[]string{"int"}, []string{"bar"}},
-		{[]string{"string", "string"}, []string{"qux"}},
+		{[]string{"string"}, []string{"foo;string;int", "baz;string;int", "qux;string;string"}},
+		{[]string{"int", "int"}, []string{"bar;int;int"}},
+		{[]string{"int"}, []string{"bar;int;int"}},
+		{[]string{"string", "string"}, []string{"qux;string;string"}},
 		{[]string{"float64"}, []string{}},
-		{[]string{}, []string{"foo", "bar", "baz", "qux", "noParams"}},
+		{[]string{}, []string{"foo;string;int", "bar;int;int", "baz;string;int", "qux;string;string", "noParams"}},
 	}
 
 	for _, c := range cases {

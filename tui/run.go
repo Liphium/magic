@@ -33,7 +33,7 @@ func main() {
 	}
 
 	// Run the script
-	%s(plan)
+	%s(plan%s)
 }
 `
 
@@ -65,7 +65,7 @@ func RunCommand(cmd *cli.Command, logLeaf *StringLeaf, quitLeaf *Leaf[error]) {
 	factory := mrunner.NewFactory(mDir)
 
 	// Prepare the folder using the factory
-	scriptDir, err := factory.GenerateScriptFolder(fp, defaultScriptRunFile, func(s string) {
+	scriptDir, err := factory.GenerateScriptFolder(fp, defaultScriptRunFile, cmd.Args().Slice()[1:], func(s string) {
 		logLeaf.Println(s)
 	})
 	if err != nil {

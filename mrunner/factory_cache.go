@@ -179,7 +179,7 @@ func (f Factory) PrepareFolderInCache(directory string, printFunc func(string)) 
 	}
 
 	// Add magic as a dependency (only when not in debug mode)
-	if os.Getenv("MAGIC_DEBUG") == "false" {
+	if os.Getenv("MAGIC_DEBUG") != "true" {
 		if err := integration.ExecCmdWithFunc(printFunc, "go", "get", "-u", "github.com/Liphium/magic@"+integration.MagicVersion); err != nil {
 			return "", fmt.Errorf("couldn't add Magic as a dependency: %s", err)
 		}
