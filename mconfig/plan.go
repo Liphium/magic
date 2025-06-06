@@ -10,8 +10,9 @@ import (
 )
 
 type Plan struct {
-	Environment   map[string]string     `json:"environment"`
-	DatabaseTypes []PlannedDatabaseType `json:"database_types"`
+	Environment    map[string]string     `json:"environment"`
+	DatabaseTypes  []PlannedDatabaseType `json:"database_types"`
+	AllocatedPorts map[uint]uint         `json:"ports"`
 }
 
 type PlannedDatabaseType struct {

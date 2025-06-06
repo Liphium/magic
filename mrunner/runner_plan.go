@@ -18,9 +18,28 @@ func (r *Runner) GeneratePlan() string {
 		log.Fatalln("couldn't start databases:", err)
 	}
 
+	// Prepare all of the ports
+	allocatedPorts := map[uint]uint{}
+	if r.ctx.Ports() != nil {
+		for _, port := range r.ctx.Ports() {
+			// Generate a new port in case the current one is taken
+			toAllocate := port
+			if integration.ScanPort(port) {
+				toAllocate, err = scanForOpenPort()
+				if err != nil {
+					log.Fatalln("Couldn't find open port for", port, ":", err)
+				}
+			}
+
+			// Add the port to the plan
+			allocatedPorts[port] = toAllocate
+		}
+	}
+
 	// Load into plan
 	r.plan = &mconfig.Plan{
-		DatabaseTypes: types,
+		DatabaseTypes:  types,
+		AllocatedPorts: allocatedPorts,
 	}
 	r.ctx.ApplyPlan(r.plan)
 
@@ -45,9 +64,9 @@ func (r *Runner) prepareDatabases() ([]mconfig.PlannedDatabaseType, error) {
 	types := map[mconfig.DatabaseType]mconfig.PlannedDatabaseType{}
 	for _, db := range r.ctx.Databases() {
 		if _, ok := types[db.Type()]; !ok {
-			openPort, err := integration.ScanForOpenPort(DefaultStartPort, DefaultEndPort)
+			openPort, err := scanForOpenPort()
 			if err != nil {
-				return nil, fmt.Errorf("couldn't find open port: %e", err)
+				return nil, err
 			}
 
 			types[db.Type()] = mconfig.PlannedDatabaseType{
@@ -81,4 +100,13 @@ func (r *Runner) prepareDatabases() ([]mconfig.PlannedDatabaseType, error) {
 		i++
 	}
 	return plannedTypes, nil
+}
+
+// Scan for an open port in the default range
+func scanForOpenPort() (uint, error) {
+	openPort, err := integration.ScanForOpenPort(DefaultStartPort, DefaultEndPort)
+	if err != nil {
+		return 0, fmt.Errorf("couldn't find open port: %e", err)
+	}
+	return openPort, err
 }

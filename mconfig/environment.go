@@ -1,5 +1,11 @@
 package mconfig
 
+import (
+	"fmt"
+	"log"
+	"slices"
+)
+
 type Environment map[string]EnvironmentValue
 
 // Apply all the environment variables
@@ -20,6 +26,31 @@ func ValueStatic(value string) EnvironmentValue {
 	return EnvironmentValue{
 		get: func() string {
 			return value
+		},
+	}
+}
+
+// Allocate a new port for the container (and parse it as a environment variable).
+func (c *Context) ValuePort(preferredPort uint) EnvironmentValue {
+
+	// Make sure the ports slice is initalized
+	if c.ports == nil {
+		c.ports = []uint{}
+	}
+
+	// Make sure the port isn't already allocated
+	if slices.Contains(c.ports, preferredPort) {
+		log.Fatalln("port", preferredPort, "is already taken: taken ports: ", c.ports)
+	}
+	c.ports = append(c.ports, preferredPort)
+
+	return EnvironmentValue{
+		get: func() string {
+			allocatedPort, ok := c.Plan().AllocatedPorts[preferredPort]
+			if !ok {
+				log.Fatalln("Couldn't find port", preferredPort, "in final plan")
+			}
+			return fmt.Sprintf("%d", allocatedPort)
 		},
 	}
 }
