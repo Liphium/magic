@@ -9,8 +9,6 @@ import (
 	"unicode"
 )
 
-var CurrentPlan *Plan = nil
-
 type Plan struct {
 	Environment   map[string]string     `json:"environment"`
 	DatabaseTypes []PlannedDatabaseType `json:"database_types"`

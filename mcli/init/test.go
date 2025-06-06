@@ -20,7 +20,8 @@ import (
 	"github.com/Liphium/magic/mconfig"
 )
 
-func Test%s(t *testing.T, p *mconfig.Plan) {
+// Do not call this function anything with Test, it will cause errors
+func Magic%s(t *testing.T, p *mconfig.Plan) {
 	fmt.Println("Hello, I'm the greatest wizzard of all time!")
 }
 `

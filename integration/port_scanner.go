@@ -7,11 +7,11 @@ import (
 
 func ScanForOpenPort(start, end uint) (uint, error) {
 	for port := start; port <= end; port++ {
-		ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-		if err == nil {
-			ln.Close()
+		ln, err := net.Dial("tcp", fmt.Sprintf(":%d", port))
+		if err != nil {
 			return port, nil
 		}
+		ln.Close()
 	}
-	return 0, fmt.Errorf("no open port found in range %d-%d", start, end)
+	return 0, fmt.Errorf("no open IPv4 port found in range %d-%d", start, end)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
+	"github.com/Liphium/magic/msdk"
 	"github.com/Liphium/magic/tui"
 	"github.com/urfave/cli/v3"
 )
@@ -78,6 +79,9 @@ func startCommand(config string, profile string) error {
 					quitLeaf.Append(fmt.Errorf("ERROR: couldn't parse plan: %w", err))
 					return
 				}
+				return
+			}
+			if strings.HasPrefix(s, msdk.StartSignal) {
 				return
 			}
 			logLeaf.Println(strings.TrimRight(s, "\n"))
@@ -150,6 +154,10 @@ func CreateStartEnvironment(config string, profile string, mDir string, deleteCo
 
 	// Generate the folder for running in the cache directory
 	mod, wd, err := factory.GenerateConfigModule(config, profile, true, deleteContainers, func(s string) {
+		if !strings.HasPrefix(s, "ERROR") && !mconfig.VerboseLogging {
+			return
+		}
+
 		log.Println(s)
 	})
 	if err != nil {

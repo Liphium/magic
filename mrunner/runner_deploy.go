@@ -12,13 +12,20 @@ import (
 	"github.com/Liphium/magic/mconfig"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 	_ "github.com/lib/pq"
 )
 
 // Deploy all the containers nessecary for the application
-func (r *Runner) Deploy() {
+func (r *Runner) Deploy(deleteContainers bool) {
+
+	// Clear all state in case wanted
+	if deleteContainers {
+		log.Println("Clearing all state...")
+		r.Clear()
+	}
 
 	// Deploy the database containers
 	for _, dbType := range r.plan.DatabaseTypes {
@@ -31,25 +38,41 @@ func (r *Runner) Deploy() {
 		f.Add("name", name)
 		summary, err := r.client.ContainerList(ctx, container.ListOptions{
 			Filters: f,
+			All:     true,
 		})
 		if err != nil {
 			log.Fatalln("couldn't list containers:", err)
 		}
 		containerId := ""
+		var containerMounts []mount.Mount = nil
 		for _, c := range summary {
 			for _, n := range c.Names {
-				if n == "/"+name {
+				if strings.Contains(n, name) {
 					log.Println("Found existing container...")
 					containerId = c.ID
+
+					// Inspect the cotainer to get the mounts
+					resp, err := r.client.ContainerInspect(ctx, c.ID)
+					if err != nil {
+						log.Fatalln("Couldn't inspect container:", err)
+					}
+					containerMounts = resp.HostConfig.Mounts
 				}
 			}
 		}
 
-		// Create container if it doesn't exist
-		if containerId == "" {
-			log.Println("Creating new container...")
-			containerId = r.createDatabaseContainer(ctx, dbType, name)
+		// Delete the container if it exists
+		if containerId != "" {
+			if err := r.client.ContainerRemove(ctx, containerId, container.RemoveOptions{
+				Force: true,
+			}); err != nil {
+				log.Fatalln("Couldn't delete database container:", err)
+			}
 		}
+
+		// Create the new container with the volumes
+		log.Println("Creating new container...")
+		containerId = r.createDatabaseContainer(ctx, dbType, name, containerMounts)
 
 		// Start the container
 		log.Println("Trying to start container...")
@@ -105,7 +128,7 @@ func (r *Runner) Deploy() {
 }
 
 // Create a new container for a postgres database. Returns container id.
-func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.PlannedDatabaseType, name string) string {
+func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.PlannedDatabaseType, name string, mounts []mount.Mount) string {
 
 	// Reserve the port for the container
 	port, err := nat.NewPort("tcp", "5432")
@@ -119,6 +142,7 @@ func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.Pla
 		PortBindings: nat.PortMap{
 			port: []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%d", dbType.Port)}},
 		},
+		Mounts: mounts,
 	}
 
 	// Create the container
@@ -175,7 +199,8 @@ func (r *Runner) Clear() {
 		containerId := ""
 		for _, c := range summary {
 			for _, n := range c.Names {
-				if n == "/"+name {
+				fmt.Println("found", n)
+				if strings.Contains(n, name) {
 					containerId = c.ID
 				}
 			}
@@ -190,7 +215,7 @@ func (r *Runner) Clear() {
 		log.Println("Deleting container", name+"...")
 		if err := r.client.ContainerRemove(ctx, containerId, container.RemoveOptions{
 			RemoveVolumes: true,
-			RemoveLinks:   true,
+			Force:         true,
 		}); err != nil {
 			log.Fatalln("Couldn't delete database container:", err)
 		}

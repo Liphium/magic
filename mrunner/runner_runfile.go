@@ -51,7 +51,7 @@ const runFileDeleter = `
 
 const runFileDeployer = `
 	// Deploy the containers and start
-	runner.Deploy()
+	runner.Deploy(%t)
 
 	// Start the app
 	Start()
@@ -62,7 +62,7 @@ func GenerateRunFile(deployContainers bool, deleteContainers bool) string {
 	deleter := ""
 	deployer := ""
 	if deployContainers {
-		deployer = runFileDeployer
+		deployer = fmt.Sprintf(runFileDeployer, deleteContainers)
 	}
 	if deleteContainers {
 		deleter = runFileDeleter

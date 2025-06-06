@@ -53,6 +53,7 @@ func runTestCommand(path string, config string) error {
 	if err != nil {
 		return err
 	}
+	log.Println("Preparing...")
 
 	// Create all the folders and stuff
 	var mod string
@@ -83,6 +84,11 @@ func runTestCommand(path string, config string) error {
 				return
 			}
 
+			// Only print logs when verbose logging
+			if !strings.HasPrefix(s, "ERROR") && !mconfig.VerboseLogging {
+				return
+			}
+
 			log.Println(s)
 		}, func(c *exec.Cmd) {
 			processChan <- c
@@ -106,6 +112,11 @@ func runTestCommand(path string, config string) error {
 
 	// Create the folder for the test
 	testCacheDir, err := factory.GenerateTestFolder(path, func(s string) {
+		// Only print logs for verbose logging mode
+		if !strings.HasPrefix(s, "ERROR") && !mconfig.VerboseLogging {
+			return
+		}
+
 		log.Println(s)
 	})
 	if err != nil {
@@ -116,6 +127,8 @@ func runTestCommand(path string, config string) error {
 	if err := os.Chdir(testCacheDir); err != nil {
 		return fmt.Errorf("couldn't go to test dir: %s", err)
 	}
+
+	log.Println("Running test " + path + "...")
 
 	// Make a new version of the plan as printable
 	printable, err := mconfig.CurrentPlan.ToPrintable()
