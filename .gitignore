@@ -2,3 +2,4 @@ magic/
 magic
 magic.exe
 .env
+*.DS_Store
