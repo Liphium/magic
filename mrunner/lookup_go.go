@@ -63,6 +63,11 @@ func (f *FilterGoFileImports) Scan(content string) (bool, string) {
 
 // A filter for searching function names by the parameters the function takes in.
 type FilterGoFileFunctionParameter struct {
+	// Default: false, Also returns functions ending in the parameter types specified
+	//
+	// When set to true, also returns the types of the parameters with semicolons
+	// (e.g. fnName;int;string for func fnName(int, string)).
+	StartsWith bool
 	Parameters []string // The parameter types you want to look for (e.g. string, string)
 }
 
@@ -103,9 +108,27 @@ func (f *FilterGoFileFunctionParameter) Scan(content string) (bool, string) {
 		parameters = append(parameters, strings.TrimSpace(param))
 	}
 
-	// If they match, return the result
-	if slices.Equal(parameters, f.Parameters) {
-		return true, fnName
+	// If they match or start with the result, return (if desired)
+	if f.StartsWith {
+		for i, param := range f.Parameters {
+			// Make sure the index actually exists
+			if i > len(parameters)-1 {
+				return false, ""
+			}
+
+			// Check if the elements match
+			if param != parameters[i] {
+				return false, ""
+			}
+		}
+
+		// Also package param types
+		toReturn := slices.Insert(parameters, 0, fnName)
+		return true, strings.Join(toReturn, ";")
+	} else {
+		if slices.Equal(parameters, f.Parameters) {
+			return true, fnName
+		}
 	}
 	return false, ""
 }
