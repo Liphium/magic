@@ -221,3 +221,37 @@ func (r *Runner) Clear() {
 		}
 	}
 }
+
+// Clear the databases, at runtime
+func (r *Runner) ClearDatabases() {
+
+	// Delete all the databases of every type
+	for _, dbType := range r.plan.DatabaseTypes {
+		connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=postgres sslmode=disable", dbType.Port)
+
+		// Connect to the database
+		conn, err := sql.Open("postgres", connStr)
+		if err != nil {
+			log.Fatalln("couldn't connect to postgres:", err)
+		}
+		defer conn.Close()
+
+		for _, db := range dbType.Databases {
+			if mconfig.VerboseLogging {
+				log.Println("Re-creating database", db.Name+"...")
+			}
+
+			// Drop the database
+			_, err := conn.Exec(fmt.Sprintf("DROP DATABASE %s", db.Name))
+			if err != nil {
+				log.Fatalln("couldn't drop postgres database:", err)
+			}
+
+			// Create it again
+			_, err = conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db.Name))
+			if err != nil {
+				log.Fatalln("couldn't create postgres database:", err)
+			}
+		}
+	}
+}

@@ -2,7 +2,6 @@ package mconfig
 
 import (
 	"fmt"
-	"log"
 )
 
 type DatabaseType = uint
@@ -33,11 +32,7 @@ func (db *Database) Name() string {
 func (db *Database) Host(ctx *Context) EnvironmentValue {
 	return EnvironmentValue{
 		get: func() string {
-			planned, err := ctx.Plan().Database(db.name)
-			if err != nil {
-				log.Fatalln("error while getting database with name", db.name+":", err)
-			}
-			return planned.Hostname
+			return ctx.Plan().Database(db.name).Hostname
 		},
 	}
 }
@@ -46,11 +41,7 @@ func (db *Database) Host(ctx *Context) EnvironmentValue {
 func (db *Database) DatabaseName(ctx *Context) EnvironmentValue {
 	return EnvironmentValue{
 		get: func() string {
-			planned, err := ctx.Plan().Database(db.name)
-			if err != nil {
-				log.Fatalln("error while getting database with name", db.name+":", err)
-			}
-			return planned.Name
+			return ctx.Plan().Database(db.name).Name
 		},
 	}
 }
@@ -59,11 +50,7 @@ func (db *Database) DatabaseName(ctx *Context) EnvironmentValue {
 func (db *Database) Port(ctx *Context) EnvironmentValue {
 	return EnvironmentValue{
 		get: func() string {
-			planned, err := ctx.Plan().Database(db.name)
-			if err != nil {
-				log.Fatalln("error while getting database with name", db.name+":", err)
-			}
-			return fmt.Sprintf("%d", planned.Port)
+			return fmt.Sprintf("%d", ctx.Plan().Database(db.name).Port)
 		},
 	}
 }

@@ -3,13 +3,16 @@ package mconfig
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"unicode"
 )
 
 type Plan struct {
+	Module         string                `json:"module"`  // Current module name
+	Config         string                `json:"config"`  // Current config that's being run
+	Profile        string                `json:"profile"` // Current profile that's being run
 	Environment    map[string]string     `json:"environment"`
 	DatabaseTypes  []PlannedDatabaseType `json:"database_types"`
 	AllocatedPorts map[uint]uint         `json:"ports"`
@@ -62,15 +65,15 @@ func FromPrintable(printable string) (*Plan, error) {
 	return plan, nil
 }
 
-// Get a database by its name.
-func (p *Plan) Database(name string) (PlannedDatabase, error) {
+// Get a database by its name. Panics when it can't find the database.
+func (p *Plan) Database(name string) PlannedDatabase {
 	foundDB := PlannedDatabase{}
 	found := false
 	for _, t := range p.DatabaseTypes {
 		for _, db := range t.Databases {
 			if db.ConfigName == name {
 				if found {
-					return PlannedDatabase{}, errors.New("this database exists more than once")
+					log.Fatalln("The database", name, "exists in the config more than once.")
 				}
 				found = true
 				foundDB = db
@@ -79,13 +82,13 @@ func (p *Plan) Database(name string) (PlannedDatabase, error) {
 		}
 	}
 	if !found {
-		return foundDB, errors.New("database not found")
+		log.Fatalln("Database", name, "couldn't be found in the plan!")
 	}
-	return foundDB, nil
+	return foundDB
 }
 
 // Generate a connection string for the database.
-func (db *PlannedDatabase) ConnectString() string {
+func (db PlannedDatabase) ConnectString() string {
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", db.Hostname, db.Port, db.Username, db.Password, db.Name)
 }
 

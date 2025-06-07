@@ -183,6 +183,7 @@ import (
 	"testing"
 	
 	"github.com/Liphium/magic/mconfig"
+	"github.com/Liphium/magic/mrunner"
 )
 
 func Test(t *testing.T) {
@@ -206,6 +207,11 @@ func Test(t *testing.T) {
 		log.Fatalln("Couldn't parse printable plan:", err)
 	}
 
+	// Create a new runner from the plan for deleting the databases later
+	r, err := mrunner.NewRunnerFromPlan(plan)
+	if err != nil {
+		log.Fatalln("Couldn't create runner from plan:", err)
+	}
 
 	// Run all of the tests
 	%s
@@ -216,6 +222,8 @@ const generatedTest = `
 	t.Run(%q, func(t *testing.T) {
 		%s(t, plan)
 	})
+
+	r.ClearDatabases()
 `
 
 func testRunFile(testFunctions map[string][]string) string {
