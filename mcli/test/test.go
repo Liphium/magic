@@ -76,6 +76,7 @@ func runTestCommand(path string, config string) error {
 		return err
 	}
 
+	fmt.Println(" ")
 	log.Println("Successfully executed test.")
 	return nil
 }
@@ -184,6 +185,7 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 		if loggablePath == "." || loggablePath == "" {
 			loggablePath = "default directory"
 		}
+		fmt.Println(" ")
 		log.Println("Preparing tests in " + loggablePath + "...")
 
 		// Create the folder for the test
