@@ -40,3 +40,23 @@ func NewRunner(ctx *mconfig.Context) (*Runner, error) {
 		plan:    ctx.Plan(),
 	}, nil
 }
+
+// Create a new runner
+func NewRunnerFromPlan(plan *mconfig.Plan) (*Runner, error) {
+
+	// Create a new client for the docker sdk
+	dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return nil, err
+	}
+
+	// Create the runner
+	return &Runner{
+		module:  plan.Module,
+		config:  plan.Config,
+		profile: plan.Profile,
+		client:  dc,
+		ctx:     nil,
+		plan:    plan,
+	}, nil
+}

@@ -11,6 +11,9 @@ import (
 
 // Deploy the containers for the magic context
 func (r *Runner) GeneratePlan() string {
+	if r.ctx == nil {
+		log.Fatalln("no context set")
+	}
 
 	// Prepare database containers
 	types, err := r.prepareDatabases()
@@ -38,6 +41,9 @@ func (r *Runner) GeneratePlan() string {
 
 	// Load into plan
 	r.plan = &mconfig.Plan{
+		Module:         r.ctx.Module(),
+		Config:         r.ctx.Config(),
+		Profile:        r.ctx.Profile(),
 		DatabaseTypes:  types,
 		AllocatedPorts: allocatedPorts,
 	}
