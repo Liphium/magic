@@ -13,6 +13,7 @@ type Context struct {
 	magicDir    string       // Current Magic directory
 	environment *Environment // Environment for environment variables (can be nil)
 	databases   []*Database
+	ports       []uint // All ports the user wants to allocate
 	plan        **Plan // For later filling in with actual information
 }
 
@@ -30,6 +31,10 @@ func (c *Context) Profile() string {
 
 func (c *Context) Environment() *Environment {
 	return c.environment
+}
+
+func (c *Context) Ports() []uint {
+	return c.ports
 }
 
 // Set the environment.
