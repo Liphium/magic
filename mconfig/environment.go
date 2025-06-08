@@ -30,6 +30,25 @@ func ValueStatic(value string) EnvironmentValue {
 	}
 }
 
+// Create a new environment value based on other environment values.
+//
+// The index in the values array matches the output of the environment value.
+func ValueWithBase(values []EnvironmentValue, builder func([]string) string) EnvironmentValue {
+	return EnvironmentValue{
+		get: func() string {
+
+			// Evaluate all the environment values
+			evaluated := make([]string, len(values))
+			for i, value := range values {
+				evaluated[i] = value.get()
+			}
+
+			// Build the output
+			return builder(evaluated)
+		},
+	}
+}
+
 // Allocate a new port for the container (and parse it as a environment variable).
 func (c *Context) ValuePort(preferredPort uint) EnvironmentValue {
 
