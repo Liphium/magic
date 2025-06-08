@@ -57,8 +57,8 @@ func startCommand(config string, profile string) error {
 	}
 
 	// Create all the folders and stuff
-	var mod string
-	config, profile, mod, err = CreateStartEnvironment(config, profile, mDir, false)
+	var mod, genDir string
+	config, profile, mod, genDir, err = CreateStartEnvironment(config, profile, mDir, false)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func startCommand(config string, profile string) error {
 
 	go func() {
 		logLeaf.Println("Starting...")
-		err := integration.ExecCmdWithFuncStart(func(s string) {
+		err := integration.BuildThenRun(func(s string) {
 			if strings.HasPrefix(s, mrunner.PlanPrefix) {
 				mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
 				if err != nil {
@@ -109,7 +109,7 @@ func startCommand(config string, profile string) error {
 					logLeaf.Println("successfully killed")
 				}
 			})
-		}, "go", "run", ".", mod, config, profile, mDir)
+		}, genDir, mod, config, profile, mDir)
 		if err != nil {
 			quitLeaf.Append(fmt.Errorf("ERROR: failed to start config: %w", err))
 		} else {
@@ -140,7 +140,7 @@ func startCommand(config string, profile string) error {
 // Create the environment for starting from config and profile arguments
 //
 // Also changes working directory to the folder generated.
-func CreateStartEnvironment(config string, profile string, mDir string, deleteContainers bool) (newConfig string, newProfile string, modName string, err error) {
+func CreateStartEnvironment(config string, profile string, mDir string, deleteContainers bool) (newConfig string, newProfile string, modName string, directory string, err error) {
 	// Make sure config and profile are valid and don't contain weird characters or letters
 	if config == "" {
 		config = "config"
@@ -149,10 +149,10 @@ func CreateStartEnvironment(config string, profile string, mDir string, deleteCo
 		profile = "default"
 	}
 	if !integration.IsPathSanitized(config) {
-		return "", "", "", errors.New("config path contains forbidden chars")
+		return "", "", "", "", errors.New("config path contains forbidden chars")
 	}
 	if !integration.IsPathSanitized(profile) {
-		return "", "", "", errors.New("profile contains forbidden chars")
+		return "", "", "", "", errors.New("profile contains forbidden chars")
 	}
 
 	// Create a new factory for creating the directory
@@ -167,13 +167,13 @@ func CreateStartEnvironment(config string, profile string, mDir string, deleteCo
 		log.Println(s)
 	})
 	if err != nil {
-		return "", "", "", fmt.Errorf("couldn't generate config: %s", err)
+		return "", "", "", "", fmt.Errorf("couldn't generate config: %s", err)
 	}
 	if err = os.Chdir(wd); err != nil {
-		return "", "", "", fmt.Errorf("couldn't change working directory: %s", err)
+		return "", "", "", "", fmt.Errorf("couldn't change working directory: %s", err)
 	}
 
-	return config, profile, mod, err
+	return config, profile, mod, wd, err
 }
 
 func getCommands(logLeaf *tui.StringLeaf, quitLeaf *tui.Leaf[error], exitLeaf *tui.Leaf[func()]) []*cli.Command {

@@ -132,8 +132,8 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 	}
 
 	// Create all the folders and stuff
-	var mod string
-	config, _, mod, err = start_command.CreateStartEnvironment(config, profile, mDir, true)
+	var mod, genDir string
+	config, _, mod, genDir, err = start_command.CreateStartEnvironment(config, profile, mDir, true)
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 	processChan := make(chan *exec.Cmd)
 	finishedChan := make(chan struct{})
 	go func() {
-		if err := integration.ExecCmdWithFuncStart(func(s string) {
+		if err := integration.BuildThenRun(func(s string) {
 
 			// Wait for a plan to be sent
 			if strings.HasPrefix(s, mrunner.PlanPrefix) {
@@ -167,7 +167,7 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 			log.Println(s)
 		}, func(c *exec.Cmd) {
 			processChan <- c
-		}, "go", "run", ".", mod, config, profile, mDir); err != nil {
+		}, genDir, mod, config, profile, mDir); err != nil {
 			log.Fatalln("couldn't run the app:", err)
 		}
 	}()
