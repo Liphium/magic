@@ -199,7 +199,6 @@ func (r *Runner) Clear() {
 		containerId := ""
 		for _, c := range summary {
 			for _, n := range c.Names {
-				fmt.Println("found", n)
 				if strings.Contains(n, name) {
 					containerId = c.ID
 				}
@@ -218,6 +217,43 @@ func (r *Runner) Clear() {
 			Force:         true,
 		}); err != nil {
 			log.Fatalln("Couldn't delete database container:", err)
+		}
+	}
+}
+
+// Stop all containers
+func (r *Runner) StopContainers() {
+	ctx := context.Background()
+	for _, dbType := range r.plan.DatabaseTypes {
+
+		// Try to find the container for the type
+		f := filters.NewArgs()
+		name := dbType.ContainerName(r.module, r.config, r.profile)
+		f.Add("name", name)
+		summary, err := r.client.ContainerList(ctx, container.ListOptions{
+			Filters: f,
+		})
+		if err != nil {
+			log.Fatalln("Couldn't list containers:", err)
+		}
+		containerId := ""
+		for _, c := range summary {
+			for _, n := range c.Names {
+				if strings.Contains(n, name) {
+					containerId = c.ID
+				}
+			}
+		}
+
+		// If there is no container, nothing to stop
+		if containerId == "" {
+			continue
+		}
+
+		// Stop the container
+		log.Println("Stopping container", name+"...")
+		if err := r.client.ContainerStop(ctx, containerId, container.StopOptions{}); err != nil {
+			log.Fatalln("Couldn't stop database container:", err)
 		}
 	}
 }

@@ -91,6 +91,12 @@ func startCommand(config string, profile string) error {
 			}
 
 			exitLeaf.Append(func() {
+				// Create a runner and stop all the containers
+				runner, err := mrunner.NewRunnerFromPlan(mconfig.CurrentPlan)
+				if err == nil {
+					runner.StopContainers()
+				}
+
 				if err := cmd.Process.Kill(); err != nil {
 
 					// test for err process already finished

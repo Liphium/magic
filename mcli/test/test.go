@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Liphium/magic/integration"
+	"github.com/Liphium/magic/mcli/shutdown"
 	start_command "github.com/Liphium/magic/mcli/start"
 	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
@@ -51,6 +52,11 @@ func runTestCommand(path string, config string) error {
 		return err
 	}
 	log.Println("Preparing...")
+
+	// Listen for shutdown
+	go func() {
+		shutdown.Listen()
+	}()
 
 	// Create a new factory for getting the test directory
 	factory := mrunner.NewFactory(mDir)
@@ -169,7 +175,14 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 	// Wait for the signal from the SDK to run tests
 	<-finishedChan
 	process := <-processChan
-	defer process.Process.Kill()
+	defer func() {
+		recover()
+		process.Process.Kill()
+
+		// Create a new runner from the current plan
+		runner, _ := mrunner.NewRunnerFromPlan(mconfig.CurrentPlan)
+		runner.StopContainers()
+	}()
 
 	// Go back to the old working directory
 	if err := os.Chdir(oldWd); err != nil {
