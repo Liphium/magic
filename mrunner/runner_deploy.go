@@ -242,7 +242,7 @@ func (r *Runner) ClearDatabases() {
 			}
 
 			// Drop the database
-			_, err := conn.Exec(fmt.Sprintf("DROP DATABASE %s", db.Name))
+			_, err := conn.Exec(fmt.Sprintf("DROP DATABASE %s with (force)", db.Name))
 			if err != nil {
 				log.Fatalln("couldn't drop postgres database:", err)
 			}
