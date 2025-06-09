@@ -64,7 +64,8 @@ func (r *Runner) Deploy(deleteContainers bool) {
 		// Delete the container if it exists
 		if containerId != "" {
 			if err := r.client.ContainerRemove(ctx, containerId, container.RemoveOptions{
-				Force: true,
+				RemoveVolumes: false,
+				Force:         true,
 			}); err != nil {
 				log.Fatalln("Couldn't delete database container:", err)
 			}
@@ -136,6 +137,18 @@ func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.Pla
 		log.Fatalln("couldn't create port for postgres container:", err)
 	}
 	exposedPorts := nat.PortSet{port: struct{}{}}
+
+	// If no existing mounts, create a new volume for PostgreSQL data
+	if mounts == nil {
+		volumeName := fmt.Sprintf("%s-postgres-data", name)
+		mounts = []mount.Mount{
+			{
+				Type:   mount.TypeVolume,
+				Source: volumeName,
+				Target: "/var/lib/postgresql/data",
+			},
+		}
+	}
 
 	// Create the network config for the container
 	networkConf := &container.HostConfig{
