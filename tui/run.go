@@ -86,13 +86,13 @@ func RunCommand(cmd *cli.Command, logLeaf *StringLeaf, quitLeaf *Leaf[error]) {
 		logLeaf.Printlnf("couldn't stringify plan: %s", err)
 		return
 	}
-	if err := integration.ExecCmdWithFuncStart(func(s string) {
+	if err := integration.BuildThenRun(func(s string) {
 		logLeaf.Println(s)
 	}, func(cmd *exec.Cmd) {
 		if err = os.Chdir(wOld); err != nil {
 			quitLeaf.Append(fmt.Errorf("ERROR: couldn't change working directory: %s", err))
 		}
-	}, "go", "run", ".", printable); err != nil {
+	}, scriptDir, printable); err != nil {
 		logLeaf.Printlnf("couldn't run script: %s", err)
 		return
 	}
