@@ -14,6 +14,7 @@ import (
 	"github.com/Liphium/magic/mrunner"
 	"github.com/Liphium/magic/msdk"
 	"github.com/Liphium/magic/tui"
+	"github.com/tiemingo/greentea"
 	"github.com/urfave/cli/v3"
 )
 
@@ -64,10 +65,12 @@ func startCommand(config string, profile string) error {
 	}
 
 	// Configure tui
-	logLeaf := tui.NewStringLeaf()
-	quitLeaf := tui.NewLeaf[error]()
-	commandLeaf := tui.NewStringLeaf()
-	exitLeaf := tui.NewLeaf[func()]()
+	logLeaf := greentea.NewStringLeaf()
+	quitLeaf := greentea.NewLeaf[error]()
+	exitLeaf := greentea.NewLeaf[func()]()
+	commandError := &greentea.CommandError{
+		CommandError: "",
+	}
 
 	go func() {
 		logLeaf.Println("Starting...")
@@ -122,17 +125,22 @@ func startCommand(config string, profile string) error {
 	}()
 
 	// Config for tui
-	greenTeaConfig := &tui.GreenTeaConfig{
+	greenTeaConfig := &greentea.GreenTeaConfig{
 		RefreshDelay: 100,
-		Commands:     getCommands(logLeaf, quitLeaf, exitLeaf),
+		Commands:     getCommands(logLeaf, quitLeaf, exitLeaf, commandError),
 		LogLeaf:      logLeaf,
 		QuitLeaf:     quitLeaf,
-		CommandLeaf:  commandLeaf,
 		ExitLeaf:     exitLeaf,
+		History: &greentea.History{
+			Persistent:    true,
+			SavePath:      mDir,
+			HistoryLength: 25,
+		},
+		CommandError: commandError,
 	}
 
 	// Start tui
-	tui.StartTui(greenTeaConfig)
+	greentea.RunTui(greenTeaConfig)
 
 	return nil
 }
@@ -176,7 +184,7 @@ func CreateStartEnvironment(config string, profile string, mDir string, deleteCo
 	return config, profile, mod, wd, err
 }
 
-func getCommands(logLeaf *tui.StringLeaf, quitLeaf *tui.Leaf[error], exitLeaf *tui.Leaf[func()]) []*cli.Command {
+func getCommands(logLeaf *greentea.StringLeaf, quitLeaf *greentea.Leaf[error], exitLeaf *greentea.Leaf[func()], commandError *greentea.CommandError) []*cli.Command {
 
 	// Implement commands
 	var testPath string
@@ -204,7 +212,7 @@ func getCommands(logLeaf *tui.StringLeaf, quitLeaf *tui.Leaf[error], exitLeaf *t
 				if testPath != "" {
 					go tui.TestCommand(testPath, logLeaf)
 				} else {
-					tui.CommandError = "usage: test [path]"
+					commandError.CommandError = "usage: test [path]"
 				}
 				return nil
 			},

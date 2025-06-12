@@ -8,6 +8,7 @@ import (
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
+	"github.com/tiemingo/greentea"
 	"github.com/urfave/cli/v3"
 )
 
@@ -38,7 +39,7 @@ func main() {
 `
 
 // Command: run [path] [arguments...]
-func RunCommand(cmd *cli.Command, logLeaf *StringLeaf, quitLeaf *Leaf[error]) {
+func RunCommand(cmd *cli.Command, logLeaf *greentea.StringLeaf, quitLeaf *greentea.Leaf[error]) {
 
 	// Make sure there is a script path
 	if cmd.Args().Len() < 1 {
