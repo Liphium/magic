@@ -4,10 +4,11 @@ import (
 	"path/filepath"
 
 	"github.com/Liphium/magic/integration"
+	"github.com/tiemingo/greentea"
 )
 
 // Command: test [path]
-func TestCommand(fp string, console *StringLeaf) error {
+func TestCommand(fp string, console *greentea.StringLeaf) error {
 
 	// set tests as dir
 	mDir, err := integration.GetMagicDirectory(5) // beacause cwd is inside ./magic/cache/config_default
