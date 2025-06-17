@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/Liphium/magic/integration"
@@ -133,7 +134,7 @@ func startCommand(config string, profile string) error {
 		ExitLeaf:     exitLeaf,
 		History: &greentea.History{
 			Persistent:    true,
-			SavePath:      mDir,
+			SavePath:      filepath.Join(mDir, "cache"),
 			HistoryLength: 25,
 		},
 		CommandError: commandError,
