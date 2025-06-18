@@ -29,6 +29,10 @@ func (c *Context) Profile() string {
 	return c.profile
 }
 
+func (c *Context) MagicDirectory() string {
+	return c.magicDir
+}
+
 func (c *Context) Environment() *Environment {
 	return c.environment
 }
