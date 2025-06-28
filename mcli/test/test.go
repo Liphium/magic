@@ -62,15 +62,21 @@ func runTestCommand(path string, config string) error {
 	factory := mrunner.NewFactory(mDir)
 
 	// Find all relevant paths (or don't if not desired)
+	rel := true
 	paths := []string{path}
 	if path == "" {
+		rel = false
 		paths, err = discoverTestDirectories(factory.TestDirectory("."))
 	}
 
 	// Convert all paths to relative paths
 	relativePaths := make([]string, len(paths))
 	for i, path := range paths {
-		relativePath, err := filepath.Rel(factory.TestDirectory("."), filepath.Join(factory.TestDirectory("."), path))
+		startPath := path
+		if rel {
+			startPath = filepath.Join(factory.TestDirectory("."), path)
+		}
+		relativePath, err := filepath.Rel(factory.TestDirectory("."), startPath)
 		if err != nil {
 			return fmt.Errorf("Couldn't convert relative (%s) to absolute path: %s", path, err)
 		}
