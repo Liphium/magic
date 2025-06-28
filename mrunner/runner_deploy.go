@@ -276,30 +276,32 @@ func (r *Runner) ClearDatabases() {
 
 	// Delete all the databases of every type
 	for _, dbType := range r.plan.DatabaseTypes {
-		connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=postgres sslmode=disable", dbType.Port)
-
-		// Connect to the database
-		conn, err := sql.Open("postgres", connStr)
-		if err != nil {
-			log.Fatalln("couldn't connect to postgres:", err)
-		}
-		defer conn.Close()
 
 		for _, db := range dbType.Databases {
-			if mconfig.VerboseLogging {
-				log.Println("Re-creating database", db.Name+"...")
-			}
+			connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=%s sslmode=disable", dbType.Port, db.Name)
 
-			// Drop the database
-			_, err := conn.Exec(fmt.Sprintf("DROP DATABASE %s with (force)", db.Name))
+			// Connect to the database
+			conn, err := sql.Open("postgres", connStr)
 			if err != nil {
-				log.Fatalln("couldn't drop postgres database:", err)
+				log.Fatalln("couldn't connect to postgres:", err)
 			}
+			defer conn.Close()
 
-			// Create it again
-			_, err = conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db.Name))
+			// Clear all of the tables
+			res, err := conn.Query("SELECT table_name FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema')")
 			if err != nil {
-				log.Fatalln("couldn't create postgres database:", err)
+				log.Fatalln("couldn't get database tables:", err)
+			}
+			tryAgain := []string{}
+			for res.Next() {
+				var name string
+				if err := res.Scan(&name); err != nil {
+					log.Fatalln("couldn't get database table name:", err)
+				}
+				if _, err := conn.Exec(fmt.Sprintf("truncate %s CASCADE", name)); err != nil {
+					tryAgain = append(tryAgain, name)
+					log.Fatalln("couldn't delete from table", name+":", err)
+				}
 			}
 		}
 	}

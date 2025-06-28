@@ -70,9 +70,9 @@ func runTestCommand(path string, config string) error {
 	// Convert all paths to relative paths
 	relativePaths := make([]string, len(paths))
 	for i, path := range paths {
-		relativePath, err := filepath.Rel(factory.TestDirectory("."), path)
+		relativePath, err := filepath.Rel(factory.TestDirectory("."), filepath.Join(factory.TestDirectory("."), path))
 		if err != nil {
-			return fmt.Errorf("Couldn't convert absolute (%s) to relative path: %s", path, err)
+			return fmt.Errorf("Couldn't convert relative (%s) to absolute path: %s", path, err)
 		}
 		relativePaths[i] = relativePath
 	}

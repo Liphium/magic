@@ -214,6 +214,7 @@ func Test(t *testing.T) {
 	}
 
 	// Run all of the tests
+	r.ClearDatabases()
 	%s
 }
 `
