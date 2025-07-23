@@ -87,13 +87,20 @@ func RunCommand(cmd *cli.Command, logLeaf *greentea.StringLeaf, quitLeaf *greent
 		logLeaf.Printlnf("couldn't stringify plan: %s", err)
 		return
 	}
-	if err := integration.BuildThenRun(func(s string) {
-		logLeaf.Println(s)
-	}, func(cmd *exec.Cmd) {
-		if err = os.Chdir(wOld); err != nil {
-			quitLeaf.Append(fmt.Errorf("ERROR: couldn't change working directory: %s", err))
-		}
-	}, scriptDir, printable); err != nil {
+	if err := integration.BuildThenRun(integration.RunConfig{
+		Print: func(s string) {
+			logLeaf.Println(s)
+		},
+
+		Start: func(cmd *exec.Cmd) {
+			if err = os.Chdir(wOld); err != nil {
+				quitLeaf.Append(fmt.Errorf("ERROR: couldn't change working directory: %s", err))
+			}
+		},
+
+		Directory: scriptDir,
+		Arguments: []string{printable},
+	}); err != nil {
 		logLeaf.Printlnf("couldn't run script: %s", err)
 		return
 	}

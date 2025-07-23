@@ -7,8 +7,15 @@ import (
 	"path/filepath"
 )
 
+type RunConfig struct {
+	Print     func(string)
+	Start     func(*exec.Cmd)
+	Directory string
+	Arguments []string
+}
+
 // Build and then run a go program.
-func BuildThenRun(funcPrint func(string), funcStart func(*exec.Cmd), directory string, args ...string) error {
+func BuildThenRun(config RunConfig) error {
 
 	// Get the old working directory
 	workDir, err := os.Getwd()
@@ -17,12 +24,12 @@ func BuildThenRun(funcPrint func(string), funcStart func(*exec.Cmd), directory s
 	}
 
 	// Change directory to the file
-	if err := os.Chdir(directory); err != nil {
+	if err := os.Chdir(config.Directory); err != nil {
 		return err
 	}
 
 	// Build the program
-	if err := ExecCmdWithFuncStart(funcPrint, func(c *exec.Cmd) {}, "go", "build", "-o", "program.exe"); err != nil {
+	if err := ExecCmdWithFuncStart(config.Print, func(c *exec.Cmd) {}, "go", "build", "-o", "program.exe"); err != nil {
 		return err
 	}
 
@@ -32,7 +39,7 @@ func BuildThenRun(funcPrint func(string), funcStart func(*exec.Cmd), directory s
 	}
 
 	// Execute and return the process
-	if err := ExecCmdWithFuncStart(funcPrint, funcStart, filepath.Join(directory, "program.exe"), args...); err != nil {
+	if err := ExecCmdWithFuncStart(config.Print, config.Start, filepath.Join(config.Directory, "program.exe"), config.Arguments...); err != nil {
 		return err
 	}
 

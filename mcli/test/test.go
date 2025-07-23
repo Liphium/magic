@@ -148,32 +148,39 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 	processChan := make(chan *exec.Cmd)
 	finishedChan := make(chan struct{})
 	go func() {
-		if err := integration.BuildThenRun(func(s string) {
+		if err := integration.BuildThenRun(integration.RunConfig{
+			Print: func(s string) {
 
-			// Wait for a plan to be sent
-			if strings.HasPrefix(s, mrunner.PlanPrefix) {
-				mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
-				if err != nil {
-					log.Fatalln("Couldn't parse plan:", err)
+				// Wait for a plan to be sent
+				if strings.HasPrefix(s, mrunner.PlanPrefix) {
+					mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
+					if err != nil {
+						log.Fatalln("Couldn't parse plan:", err)
+					}
+					return
 				}
-				return
-			}
 
-			// Wait for the start signal from the SDK
-			if strings.HasPrefix(s, msdk.StartSignal) {
-				finishedChan <- struct{}{}
-				return
-			}
+				// Wait for the start signal from the SDK
+				if strings.HasPrefix(s, msdk.StartSignal) {
+					finishedChan <- struct{}{}
+					return
+				}
 
-			// Only print logs when verbose logging
-			if !strings.HasPrefix(s, "ERROR") && !mconfig.VerboseLogging {
-				return
-			}
+				// Only print logs when verbose logging
+				if !strings.HasPrefix(s, "ERROR") && !mconfig.VerboseLogging {
+					return
+				}
 
-			log.Println(s)
-		}, func(c *exec.Cmd) {
-			processChan <- c
-		}, genDir, mod, config, profile, mDir); err != nil {
+				log.Println(s)
+			},
+
+			Start: func(c *exec.Cmd) {
+				processChan <- c
+			},
+
+			Directory: genDir,
+			Arguments: []string{mod, config, profile, mDir},
+		}); err != nil {
 			log.Fatalln("couldn't run the app:", err)
 		}
 	}()

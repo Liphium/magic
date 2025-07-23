@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mconfig"
@@ -22,11 +23,12 @@ import (
 func BuildCommand() *cli.Command {
 	var startConfig = ""
 	var startProfile = ""
+	var startWatch = false
 	return &cli.Command{
 		Name:        "start",
 		Description: "Magically start your project.",
 		Action: func(ctx context.Context, c *cli.Command) error {
-			return startCommand(startConfig, startProfile)
+			return startCommand(startConfig, startProfile, startWatch)
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -43,13 +45,20 @@ func BuildCommand() *cli.Command {
 				Destination: &startConfig,
 				Usage:       "The path to the config file that should be used.",
 			},
+			&cli.BoolFlag{
+				Name:        "watch",
+				Aliases:     []string{"w"},
+				Value:       false,
+				Destination: &startWatch,
+				Usage:       "Watch for changes and restart the project automatically.",
+			},
 		},
 	}
 }
 
 // Command: magic start
-func startCommand(config string, profile string) error {
-	wbOld, err := os.Getwd()
+func startCommand(config string, profile string, watch bool) error {
+	wdOld, err := os.Getwd()
 	if err != nil {
 		return err
 	}
@@ -74,55 +83,103 @@ func startCommand(config string, profile string) error {
 	}
 
 	go func() {
-		logLeaf.Println("Starting...")
-		err := integration.BuildThenRun(func(s string) {
-			if strings.HasPrefix(s, mrunner.PlanPrefix) {
-				mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
-				if err != nil {
-					logLeaf.Println(strings.TrimLeft(s, mrunner.PlanPrefix))
-					quitLeaf.Append(fmt.Errorf("ERROR: couldn't parse plan: %w", err))
-					return
-				}
-				return
-			}
-			if strings.HasPrefix(s, msdk.StartSignal) {
-				return
-			}
-			logLeaf.Println(strings.TrimRight(s, "\n"))
-		}, func(cmd *exec.Cmd) {
-			if err = os.Chdir(wbOld); err != nil {
-				quitLeaf.Append(fmt.Errorf("ERROR: couldn't change working directory: %w", err))
-			}
+		processChan := make(chan *exec.Cmd)
 
-			exitLeaf.Append(func() {
+		// Append a closing function here to make sure the process is stopped and all the containers are stopped
+		exitLeaf.Append(func() {
+
+			if mconfig.CurrentPlan != nil {
 				// Create a runner and stop all the containers
 				runner, err := mrunner.NewRunnerFromPlan(mconfig.CurrentPlan)
 				if err == nil {
 					runner.StopContainers()
 				}
+			}
 
-				if err := cmd.Process.Kill(); err != nil {
+			// Stop the process in case there
+			process, ok := <-processChan
+			if !ok {
+				return // No process has been started yet, nothing to kill
+			}
+			if err := process.Process.Kill(); err != nil {
 
-					// test for err process already finished
-					if os.ErrProcessDone != err {
-						logLeaf.Println("shutdown err:", err)
-					} else {
-						logLeaf.Println("process already finished")
+				// test for err process already finished
+				if os.ErrProcessDone != err {
+					logLeaf.Println("shutdown err:", err)
+				} else {
+					logLeaf.Println("process already finished")
+				}
+			} else {
+				logLeaf.Println("successfully killed")
+			}
+		})
+
+		// Create a start function to re-use it for watch mode
+		start := func() {
+			err := startBuildAndRun(genDir, wdOld, logLeaf, quitLeaf, processChan, mod, config, profile, mDir)
+			if err != nil {
+
+				// If we are in watch mode, only print the error to the command line
+				if watch {
+					if err.Error() != "exit status 1" {
+						logLeaf.Println("ERROR: failed to start config:", err)
 					}
 				} else {
-					logLeaf.Println("successfully killed")
+					quitLeaf.Append(fmt.Errorf("ERROR: failed to start config: %w", err))
 				}
-			})
-		}, genDir, mod, config, profile, mDir)
-		if err != nil {
-			quitLeaf.Append(fmt.Errorf("ERROR: failed to start config: %w", err))
-		} else {
+			} else {
+				// Don't end the process when we're watching for changes (it needs to be executed again)
+				if watch || os.Getenv("MAGIC_NO_END") == "true" {
+					return
+				}
+				quitLeaf.Append(fmt.Errorf("application finished"))
+			}
+		}
 
-			if os.Getenv("MAGIC_NO_END") == "true" {
+		if watch {
+			logLeaf.Println("Preparing watching...")
+
+			modDir, err := mrunner.NewFactory(mDir).ModuleDirectory()
+			if err != nil {
+				quitLeaf.Append(fmt.Errorf("couldn't get module directory: %w", err))
 				return
 			}
-			quitLeaf.Append(fmt.Errorf("Application finished."))
+
+			// Create debounced listener function
+			var debounceTimer *time.Timer
+			debouncedListener := func() {
+				// Cancel previous timer if it exists
+				if debounceTimer != nil {
+					debounceTimer.Stop()
+				}
+
+				// Create new timer for 500ms
+				debounceTimer = time.AfterFunc(500*time.Millisecond, func() {
+					logLeaf.Println("Changes detected, rebuilding...")
+
+					// Get the previous process and kill it
+					process, ok := <-processChan
+					if !ok {
+						quitLeaf.Append(fmt.Errorf("couldn't get previous process"))
+						return
+					}
+					if err := process.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+						quitLeaf.Append(fmt.Errorf("couldn't kill previous process: %w", err))
+						return
+					}
+
+					start()
+				})
+			}
+
+			// Start watching
+			if err := integration.WatchDirectory(modDir, debouncedListener, mDir); err != nil {
+				quitLeaf.Append(fmt.Errorf("couldn't watch: %w", err))
+			}
 		}
+
+		logLeaf.Println("Starting...")
+		start()
 	}()
 
 	// Config for tui
@@ -144,6 +201,51 @@ func startCommand(config string, profile string) error {
 	greentea.RunTui(greenTeaConfig)
 
 	return nil
+}
+
+// Start the build and run the program.
+func startBuildAndRun(directory string, wdOld string, logLeaf *greentea.StringLeaf, quitLeaf *greentea.Leaf[error], processChan chan *exec.Cmd, arguments ...string) error {
+	return integration.BuildThenRun(integration.RunConfig{
+
+		// Function for printing the stuff returned by the process to the current tui
+		Print: func(s string) {
+
+			// If it's a plan, make sure to set the current plan from it
+			if strings.HasPrefix(s, mrunner.PlanPrefix) {
+				var err error
+				mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
+				if err != nil {
+					logLeaf.Println(strings.TrimLeft(s, mrunner.PlanPrefix))
+					quitLeaf.Append(fmt.Errorf("ERROR: couldn't parse plan: %w", err))
+					return
+				}
+				return
+			}
+
+			// If it's the start signal, don't print it
+			if strings.HasPrefix(s, msdk.StartSignal) {
+				return
+			}
+
+			// Otherwise print to output
+			logLeaf.Println(strings.TrimRight(s, "\n"))
+		},
+
+		// Make sure to properly kill the process when the tui is closed
+		Start: func(cmd *exec.Cmd) {
+			if err := os.Chdir(wdOld); err != nil {
+				quitLeaf.Append(fmt.Errorf("ERROR: couldn't change working directory: %w", err))
+			}
+
+			// In case we want to give the process to the next person, do that
+			if processChan != nil {
+				processChan <- cmd
+			}
+		},
+
+		Directory: directory,
+		Arguments: arguments,
+	})
 }
 
 // Create the environment for starting from config and profile arguments
@@ -188,7 +290,6 @@ func CreateStartEnvironment(config string, profile string, mDir string, deleteCo
 func getCommands(logLeaf *greentea.StringLeaf, quitLeaf *greentea.Leaf[error], exitLeaf *greentea.Leaf[func()], commandError *greentea.CommandError) []*cli.Command {
 
 	// Implement commands
-	var testPath string
 	commands := []*cli.Command{
 		{
 			Name:    "run",
@@ -196,25 +297,6 @@ func getCommands(logLeaf *greentea.StringLeaf, quitLeaf *greentea.Leaf[error], e
 			Aliases: []string{"r"},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				go tui.RunCommand(cmd, logLeaf, quitLeaf)
-				return nil
-			},
-		},
-		{
-			Name:    "test",
-			Usage:   "",
-			Aliases: []string{"t"},
-			Arguments: []cli.Argument{
-				&cli.StringArg{
-					Name:        "path",
-					Destination: &testPath,
-				},
-			},
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				if testPath != "" {
-					go tui.TestCommand(testPath, logLeaf)
-				} else {
-					commandError.CommandError = "usage: test [path]"
-				}
 				return nil
 			},
 		},
