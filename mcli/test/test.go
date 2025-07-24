@@ -2,6 +2,7 @@ package test_command
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -95,6 +96,62 @@ func runTestCommand(path string, config string, watch bool) error {
 		relativePaths[i] = relativePath
 	}
 
+	jobChan := make(chan TestingJob)
+
+	executed := false
+	shutdownMutex := &sync.Mutex{}
+	shutdownFunc := func(panic bool) {
+		shutdownMutex.Lock()
+		defer shutdownMutex.Unlock()
+		if executed {
+			return
+		}
+		executed = true
+
+		// Clean up everything created
+		select {
+		case job := <-jobChan:
+			job.Stop()
+		default:
+		}
+		runner, _ := mrunner.NewRunnerFromPlan(mconfig.CurrentPlan)
+		runner.StopContainers()
+		if panic {
+			log.Fatalln("Stopped by user intervention.")
+		}
+	}
+	shutdown.Add(func() {
+		shutdownFunc(true)
+	})
+
+	// Recover from panics to prevent instant shutdown (make sure shutdown hook still runs)
+	defer func() {
+		recover()
+		shutdownFunc(false)
+	}()
+
+	if watch {
+		modDir, err := mrunner.NewFactory(mDir).ModuleDirectory()
+		if err != nil {
+			quitLeaf.Append(fmt.Errorf("couldn't get module directory: %w", err))
+			return
+		}
+
+		listener := integration.HandleWatching(integration.WatchContext[*TestingJob, TestContext]{
+			Print: func(s string) {
+				log.Println(s)
+			},
+			Error: func(err error) {
+				log.Println("ERROR: ", err)
+			},
+
+			Stop: func(tj TestingJob) error {
+				return tj.Stop()
+			},
+			RetrievalChannel: jobChan,
+		})
+	}
+
 	// Start a test runner that goes through all the paths
 	if err := startTestRunner(mDir, relativePaths, config, "test"); err != nil {
 		return err
@@ -141,8 +198,37 @@ func discoverTestDirectories(startDir string) ([]string, error) {
 	return paths, nil
 }
 
+type TestingJobBox = *TestingJob
+
+type TestingJob struct {
+	ApplicationProcess    *exec.Cmd
+	CurrentTestingProcess *exec.Cmd
+}
+
+func (job TestingJob) Stop() error {
+	if err := job.ApplicationProcess.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+		return err
+	}
+	if err := job.CurrentTestingProcess.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+		return err
+	}
+	return nil
+}
+
+type TestContext struct {
+	MagicDirectory string
+	Config         string
+	Profile        string
+	StartApp       bool // Whether or not to start the base application (that's being tested)
+	PathsToTest    []string
+}
+
 // Helper function for starting a new test runner. Can't be run in parallel.
-func startTestRunner(mDir string, paths []string, config string, profile string) error {
+func startTestRunner(context TestContext, lastJob *TestingJob, jobChan chan TestingJob) error {
+	if lastJob == nil {
+		lastJob = &TestingJob{}
+	}
+
 	// Get the current working directory
 	oldWd, err := os.Getwd()
 	if err != nil {
@@ -151,79 +237,53 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 
 	// Create all the folders and stuff
 	var mod, genDir string
-	config, _, mod, genDir, err = start_command.CreateStartEnvironment(config, profile, mDir, true)
+	context.Config, _, mod, genDir, err = start_command.CreateStartEnvironment(context.Config, context.Profile, context.MagicDirectory, true)
 	if err != nil {
 		return err
 	}
 
-	// Start the app
-	processChan := make(chan *exec.Cmd)
-	finishedChan := make(chan struct{})
-	go func() {
-		if err := integration.BuildThenRun(integration.RunConfig{
-			Print: func(s string) {
+	// Start the app (if desired)
+	if context.StartApp {
+		processChan := make(chan *exec.Cmd)
+		finishedChan := make(chan struct{})
+		go func() {
+			if err := integration.BuildThenRun(integration.RunConfig{
+				Print: func(s string) {
 
-				// Wait for a plan to be sent
-				if strings.HasPrefix(s, mrunner.PlanPrefix) {
-					mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
-					if err != nil {
-						log.Fatalln("Couldn't parse plan:", err)
+					// Wait for a plan to be sent
+					if strings.HasPrefix(s, mrunner.PlanPrefix) {
+						mconfig.CurrentPlan, err = mconfig.FromPrintable(strings.TrimLeft(s, mrunner.PlanPrefix))
+						if err != nil {
+							log.Fatalln("Couldn't parse plan:", err)
+						}
+						return
 					}
-					return
-				}
 
-				// Wait for the start signal from the SDK
-				if strings.HasPrefix(s, msdk.StartSignal) {
-					finishedChan <- struct{}{}
-					return
-				}
+					// Wait for the start signal from the SDK
+					if strings.HasPrefix(s, msdk.StartSignal) {
+						finishedChan <- struct{}{}
+						return
+					}
 
-				log.Printf("[application] %s", s)
-			},
+					log.Printf("[application] %s", s)
+				},
 
-			Start: func(c *exec.Cmd) {
-				processChan <- c
-			},
+				Start: func(c *exec.Cmd) {
+					processChan <- c
+				},
 
-			Directory: genDir,
-			Arguments: []string{mod, config, profile, mDir},
-		}); err != nil {
-			log.Println("couldn't run the app:", err)
-		}
-	}()
+				Directory: genDir,
+				Arguments: []string{mod, context.Config, context.Profile, context.MagicDirectory},
+			}); err != nil && !strings.Contains(err.Error(), "exit status") {
+				log.Println("couldn't run the app:", err)
+			}
+		}()
 
-	// Add a shutdown hook to kill everything
-	process := <-processChan
-	executed := false
-	shutdownMutex := &sync.Mutex{}
-	shutdownFunc := func(panic bool) {
-		shutdownMutex.Lock()
-		defer shutdownMutex.Unlock()
-		if executed {
-			return
-		}
-		executed = true
+		lastJob.ApplicationProcess = <-processChan
 
-		// Clean up everything created
-		process.Process.Kill()
-		runner, _ := mrunner.NewRunnerFromPlan(mconfig.CurrentPlan)
-		runner.StopContainers()
-		if panic {
-			log.Fatalln("Stopped by user intervention.")
-		}
+		// Wait for the signal from the SDK to run tests
+		<-finishedChan
 	}
-	shutdown.Add(func() {
-		shutdownFunc(true)
-	})
-
-	// Recover from panics to prevent instant shutdown (make sure shutdown hook still runs)
-	defer func() {
-		recover()
-		shutdownFunc(false)
-	}()
-
-	// Wait for the signal from the SDK to run tests
-	<-finishedChan
 
 	// Go back to the old working directory
 	if err := os.Chdir(oldWd); err != nil {
@@ -231,10 +291,10 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 	}
 
 	// Create a factory for the test creation
-	factory := mrunner.NewFactory(mDir)
+	factory := mrunner.NewFactory(context.MagicDirectory)
 
 	// Run the tests for each path
-	for _, path := range paths {
+	for _, path := range context.PathsToTest {
 		loggablePath := path
 		if loggablePath == "." || loggablePath == "" {
 			loggablePath = "default directory"
@@ -269,8 +329,10 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 		}
 
 		// Run go test with the arguments
-		if err := integration.ExecCmdWithFunc(func(s string) {
-			log.Println(s)
+		if err := integration.ExecCmdWithFuncStart(func(s string) {
+			log.Printf("[%s] %s", loggablePath, s)
+		}, func(c *exec.Cmd) {
+
 		}, "go", "test", "-args", "plan:"+printable); err != nil {
 			return fmt.Errorf("test command failed: %s", err)
 		}

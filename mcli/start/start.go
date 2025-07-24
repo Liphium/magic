@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mconfig"
@@ -121,7 +120,7 @@ func startCommand(config string, profile string, watch bool) error {
 
 				// If we are in watch mode, only print the error to the command line
 				if watch {
-					if err.Error() != "exit status 1" {
+					if !strings.Contains(err.Error(), "exit status") {
 						logLeaf.Println("ERROR: failed to start config:", err)
 					}
 				} else {
@@ -145,35 +144,26 @@ func startCommand(config string, profile string, watch bool) error {
 				return
 			}
 
-			// Create debounced listener function
-			var debounceTimer *time.Timer
-			debouncedListener := func() {
-				// Cancel previous timer if it exists
-				if debounceTimer != nil {
-					debounceTimer.Stop()
-				}
-
-				// Create new timer for 500ms
-				debounceTimer = time.AfterFunc(500*time.Millisecond, func() {
-					logLeaf.Println("Changes detected, rebuilding...")
-
-					// Get the previous process and kill it
-					process, ok := <-processChan
-					if !ok {
-						quitLeaf.Append(fmt.Errorf("couldn't get previous process"))
-						return
-					}
-					if err := process.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
-						quitLeaf.Append(fmt.Errorf("couldn't kill previous process: %w", err))
-						return
-					}
-
+			// Create a listener for watching
+			listener := integration.HandleWatching(integration.WatchContext[*exec.Cmd, struct{}]{
+				Print: func(s string) {
+					logLeaf.Println(s)
+				},
+				Error: quitLeaf.Append,
+				Start: func(a struct{}, job **exec.Cmd, c chan *exec.Cmd) error {
 					start()
-				})
-			}
+					return nil
+				},
+				Stop: func(c *exec.Cmd) error {
+					return c.Process.Kill()
+				},
+				RetrievalChannel: processChan,
+			}, struct{}{})
 
 			// Start watching
-			if err := integration.WatchDirectory(modDir, debouncedListener, mDir); err != nil {
+			if err := integration.WatchDirectory(modDir, func() {
+				listener(struct{}{}, "Changes detected, rebuilding...")
+			}, mDir); err != nil {
 				quitLeaf.Append(fmt.Errorf("couldn't watch: %w", err))
 			}
 		}
