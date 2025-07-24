@@ -83,8 +83,8 @@ func Hooks() map[string]func(os.Signal) {
 
 // Listen waits for provided OS signals.
 // It will wait for any signal if no signals provided.
-func Listen(signals ...os.Signal) {
-	DefaultShutdown.Listen(signals...)
+func Listen() {
+	DefaultShutdown.Listen()
 }
 
 // Remove cancels hook by identificator (key).
@@ -142,9 +142,9 @@ func (s *Shutdown) Hooks() map[string]func(os.Signal) {
 
 // Listen waits for provided OS signals.
 // It will wait for any signal if no signals provided.
-func (s *Shutdown) Listen(signals ...os.Signal) {
+func (s *Shutdown) Listen() {
 	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, signals...)
+	signal.Notify(ch)
 	sig := <-ch
 	var wg sync.WaitGroup
 	for _, fn := range s.Hooks() {

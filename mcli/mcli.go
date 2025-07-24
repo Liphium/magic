@@ -24,6 +24,6 @@ func RunCli() {
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		log.Fatalln("ERROR:", err)
+		log.Println("ERROR:", err)
 	}
 }

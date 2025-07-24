@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mcli/shutdown"
@@ -21,11 +22,12 @@ import (
 func BuildCommand() *cli.Command {
 	var testPath = ""
 	var startConfig = ""
+	var watchMode = false
 	return &cli.Command{
 		Name:        "test",
 		Description: "Magically test your project.",
 		Action: func(ctx context.Context, c *cli.Command) error {
-			return runTestCommand(testPath, startConfig)
+			return runTestCommand(testPath, startConfig, watchMode)
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -34,6 +36,13 @@ func BuildCommand() *cli.Command {
 				Value:       "",
 				Destination: &startConfig,
 				Usage:       "The path to the config file that should be used.",
+			},
+			&cli.BoolFlag{
+				Name:        "watch",
+				Aliases:     []string{"w"},
+				Value:       false,
+				Destination: &watchMode,
+				Usage:       "Re-execute the test(s) and restart the app when anything changes.",
 			},
 		},
 		Arguments: []cli.Argument{
@@ -46,7 +55,7 @@ func BuildCommand() *cli.Command {
 }
 
 // Command: magic test [path]
-func runTestCommand(path string, config string) error {
+func runTestCommand(path string, config string, watch bool) error {
 	mDir, err := integration.GetMagicDirectory(3)
 	if err != nil {
 		return err
@@ -67,6 +76,9 @@ func runTestCommand(path string, config string) error {
 	if path == "" {
 		rel = false
 		paths, err = discoverTestDirectories(factory.TestDirectory("."))
+		if err != nil {
+			return fmt.Errorf("couldn't read test directory: %s", err)
+		}
 	}
 
 	// Convert all paths to relative paths
@@ -78,7 +90,7 @@ func runTestCommand(path string, config string) error {
 		}
 		relativePath, err := filepath.Rel(factory.TestDirectory("."), startPath)
 		if err != nil {
-			return fmt.Errorf("Couldn't convert relative (%s) to absolute path: %s", path, err)
+			return fmt.Errorf("couldn't convert relative (%s) to absolute path: %s", path, err)
 		}
 		relativePaths[i] = relativePath
 	}
@@ -89,7 +101,7 @@ func runTestCommand(path string, config string) error {
 	}
 
 	fmt.Println(" ")
-	log.Println("Successfully executed test.")
+	log.Println("Successfully executed.")
 	return nil
 }
 
@@ -166,12 +178,7 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 					return
 				}
 
-				// Only print logs when verbose logging
-				if !strings.HasPrefix(s, "ERROR") && !mconfig.VerboseLogging {
-					return
-				}
-
-				log.Println(s)
+				log.Printf("[application] %s", s)
 			},
 
 			Start: func(c *exec.Cmd) {
@@ -181,21 +188,42 @@ func startTestRunner(mDir string, paths []string, config string, profile string)
 			Directory: genDir,
 			Arguments: []string{mod, config, profile, mDir},
 		}); err != nil {
-			log.Fatalln("couldn't run the app:", err)
+			log.Println("couldn't run the app:", err)
 		}
+	}()
+
+	// Add a shutdown hook to kill everything
+	process := <-processChan
+	executed := false
+	shutdownMutex := &sync.Mutex{}
+	shutdownFunc := func(panic bool) {
+		shutdownMutex.Lock()
+		defer shutdownMutex.Unlock()
+		if executed {
+			return
+		}
+		executed = true
+
+		// Clean up everything created
+		process.Process.Kill()
+		runner, _ := mrunner.NewRunnerFromPlan(mconfig.CurrentPlan)
+		runner.StopContainers()
+		if panic {
+			log.Fatalln("Stopped by user intervention.")
+		}
+	}
+	shutdown.Add(func() {
+		shutdownFunc(true)
+	})
+
+	// Recover from panics to prevent instant shutdown (make sure shutdown hook still runs)
+	defer func() {
+		recover()
+		shutdownFunc(false)
 	}()
 
 	// Wait for the signal from the SDK to run tests
 	<-finishedChan
-	process := <-processChan
-	defer func() {
-		recover()
-		process.Process.Kill()
-
-		// Create a new runner from the current plan
-		runner, _ := mrunner.NewRunnerFromPlan(mconfig.CurrentPlan)
-		runner.StopContainers()
-	}()
 
 	// Go back to the old working directory
 	if err := os.Chdir(oldWd); err != nil {
