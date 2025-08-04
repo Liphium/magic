@@ -1,5 +1,7 @@
 # Liphium Magic: Database testing for everyone.
 
+## We are currently planning a major restructuring of Magic to make it more compatible with what's already possible in Go, please do not use for any new projects.
+
 This project contains lots of experimental tools for database testing and more. None of the tools in this repository are fully featured and tested, please use with caution and do not use in mission-critical projects.
 
 The goal of Liphium Magic is to built tools to make testing applications written in Go that rely on a database connection to work easy. Unit testing was always easy and can be a nice way to test your projects if you have just one function to test. Magic makes testing your complex logic and backend as easy as unit testing by leveraging Docker and code generation.
