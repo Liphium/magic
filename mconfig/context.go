@@ -2,35 +2,33 @@ package mconfig
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
 
 type Context struct {
-	config      string       // Name of the current config
-	profile     string       // Name of the current profile
-	module      string       // Name of the current module
-	magicDir    string       // Current Magic directory
+	appName     string       // Current app name
+	profile     string       // Current profile
+	directory   string       // Current working directory
 	environment *Environment // Environment for environment variables (can be nil)
 	databases   []*Database
 	ports       []uint // All ports the user wants to allocate
 	plan        **Plan // For later filling in with actual information
 }
 
-func (c *Context) Module() string {
-	return c.module
+// The app name you set in your config.
+func (c *Context) AppName() string {
+	return c.appName
 }
 
-func (c *Context) Config() string {
-	return c.config
-}
-
+// The current profile.
+//
+// test = Test profile.
+// default = Default profile.
+// You can set the profile by passing the --m-profile flag to the executable that includes magic.
 func (c *Context) Profile() string {
 	return c.profile
-}
-
-func (c *Context) MagicDirectory() string {
-	return c.magicDir
 }
 
 func (c *Context) Environment() *Environment {
@@ -48,15 +46,6 @@ func (c *Context) WithEnvironment(env *Environment) {
 
 // Note: In case you use a relative path, expect it to start in the Magic directory.
 func (c *Context) LoadSecretsToEnvironment(path string) error {
-	oldWd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("couldn't get working directory: %s", err)
-	}
-
-	// Change to magic directory
-	if err := os.Chdir(c.magicDir); err != nil {
-		return fmt.Errorf("couldn't change to magic directory: %s", err)
-	}
 
 	// Add an environment in case there isn't one
 	if c.environment == nil {
@@ -81,11 +70,6 @@ func (c *Context) LoadSecretsToEnvironment(path string) error {
 		value := strings.Trim(strings.TrimSpace(args[1]), "\"'")
 		(*c.environment)[key] = ValueStatic(value)
 	}
-
-	// Change back into the old working directory
-	if err := os.Chdir(oldWd); err != nil {
-		return fmt.Errorf("couldn't change back to old working directory: %s", err)
-	}
 	return nil
 }
 
@@ -109,13 +93,15 @@ func (c *Context) AddDatabase(database *Database) {
 	c.databases = append(c.databases, database)
 }
 
-func DefaultContext(module string, config string, profile string, magicDir string) *Context {
+func DefaultContext(appName string, profile string) *Context {
+	workDir, err := os.Getwd()
+	if err != nil {
+		log.Fatalln("couldn't get current working directory")
+	}
+
 	plan := &Plan{}
 	return &Context{
-		module:    module,
-		config:    config,
-		profile:   profile,
-		magicDir:  magicDir,
+		directory: workDir,
 		databases: []*Database{},
 		plan:      &plan,
 	}

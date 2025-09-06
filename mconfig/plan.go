@@ -10,9 +10,8 @@ import (
 )
 
 type Plan struct {
-	Module         string                `json:"module"`  // Current module name
-	Config         string                `json:"config"`  // Current config that's being run
-	Profile        string                `json:"profile"` // Current profile that's being run
+	AppName        string                `json:"app_name"`
+	Profile        string                `json:"profile"`
 	Environment    map[string]string     `json:"environment"`
 	DatabaseTypes  []PlannedDatabaseType `json:"database_types"`
 	AllocatedPorts map[uint]uint         `json:"ports"`
@@ -25,9 +24,9 @@ type PlannedDatabaseType struct {
 }
 
 // Name for the database Docker container
-func (p *PlannedDatabaseType) ContainerName(modName string, config string, profile string) string {
-	modName = EverythingToSnakeCase(modName)
-	return fmt.Sprintf("mgc-%s-%s-%s-%d", modName, config, profile, p.Type)
+func (p *PlannedDatabaseType) ContainerName(appName string, profile string) string {
+	appName = EverythingToSnakeCase(appName)
+	return fmt.Sprintf("mgc-%s-%s-%d", appName, profile, p.Type)
 }
 
 type PlannedDatabase struct {

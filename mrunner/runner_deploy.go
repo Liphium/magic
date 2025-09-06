@@ -30,7 +30,7 @@ func (r *Runner) Deploy(deleteContainers bool) {
 	// Deploy the database containers
 	for _, dbType := range r.plan.DatabaseTypes {
 		ctx := context.Background()
-		name := dbType.ContainerName(r.module, r.config, r.profile)
+		name := dbType.ContainerName(r.appName, r.profile)
 		log.Println("Creating database container", name+"...")
 
 		// Check if the container already exists
@@ -201,7 +201,7 @@ func (r *Runner) Clear() {
 
 		// Try to find the container for the type
 		f := filters.NewArgs()
-		name := dbType.ContainerName(r.module, r.config, r.profile)
+		name := dbType.ContainerName(r.appName, r.profile)
 		f.Add("name", name)
 		summary, err := r.client.ContainerList(ctx, container.ListOptions{
 			Filters: f,
@@ -241,7 +241,7 @@ func (r *Runner) StopContainers() {
 
 		// Try to find the container for the type
 		f := filters.NewArgs()
-		name := dbType.ContainerName(r.module, r.config, r.profile)
+		name := dbType.ContainerName(r.appName, r.profile)
 		f.Add("name", name)
 		summary, err := r.client.ContainerList(ctx, container.ListOptions{
 			Filters: f,

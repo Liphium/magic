@@ -41,8 +41,6 @@ func (r *Runner) GeneratePlan() string {
 
 	// Load into plan
 	r.plan = &mconfig.Plan{
-		Module:         r.ctx.Module(),
-		Config:         r.ctx.Config(),
 		Profile:        r.ctx.Profile(),
 		DatabaseTypes:  types,
 		AllocatedPorts: allocatedPorts,
@@ -88,7 +86,7 @@ func (r *Runner) prepareDatabases() ([]mconfig.PlannedDatabaseType, error) {
 		dbType := types[db.Type()]
 		dbType.Databases = append(dbType.Databases, mconfig.PlannedDatabase{
 			ConfigName: db.Name(),
-			Name:       mconfig.DefaultDatabaseName(r.config, r.profile, db.Name()),
+			Name:       mconfig.DefaultDatabaseName(r.profile, db.Name()),
 			Username:   db.DefaultUsername(),
 			Password:   db.DefaultPassword(),
 			Hostname:   "127.0.0.1",

@@ -77,7 +77,7 @@ func (db *Database) DefaultUsername() string {
 
 // Get the default name for the database using the runner
 func (db *Database) DefaultDatabaseName(ctx *Context) string {
-	return DefaultDatabaseName(ctx.config, ctx.profile, db.name)
+	return DefaultDatabaseName(ctx.profile, db.name)
 }
 
 // Get the default password for a database by type.
@@ -101,8 +101,8 @@ func DefaultUsername(dbType DatabaseType) string {
 }
 
 // Get the default database name for a database.
-func DefaultDatabaseName(config string, profile string, databaseName string) string {
-	return databaseName
+func DefaultDatabaseName(profile string, databaseName string) string {
+	return fmt.Sprintf("%s:%s", profile, databaseName)
 }
 
 // Create a new Postgres database.
