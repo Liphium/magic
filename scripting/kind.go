@@ -9,9 +9,9 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-type CollectionField[T any] struct {
+type CollectionField struct {
 	Field huh.Field
-	Get   func() T
+	Set   func(reflect.Value)
 }
 
 var SupportedKinds = append([]reflect.Kind{
@@ -36,8 +36,8 @@ func createCollector[T any]() (func() interface{}, error) {
 	// Create the actual collection function
 	collector := func() interface{} {
 
-		// Create a new struct of the type and generate the huh form for it
-		value := reflect.New(genType).Elem()
+		// Build the fields for huh
+		collectionFields := []CollectionField{}
 		for i := 0; i < genType.NumField(); i++ {
 			field := genType.Field(i)
 
@@ -48,17 +48,23 @@ func createCollector[T any]() (func() interface{}, error) {
 			}
 
 			// Generate the huh field
-			var baseField huh.Field
+			var collectionField CollectionField
 			if slices.Contains(numberKindsSupported, field.Type.Kind()) {
-				baseField = huh.NewText().Title(prompt)
-				// TODO: Create number field
+				baseField := huh.NewText().Title(prompt)
+				collectionField = createNumberField(i, field.Type.Kind(), baseField)
 			}
 
-			fmt.Print(prompt + " ")
-			var input string
-			fmt.Scanln(&input)
-			value.Field(i).SetString(input)
+			collectionFields = append(collectionFields, collectionField)
 		}
+
+		// Run the form
+
+		// Create a new object and return it
+		value := reflect.New(genType).Elem()
+		for _, field := range collectionFields {
+			field.Set(value)
+		}
+
 		return value.Interface()
 	}
 	return collector, nil
