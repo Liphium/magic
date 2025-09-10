@@ -3,15 +3,20 @@ package scripting
 import (
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 	"slices"
 
 	"github.com/charmbracelet/huh"
+	"github.com/go-playground/validator/v10"
 )
 
+var validate *validator.Validate
+
 type CollectionField struct {
+	Index int
 	Field huh.Field
-	Set   func(reflect.Value)
+	Set   func(reflect.Value) error
 }
 
 var SupportedKinds = append([]reflect.Kind{
@@ -19,7 +24,13 @@ var SupportedKinds = append([]reflect.Kind{
 }, numberKindsSupported...)
 
 // Create a function that can take a struct
-func createCollector[T any]() (func() interface{}, error) {
+func CreateCollector[T any]() (func() interface{}, error) {
+
+	// Create the validator in case it's not there yet
+	if validate == nil {
+		validate = createValidator()
+	}
+
 	genType := reflect.TypeFor[T]()
 	if genType.Kind() != reflect.Struct {
 		return nil, errors.New("generic type isn't a struct")
@@ -37,6 +48,7 @@ func createCollector[T any]() (func() interface{}, error) {
 	collector := func() interface{} {
 
 		// Build the fields for huh
+		fields := []huh.Field{}
 		collectionFields := []CollectionField{}
 		for i := 0; i < genType.NumField(); i++ {
 			field := genType.Field(i)
@@ -49,23 +61,48 @@ func createCollector[T any]() (func() interface{}, error) {
 
 			// Generate the huh field
 			var collectionField CollectionField
+			baseField := huh.NewInput().Title(prompt)
 			if slices.Contains(numberKindsSupported, field.Type.Kind()) {
-				baseField := huh.NewText().Title(prompt)
-				collectionField = createNumberField(i, field.Type.Kind(), baseField)
+				collectionField = CreateNumberField(field, baseField)
+			} else if field.Type.Kind() == reflect.String {
+				collectionField = CreateStringField(field, baseField)
 			}
-
+			collectionField.Index = i
+			fields = append(fields, collectionField.Field)
 			collectionFields = append(collectionFields, collectionField)
 		}
 
 		// Run the form
+		form := huh.NewForm(huh.NewGroup(fields...))
+		if err := form.Run(); err != nil {
+			log.Fatalln("couldn't get data for script:", err)
+		}
 
 		// Create a new object and return it
 		value := reflect.New(genType).Elem()
 		for _, field := range collectionFields {
-			field.Set(value)
+			if err := field.Set(value.Field(field.Index)); err != nil {
+				log.Fatalf("couldn't set field %d of %s: %s", field.Index, value.Type().Name(), err)
+			}
 		}
 
 		return value.Interface()
 	}
 	return collector, nil
+}
+
+func createValidator() *validator.Validate {
+	v := validator.New()
+	return v
+}
+
+// (Sort of) translate the error and valdiate using the validator package
+func runValidationWithTranslation(field string, value any, rules string) error {
+	err := validate.Var(value, rules)
+	if vErr, ok := err.(validator.ValidationErrors); ok {
+		for _, fieldError := range vErr {
+			return fmt.Errorf("%s is not valid: %s", field, fieldError.Tag())
+		}
+	}
+	return fmt.Errorf("validation failed: %s", err)
 }

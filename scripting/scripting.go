@@ -1,7 +1,6 @@
 package scripting
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -14,9 +13,9 @@ type Script struct {
 }
 
 func CreateScript[T any](name string, f ScriptFunctionGeneric[T]) Script {
-	collector, err := createCollector[T]()
+	collector, err := CreateCollector[T]()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("couldn't create collector:", err)
 	}
 
 	return Script{
@@ -26,18 +25,4 @@ func CreateScript[T any](name string, f ScriptFunctionGeneric[T]) Script {
 			return f(data.(T))
 		},
 	}
-}
-
-type SomeScriptThingy struct {
-	Name string `prompt:"Enter a name for the test account." validate:"required"`
-}
-
-func someScriptFunc(data SomeScriptThingy) error {
-	log.Println("chosen name:", data.Name)
-	return nil
-}
-
-func main() {
-	script := CreateScript("hello", someScriptFunc)
-	fmt.Println(script.Collector())
 }
