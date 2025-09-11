@@ -1,13 +1,17 @@
 package magic
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
 	"github.com/Liphium/magic/scripting"
 	"github.com/spf13/pflag"
 )
+
+var Log *log.Logger = log.New(os.Stdout, "magic", log.Default().Flags())
 
 var prepared = false
 
@@ -57,8 +61,30 @@ func Prepare(config Config, tests bool) {
 	}
 	ctx := mconfig.DefaultContext(config.AppName, currentProfile)
 
+	// Check if all scripts should be listed
+	if *pflag.Bool("scripts", false, "Lists all scripts registered in Magic.") {
+
+		fmt.Println()
+		fmt.Println("Listing all scripts registered in Magic.")
+		fmt.Println("Use -r or --run <script> to run any of them.")
+		fmt.Println()
+		for _, script := range config.Scripts {
+			fmt.Printf("%s - %s", script.Name, script.Description)
+		}
+
+		return
+	}
+
+	// Create a factory for initializing everything
+	factory, err := createFactory()
+	if err != nil {
+		Log.Fatalln("Something went wrong:", err)
+		return
+	}
+	factory.WarnIfNotIgnored()
+
 	// Check if a script should be run
-	script := *pflag.String("script", "", "Provide this if you want to run a script.")
+	script := *pflag.StringP("run", "r", "", "Provide this if you want to run a script.")
 	if script != "" {
 		// TODO: Actually run the script
 		return

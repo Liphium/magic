@@ -18,6 +18,6 @@ func someScriptFunc(data SomeScriptThingy) error {
 }
 
 func main() {
-	script := scripting.CreateScript("hello", someScriptFunc)
+	script := scripting.CreateScript("hello", "", someScriptFunc)
 	fmt.Println(script.Collector())
 }

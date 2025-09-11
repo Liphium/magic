@@ -10,10 +10,6 @@ const (
 	DatabasePostgres DatabaseType = 1
 )
 
-func IsValidDatabaseType(t DatabaseType) bool {
-	return t == DatabasePostgres
-}
-
 type Database struct {
 	dbType DatabaseType // Type of the database
 	name   string
