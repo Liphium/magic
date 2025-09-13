@@ -24,7 +24,7 @@ var SupportedKinds = append([]reflect.Kind{
 }, numberKindsSupported...)
 
 // Create a function that can take a struct
-func CreateCollector[T any]() (func() interface{}, error) {
+func CreateCollector[T any]() (func([]string) interface{}, error) {
 
 	// Create the validator in case it's not there yet
 	if validate == nil {
@@ -44,49 +44,19 @@ func CreateCollector[T any]() (func() interface{}, error) {
 		}
 	}
 
-	// Create the actual collection function
-	collector := func() interface{} {
+	collector := func(arguments []string) interface{} {
 
-		// Build the fields for huh
-		fields := []huh.Field{}
-		collectionFields := []CollectionField{}
-		for i := 0; i < genType.NumField(); i++ {
-			field := genType.Field(i)
-
-			// Get the prompt for the field
-			prompt := field.Tag.Get("prompt")
-			if prompt == "" {
-				prompt = "Enter value for " + field.Name + ":"
+		// Collect from command line arguments in case there are some
+		if len(arguments) > 0 {
+			result, err := useArgumentCollector(genType, arguments)
+			if err != nil {
+				log.Fatalln("argument collection failed:", err)
 			}
-
-			// Generate the huh field
-			var collectionField CollectionField
-			baseField := huh.NewInput().Title(prompt)
-			if slices.Contains(numberKindsSupported, field.Type.Kind()) {
-				collectionField = CreateNumberField(field, baseField)
-			} else if field.Type.Kind() == reflect.String {
-				collectionField = CreateStringField(field, baseField)
-			}
-			collectionField.Index = i
-			fields = append(fields, collectionField.Field)
-			collectionFields = append(collectionFields, collectionField)
+			return result
 		}
 
-		// Run the form
-		form := huh.NewForm(huh.NewGroup(fields...))
-		if err := form.Run(); err != nil {
-			log.Fatalln("couldn't get data for script:", err)
-		}
-
-		// Create a new object and return it
-		value := reflect.New(genType).Elem()
-		for _, field := range collectionFields {
-			if err := field.Set(value.Field(field.Index)); err != nil {
-				log.Fatalf("couldn't set field %d of %s: %s", field.Index, value.Type().Name(), err)
-			}
-		}
-
-		return value.Interface()
+		// Collect from command line form in case there are no arguments
+		return useCommandLineCollector(genType)
 	}
 	return collector, nil
 }
@@ -104,5 +74,5 @@ func runValidationWithTranslation(field string, value any, rules string) error {
 			return fmt.Errorf("%s is not valid: %s", field, fieldError.Tag())
 		}
 	}
-	return fmt.Errorf("validation failed: %s", err)
+	return err
 }

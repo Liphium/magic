@@ -2,15 +2,17 @@ package scripting
 
 import (
 	"log"
+
+	"github.com/Liphium/magic/mrunner"
 )
 
-type ScriptFunction[T any] = func(T) error
+type ScriptFunction[T any] = func(*mrunner.Runner, T) error
 
 type Script struct {
 	Name        string
 	Description string
-	Collector   func() interface{}
-	Handler     func(interface{}) error
+	Collector   func([]string) interface{}
+	Handler     func(*mrunner.Runner, interface{}) error
 }
 
 func CreateScript[T any](name string, description string, f ScriptFunction[T]) Script {
@@ -23,8 +25,8 @@ func CreateScript[T any](name string, description string, f ScriptFunction[T]) S
 		Name:        name,
 		Description: description,
 		Collector:   collector,
-		Handler: func(data interface{}) error {
-			return f(data.(T))
+		Handler: func(runner *mrunner.Runner, data interface{}) error {
+			return f(runner, data.(T))
 		},
 	}
 }

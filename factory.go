@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Liphium/magic/util"
 	"github.com/gofrs/flock"
 )
 
@@ -47,7 +48,7 @@ func (f Factory) WarnIfNotIgnored() {
 		}
 
 	}
-	Log.Println("WARNING: .magic is not in your .gitignore file.")
+	util.Log.Println("WARNING: .magic is not in your .gitignore file.")
 }
 
 // Get the current magic cache directory
@@ -65,8 +66,26 @@ func (f Factory) PlanFile(profile string) string {
 	return filepath.Join(f.MagicDirectory(), fmt.Sprintf("%s.mplan", profile))
 }
 
+// Check if a profile is locked (a magic instance is running)
+func (f Factory) IsProfileLocked(profile string) bool {
+	fileLock := flock.New(f.LockFile(profile))
+	return fileLock.Locked()
+}
+
 // Trys to lock the lock file for the profile. If no error is returned, the profile was locked.
 func (f Factory) TryLockProfile(profile string) error {
+
+	// Create the lock file in case it doesn't exist
+	if _, err := os.Stat(f.LockFile(profile)); os.IsNotExist(err) {
+		if err := os.MkdirAll(filepath.Dir(f.LockFile(profile)), 0755); err != nil {
+			return fmt.Errorf("couldn't create cache directory: %s", err)
+		}
+		_, err := os.Create(f.LockFile(profile))
+		if err != nil {
+			return fmt.Errorf("couldn't create lock file: %s", err)
+		}
+	}
+
 	fileLock := flock.New(f.LockFile(profile))
 
 	locked, err := fileLock.TryLock()

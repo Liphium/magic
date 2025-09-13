@@ -10,7 +10,7 @@ import (
 )
 
 // Deploy the containers for the magic context
-func (r *Runner) GeneratePlan() string {
+func (r *Runner) GeneratePlan() {
 	if r.ctx == nil {
 		log.Fatalln("no context set")
 	}
@@ -41,6 +41,7 @@ func (r *Runner) GeneratePlan() string {
 
 	// Load into plan
 	r.plan = &mconfig.Plan{
+		AppName:        r.ctx.AppName(),
 		Profile:        r.ctx.Profile(),
 		DatabaseTypes:  types,
 		AllocatedPorts: allocatedPorts,
@@ -54,12 +55,8 @@ func (r *Runner) GeneratePlan() string {
 	}
 	r.plan.Environment = environment
 
-	// Convert plan to printable string
-	printable, err := r.plan.ToPrintable()
-	if err != nil {
-		log.Fatalln("couldn't generate plan:", err)
-	}
-	return printable
+	// Set current plan
+	mconfig.CurrentPlan = r.plan
 }
 
 func (r *Runner) prepareDatabases() ([]mconfig.PlannedDatabaseType, error) {

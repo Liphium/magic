@@ -102,6 +102,8 @@ func DefaultContext(appName string, profile string) *Context {
 	plan := &Plan{}
 	return &Context{
 		directory: workDir,
+		appName:   appName,
+		profile:   profile,
 		databases: []*Database{},
 		plan:      &plan,
 	}

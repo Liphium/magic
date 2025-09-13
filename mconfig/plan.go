@@ -1,7 +1,6 @@
 package mconfig
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -43,21 +42,18 @@ type PlannedDatabase struct {
 
 // Turn the plan into printable form
 func (p *Plan) ToPrintable() (string, error) {
-	encoded, err := json.Marshal(p)
+	// Pretty-print the plan as JSON
+	encoded, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		return "", err
 	}
-	return base64.StdEncoding.EncodeToString(encoded), nil
+	return string(encoded), nil
 }
 
 // Convert back to a plan from printable form
 func FromPrintable(printable string) (*Plan, error) {
-	decoded, err := base64.StdEncoding.DecodeString(printable)
-	if err != nil {
-		return nil, err
-	}
 	plan := &Plan{}
-	err = json.Unmarshal(decoded, plan)
+	err := json.Unmarshal([]byte(printable), plan)
 	if err != nil {
 		return nil, err
 	}
