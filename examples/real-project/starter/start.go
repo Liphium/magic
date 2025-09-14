@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"real-project/database"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -12,7 +11,6 @@ import (
 )
 
 func Start() {
-	time.Sleep(10 * time.Minute)
 
 	// Connect to the database
 	database.Connect()
