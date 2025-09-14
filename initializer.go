@@ -61,7 +61,7 @@ func Start(config Config) {
 
 // Start all the containers and more. Call this before running tests with Magic.
 //
-// Returns a factory if execution should continue.
+// Returns a factory if execution should continue. Please make sure to unlock the factory when the program exits.
 func Prepare(config Config, tests bool) *Factory {
 
 	// Make sure we're not preparing again (this could happen in tests)
@@ -128,6 +128,7 @@ func Prepare(config Config, tests bool) *Factory {
 	// Create the runner and deploy containers
 	runner, err := mrunner.NewRunner(ctx)
 	if err != nil {
+		factory.Unlock()
 		util.Log.Fatalln("Couldn't prepare:", err)
 	}
 
@@ -136,15 +137,20 @@ func Prepare(config Config, tests bool) *Factory {
 	if !tests {
 		plan, err := mconfig.CurrentPlan.ToPrintable()
 		if err != nil {
+			factory.Unlock()
 			util.Log.Fatalln("Failed to create plan:", err)
 		}
 		if err := os.WriteFile(factory.PlanFile(ctx.Profile()), []byte(plan), 0755); err != nil {
+			factory.Unlock()
 			util.Log.Fatalln("Failed to write to plan file:", err)
 		}
 	}
 
-	// Deploy containers
-	runner.Deploy(tests) // Delete containers when it's the test runner
+	// Deploy containers (delete containers when it's the test runner)
+	if err := runner.Deploy(tests); err != nil {
+		factory.Unlock()
+		util.Log.Fatalln("Couldn't deploy containers:", err)
+	}
 	return &factory
 }
 

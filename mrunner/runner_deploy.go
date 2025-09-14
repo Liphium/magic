@@ -20,7 +20,7 @@ import (
 )
 
 // Deploy all the containers nessecary for the application
-func (r *Runner) Deploy(deleteContainers bool) {
+func (r *Runner) Deploy(deleteContainers bool) error {
 
 	// Clear all state in case wanted
 	if deleteContainers {
@@ -42,7 +42,7 @@ func (r *Runner) Deploy(deleteContainers bool) {
 			All:     true,
 		})
 		if err != nil {
-			util.Log.Fatalln("couldn't list containers:", err)
+			return fmt.Errorf("couldn't list containers: %s", err)
 		}
 		containerId := ""
 		var containerMounts []mount.Mount = nil
@@ -55,7 +55,7 @@ func (r *Runner) Deploy(deleteContainers bool) {
 					// Inspect the cotainer to get the mounts
 					resp, err := r.client.ContainerInspect(ctx, c.ID)
 					if err != nil {
-						util.Log.Fatalln("Couldn't inspect container:", err)
+						return fmt.Errorf("couldn't inspect container: %s", err)
 					}
 					containerMounts = resp.HostConfig.Mounts
 				}
@@ -68,18 +68,21 @@ func (r *Runner) Deploy(deleteContainers bool) {
 				RemoveVolumes: false,
 				Force:         true,
 			}); err != nil {
-				util.Log.Fatalln("Couldn't delete database container:", err)
+				return fmt.Errorf("couldn't delete database container: %s", err)
 			}
 		}
 
 		// Create the new container with the volumes
 		util.Log.Println("Creating new container...")
-		containerId = r.createDatabaseContainer(ctx, dbType, name, containerMounts)
+		containerId, err = r.createDatabaseContainer(ctx, dbType, name, containerMounts)
+		if err != nil {
+			return fmt.Errorf("couldn't create database container: %s", err)
+		}
 
 		// Start the container
 		util.Log.Println("Trying to start container...")
 		if err := r.client.ContainerStart(ctx, containerId, container.StartOptions{}); err != nil {
-			util.Log.Fatalln("couldn't start postgres container:", err)
+			return fmt.Errorf("couldn't start postgres container: %s", err)
 		}
 
 		// Wait for the container to start (with pg_isready)
@@ -94,15 +97,15 @@ func (r *Runner) Deploy(deleteContainers bool) {
 		for {
 			execIDResp, err := r.client.ContainerExecCreate(ctx, containerId, execConfig)
 			if err != nil {
-				util.Log.Fatalln("couldn't create command for readiness of container:", err)
+				return fmt.Errorf("couldn't create command for readiness of container: %s", err)
 			}
 			execStartCheck := container.ExecStartOptions{Detach: false, Tty: false}
 			if err := r.client.ContainerExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
-				util.Log.Fatalln("couldn't start command for readiness of container:", err)
+				return fmt.Errorf("couldn't start command for readiness of container: %s", err)
 			}
 			respInspect, err := r.client.ContainerExecInspect(ctx, execIDResp.ID)
 			if err != nil {
-				util.Log.Fatalln("couldn't inspect command for readiness of container:", err)
+				return fmt.Errorf("couldn't inspect command for readiness of container: %s", err)
 			}
 			if respInspect.ExitCode == 0 {
 				break
@@ -114,27 +117,30 @@ func (r *Runner) Deploy(deleteContainers bool) {
 
 		// Create all of the databases
 		util.Log.Println("Connecting to PostgreSQL...")
-		r.createDatabases(dbType)
+		if err := r.createDatabases(dbType); err != nil {
+			return err
+		}
 	}
 
 	// Load environment variables into current application
 	util.Log.Println("Loading environment...")
 	for key, value := range r.plan.Environment {
 		if err := os.Setenv(key, value); err != nil {
-			log.Fatalln("couldn't set environment variable", key+":", err)
+			return fmt.Errorf("couldn't set environment variable %s: %s", key, err)
 		}
 	}
 
 	util.Log.Println("Deployment finished.")
+	return nil
 }
 
 // Create a new container for a postgres database. Returns container id.
-func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.PlannedDatabaseType, name string, mounts []mount.Mount) string {
+func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.PlannedDatabaseType, name string, mounts []mount.Mount) (string, error) {
 
 	// Reserve the port for the container
 	port, err := nat.NewPort("tcp", "5432")
 	if err != nil {
-		log.Fatalln("couldn't create port for postgres container:", err)
+		return "", fmt.Errorf("couldn't create port for postgres container: %s", err)
 	}
 	exposedPorts := nat.PortSet{port: struct{}{}}
 
@@ -169,19 +175,19 @@ func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.Pla
 		ExposedPorts: exposedPorts,
 	}, networkConf, &network.NetworkingConfig{}, nil, name)
 	if err != nil {
-		log.Fatalln("couldn't create postgres container:", err)
+		return "", fmt.Errorf("couldn't create postgres container: %s", err)
 	}
-	return resp.ID
+	return resp.ID, nil
 }
 
 // Connect to postgres and create all the needed databases.
-func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) {
+func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) error {
 	connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=postgres sslmode=disable", dbType.Port)
 
 	// Connect to the database
 	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
-		util.Log.Fatalln("couldn't connect to postgres:", err)
+		return fmt.Errorf("couldn't connect to postgres: %s", err)
 	}
 	defer conn.Close()
 
@@ -189,9 +195,10 @@ func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) {
 		util.Log.Println("Creating database", db.Name+"...")
 		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db.Name))
 		if err != nil && !strings.Contains(err.Error(), "already exists") {
-			util.Log.Fatalln("couldn't create postgres database:", err)
+			return fmt.Errorf("couldn't create postgres database: %s", err)
 		}
 	}
+	return nil
 }
 
 // Delete all containers and reset all state
