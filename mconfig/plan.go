@@ -29,11 +29,10 @@ func (p *PlannedDatabaseType) ContainerName(appName string, profile string) stri
 }
 
 type PlannedDatabase struct {
-	ConfigName string `json:"config_name"` // Name in the config
-	Name       string `json:"name"`
-	Username   string `json:"username"`
-	Password   string `json:"password"`
-	Hostname   string `json:"hostname"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Hostname string `json:"hostname"`
 
 	// Just for developers to access, not included in actual plan
 	Type DatabaseType `json:"-"`
@@ -66,7 +65,7 @@ func (p *Plan) Database(name string) PlannedDatabase {
 	found := false
 	for _, t := range p.DatabaseTypes {
 		for _, db := range t.Databases {
-			if db.ConfigName == name {
+			if db.Name == name {
 				if found {
 					log.Fatalln("The database", name, "exists in the config more than once.")
 				}

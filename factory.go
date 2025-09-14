@@ -11,6 +11,8 @@ import (
 	"github.com/gofrs/flock"
 )
 
+var errProfileLocked = errors.New("profile is already locked by a different instance")
+
 type Factory struct {
 	projectDir string
 	lock       *flock.Flock
@@ -69,7 +71,15 @@ func (f Factory) PlanFile(profile string) string {
 // Check if a profile is locked (a magic instance is running)
 func (f Factory) IsProfileLocked(profile string) bool {
 	fileLock := flock.New(f.LockFile(profile))
-	return fileLock.Locked()
+	locked, err := fileLock.TryLock()
+	if err != nil {
+		return true
+	}
+	if locked {
+		fileLock.Unlock()
+		return false
+	}
+	return true
 }
 
 // Trys to lock the lock file for the profile. If no error is returned, the profile was locked.
@@ -93,7 +103,7 @@ func (f Factory) TryLockProfile(profile string) error {
 		return err
 	}
 	if !locked {
-		return errors.New("couldn't lock profile lock file")
+		return errProfileLocked
 	}
 
 	f.lock = fileLock
@@ -102,6 +112,7 @@ func (f Factory) TryLockProfile(profile string) error {
 
 // Unlock the lock of the current factory in case one is there
 func (f Factory) Unlock() error {
+	fmt.Println("unlock")
 	if f.lock != nil {
 		return f.lock.Unlock()
 	}

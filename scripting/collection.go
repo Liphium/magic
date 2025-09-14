@@ -12,7 +12,14 @@ import (
 
 // Collect all fields needed for a struct from the arguments array passed in
 func useArgumentCollector(genType reflect.Type, arguments []string) (interface{}, error) {
-	numFields := genType.NumField()
+
+	// Count the amount of fields (that aren't ignored)
+	numFields := 0
+	for i := 0; i < genType.NumField(); i++ {
+		if genType.Field(i).Tag.Get("magic") != "ignore" {
+			numFields++
+		}
+	}
 
 	// Check if the number of arguments matches the number of struct fields
 	if len(arguments) != numFields {
@@ -41,6 +48,11 @@ func useArgumentCollector(genType reflect.Type, arguments []string) (interface{}
 		field := genType.Field(i)
 		fieldValue := value.Field(i)
 
+		// Ignore the field when desired
+		if field.Tag.Get("magic") == "ignore" {
+			continue
+		}
+
 		// Handle different field types
 		if field.Type.Kind() == reflect.String {
 			if err := ValidateAndSetString(field, fieldValue, arg); err != nil {
@@ -65,8 +77,12 @@ func useCommandLineCollector(genType reflect.Type) interface{} {
 	fields := []huh.Field{}
 	collectionFields := []CollectionField{}
 	for i := 0; i < genType.NumField(); i++ {
-
 		field := genType.Field(i)
+
+		// Ignore the field when desired
+		if field.Tag.Get("magic") == "ignore" {
+			continue
+		}
 
 		// Get the prompt for the field
 		prompt := field.Tag.Get("prompt")

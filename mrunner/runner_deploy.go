@@ -254,7 +254,7 @@ func (r *Runner) StopContainers() {
 			Filters: f,
 		})
 		if err != nil {
-			log.Fatalln("Couldn't list containers:", err)
+			util.Log.Fatalln("Couldn't list containers:", err)
 		}
 		containerId := ""
 		for _, c := range summary {
@@ -271,9 +271,9 @@ func (r *Runner) StopContainers() {
 		}
 
 		// Stop the container
-		log.Println("Stopping container", name+"...")
+		util.Log.Println("Stopping container", name+"...")
 		if err := r.client.ContainerStop(ctx, containerId, container.StopOptions{}); err != nil {
-			log.Fatalln("Couldn't stop database container:", err)
+			util.Log.Fatalln("Couldn't stop database container:", err)
 		}
 	}
 }

@@ -3,6 +3,7 @@ package mconfig
 import (
 	"fmt"
 	"log"
+	"maps"
 	"os"
 	"strings"
 )
@@ -40,8 +41,12 @@ func (c *Context) Ports() []uint {
 }
 
 // Set the environment.
-func (c *Context) WithEnvironment(env *Environment) {
-	c.environment = env
+func (c *Context) WithEnvironment(env Environment) {
+	if c.environment == nil {
+		c.environment = &Environment{}
+	}
+
+	maps.Copy((*c.environment), env)
 }
 
 // Note: In case you use a relative path, expect it to start in the Magic directory.
@@ -49,7 +54,7 @@ func (c *Context) LoadSecretsToEnvironment(path string) error {
 
 	// Add an environment in case there isn't one
 	if c.environment == nil {
-		c.WithEnvironment(&Environment{})
+		c.environment = &Environment{}
 	}
 
 	// Load all the secrets from the file

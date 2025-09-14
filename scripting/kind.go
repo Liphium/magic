@@ -1,12 +1,13 @@
 package scripting
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"reflect"
 	"slices"
 
+	"github.com/Liphium/magic/mconfig"
+	"github.com/Liphium/magic/util"
 	"github.com/charmbracelet/huh"
 	"github.com/go-playground/validator/v10"
 )
@@ -33,13 +34,18 @@ func CreateCollector[T any]() (func([]string) interface{}, error) {
 
 	genType := reflect.TypeFor[T]()
 	if genType.Kind() != reflect.Struct {
-		return nil, errors.New("generic type isn't a struct")
+		if mconfig.VerboseLogging {
+			util.Log.Println("Ignoring script argument due to not being a struct...")
+		}
+		return func(s []string) interface{} {
+			return "hi magic"
+		}, nil
 	}
 
 	// Check if all fields are supported
 	for i := 0; i < genType.NumField(); i++ {
 		field := genType.Field(i)
-		if !slices.Contains(SupportedKinds, field.Type.Kind()) {
+		if !slices.Contains(SupportedKinds, field.Type.Kind()) && field.Tag.Get("magic") != "ignore" {
 			return nil, fmt.Errorf("collecting a %s is currently not supported", field.Type.Kind().String())
 		}
 	}

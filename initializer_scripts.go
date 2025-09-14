@@ -3,12 +3,12 @@ package magic
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/Liphium/magic/mconfig"
 	"github.com/Liphium/magic/mrunner"
 	"github.com/Liphium/magic/scripting"
+	"github.com/Liphium/magic/util"
 	"github.com/spf13/pflag"
 )
 
@@ -23,7 +23,7 @@ func (f Factory) runScript(script scripting.Script, ctx *mconfig.Context) error 
 
 	// Check if there is a magic instance running for the current profile
 	if !f.IsProfileLocked(ctx.Profile()) {
-		log.Println("WARNING: It seems like Magic isn't running, this may cause weird circumstances for scripts.")
+		util.Log.Println("WARNING: It seems like Magic isn't running, this may cause weird circumstances for scripts.")
 	}
 
 	// Read the plan and parse
@@ -41,6 +41,16 @@ func (f Factory) runScript(script scripting.Script, ctx *mconfig.Context) error 
 	if err != nil {
 		return fmt.Errorf("couldn't create runner from plan: %s", err)
 	}
+
+	// Load environment variables into current application
+	util.Log.Println("Loading environment...")
+	for key, value := range runner.Plan().Environment {
+		if err := os.Setenv(key, value); err != nil {
+			return fmt.Errorf("couldn't set environment variable %s: %s", key, err)
+		}
+	}
+	util.Log.Println("Successfully prepared everything!")
+	fmt.Println()
 
 	// Collect data for the script and run
 	arguments := script.Collector(pflag.Args())
