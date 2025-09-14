@@ -112,7 +112,6 @@ func (f Factory) TryLockProfile(profile string) error {
 
 // Unlock the lock of the current factory in case one is there
 func (f Factory) Unlock() error {
-	fmt.Println("unlock")
 	if f.lock != nil {
 		return f.lock.Unlock()
 	}
