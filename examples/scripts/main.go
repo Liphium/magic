@@ -10,7 +10,7 @@ import (
 )
 
 // Our main function is wrapped using Magic, in a real app you should use go build tags to have two main functions, one for
-// development with Magic and one without. You can look at our real_project example.
+// development with Magic and one without. You can look at our real-project example.
 func main() {
 	magic.Start(magic.Config{
 		AppName: "scripts_example",
