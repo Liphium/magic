@@ -11,7 +11,7 @@ import (
 )
 
 // This method would ideally be created in a shared package between all the scripts.
-func getPath() string {
+func GetPath() string {
 	return fmt.Sprintf("http://%s", os.Getenv("LISTEN"))
 }
 
@@ -19,13 +19,13 @@ func getPath() string {
 //
 // You could go into the database and add it there, but we want to be able to call the endpoint using scripts.
 func createPost(_ *mrunner.Runner, post database.Post) error {
-	_, err := util.Post[interface{}](getPath()+"/posts", post, util.Headers{})
+	_, err := util.Post[interface{}](GetPath()+"/posts", post, util.Headers{})
 	return err
 }
 
 // Script for printing all the posts using the endpoint.
 func printPosts(_ *mrunner.Runner, _ any) error {
-	posts, err := util.Get[[]database.Post](getPath()+"/posts", util.Headers{})
+	posts, err := util.Get[[]database.Post](GetPath()+"/posts", util.Headers{})
 	if err != nil {
 		return err
 	}

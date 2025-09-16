@@ -49,7 +49,7 @@ func Start() {
 			})
 		}
 
-		return c.Status(201).JSON(post)
+		return c.Status(fiber.StatusCreated).JSON(post)
 	})
 
 	// Basic get endpoint to get all posts

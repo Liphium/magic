@@ -93,6 +93,15 @@ func (c *Context) ApplyPlan(plan *Plan) {
 	*c.plan = plan
 }
 
+func (c *Context) NewPostgresDatabase(name string) *Database {
+	database := &Database{
+		dbType: DatabasePostgres,
+		name:   name,
+	}
+	c.databases = append(c.databases, database)
+	return database
+}
+
 // Add a new database.
 func (c *Context) AddDatabase(database *Database) {
 	c.databases = append(c.databases, database)

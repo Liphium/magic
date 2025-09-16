@@ -1,10 +1,14 @@
 package magic
 
 import (
+	"os"
 	"testing"
 
-	"github.com/Liphium/magic/mconfig"
+	"github.com/Liphium/magic/mrunner"
+	"github.com/Liphium/magic/util"
 )
+
+var started = false
 
 // Call this function if you want some tests to rely on anything Magic can set up for you.
 //
@@ -21,7 +25,7 @@ import (
 // profile you may use outside of tests.
 //
 // The handler will be called once everything is ready. No more than one handler can run at once under one profile.
-func TestRunner(t *testing.T, config Config, profile string, handler func(*testing.T, *mconfig.Plan)) {
+func TestRunner(t *testing.T, config Config, profile string, handler func(*testing.T, *mrunner.Runner)) {
 	if profile == "" {
 		profile = "default"
 	}
@@ -33,12 +37,20 @@ func TestRunner(t *testing.T, config Config, profile string, handler func(*testi
 		return
 	}
 
-	// Handle any potential crashes and stop all the containers
-	defer func() {
-		recover()
+	// Load environment
+	util.Log.Println("Loading environment...")
+	for key, value := range runner.Plan().Environment {
+		if err := os.Setenv(key, value); err != nil {
+			t.Fatalf("couldn't set environment variable %s: %s", key, err)
+		}
+	}
+	util.Log.Println("Setup finished.")
+
+	// Stop all containers and unlock once testing is done
+	t.Cleanup(func() {
 		factory.Unlock()
 		runner.StopContainers()
-	}()
+	})
 
-	handler(t, runner.Plan())
+	handler(t, runner)
 }

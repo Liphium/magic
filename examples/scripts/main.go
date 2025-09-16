@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	magic_scripts "scripts-example/scripts"
+	"time"
 
 	"github.com/Liphium/magic"
 	"github.com/Liphium/magic/mconfig"
@@ -15,7 +16,7 @@ func main() {
 	magic.Start(magic.Config{
 		AppName: "scripts_example",
 		PlanDeployment: func(ctx *mconfig.Context) {
-			// No deployment needed for this simple example
+			// We don't need to deploy anything here
 		},
 		StartFunction: Start,
 
@@ -34,4 +35,5 @@ func Start() {
 	fmt.Println("If you don't provide any arguments, you'll be prompted to enter them in a CLI form!")
 	fmt.Println()
 	fmt.Println("Become a great wizard!")
+	time.Sleep(10 * time.Minute)
 }

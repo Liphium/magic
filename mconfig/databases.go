@@ -100,11 +100,3 @@ func DefaultUsername(dbType DatabaseType) string {
 func DefaultDatabaseName(profile string, databaseName string) string {
 	return fmt.Sprintf("%s:%s", profile, databaseName)
 }
-
-// Create a new Postgres database.
-func NewPostgresDatabase(name string) *Database {
-	return &Database{
-		dbType: DatabasePostgres,
-		name:   name,
-	}
-}
