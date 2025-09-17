@@ -3,29 +3,29 @@ package magic
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/Liphium/magic/mrunner"
 	"github.com/Liphium/magic/util"
 )
 
-var started = false
+var startSignalChan = make(chan struct{})
+var magicTestRunner *mrunner.Runner = nil
 
-// Call this function if you want some tests to rely on anything Magic can set up for you.
+// Call this function in any TestMain function if you want some tests to rely on your actual app or database.
 //
-// In a case where you want to maybe run this test in parallel with other tests that include Magic, make sure to set
-// the profile to something different for both of them so they don't collide. Otherwise they'll always be waiting for
-// each other to be executed, and running them in parallel will become pointless.
+// When calling this method, Magic will automatically start your app and any required containers, just like when you
+// normally run your app.
 //
-// If you don't need tests to run in parallel, you could even set the profile to an empty string. In that case, Magic will
-// use the default profile: default. However, we recommend you try to use different profiles for different tests, anyway,
-// since you might want to run your tests in parallel in the future.
+// Please make sure to call the magic.AppStarted() function for the test runner to work properly. You can read its
+// comments if you should still have questions about what it does. You can adjust the timeout for exiting in the Magic
+// config.
 //
-// Test profiles use the same system as a profile you can pass over the --profile (-p) flag. But Magic automatically appends
-// the test- prefix when you use this method, so you don't have to worry about your profile choice colliding with any other
-// profile you may use outside of tests.
+// You can provide a profile to make sure you can run multiple tests in multiple packages in parallel. Magic will automatically
+// append test- to it, so don't worry about it colliding with profiles you set over the --profile (-p) flag.
 //
-// The handler will be called once everything is ready. No more than one handler can run at once under one profile.
-func TestRunner(t *testing.T, config Config, profile string, handler func(*testing.T, *mrunner.Runner)) {
+// The handler will be called once everything is ready.
+func PrepareTesting(t *testing.M, profile string, config Config) {
 	if profile == "" {
 		profile = "default"
 	}
@@ -33,7 +33,7 @@ func TestRunner(t *testing.T, config Config, profile string, handler func(*testi
 	// Start all the containers using Magic
 	factory, runner := prepare(config, profile)
 	if factory == nil || runner == nil {
-		t.Fatal("Couldn't prepare containers with Magic")
+		util.Log.Fatal("Couldn't prepare containers with Magic")
 		return
 	}
 
@@ -41,16 +41,59 @@ func TestRunner(t *testing.T, config Config, profile string, handler func(*testi
 	util.Log.Println("Loading environment...")
 	for key, value := range runner.Plan().Environment {
 		if err := os.Setenv(key, value); err != nil {
-			t.Fatalf("couldn't set environment variable %s: %s", key, err)
+			util.Log.Fatalf("couldn't set environment variable %s: %s", key, err)
 		}
 	}
 	util.Log.Println("Setup finished.")
 
 	// Stop all containers and unlock once testing is done
-	t.Cleanup(func() {
+	defer func() {
+		recover()
 		factory.Unlock()
 		runner.StopContainers()
-	})
+	}()
 
-	handler(t, runner)
+	// Start the app
+	go func() {
+		config.StartFunction()
+	}()
+
+	// Wait for the app's start signal
+	util.Log.Println("Waiting for start signal...")
+	util.Log.Println("If you don't call magic.AppStarted() when your app starts, this will fail.")
+
+	timeoutChan := make(chan struct{})
+	go func() {
+		if config.TestAppTimeout == nil {
+			config.TestAppTimeout = Ptr(time.Second * 10)
+		}
+		time.Sleep(*config.TestAppTimeout)
+		timeoutChan <- struct{}{}
+	}()
+
+	select {
+	case <-timeoutChan:
+		util.Log.Fatalln("Couldn't get start signal in time.")
+	case <-startSignalChan:
+		util.Log.Println("Signal received. Everything successfully prepared!")
+	}
+
+	magicTestRunner = runner
+	t.Run()
+}
+
+// This function has to be called when your app successfully started.
+//
+// It's used to start the test once your app is up and running in testing. The test runner does have a timeout of
+// 10 seconds though, so if you're app takes longer than that to startup, you can modify the timeout in your Magic
+// config.
+func AppStarted() {
+	startSignalChan <- struct{}{}
+}
+
+// Get the current runner active while testing.
+//
+// For this to work, please make sure you call PrepareTesting in your TestMain function.
+func GetTestRunner() *mrunner.Runner {
+	return magicTestRunner
 }

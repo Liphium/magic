@@ -35,6 +35,11 @@ type Config struct {
 
 	// Add scripts that could be useful while developing this app.
 	Scripts []scripting.Script
+
+	// This is how long Magic waits for your app to finally start up before just killing any test runner. Default: 10 seconds.
+	//
+	// Hint: You can use magic.Ptr(duration) to convert your duration to a pointer, we use a pointer here to be able to detect it being not set.
+	TestAppTimeout *time.Duration
 }
 
 // Start all the containers and more. This should be called before doing anything with Magic.
@@ -160,4 +165,9 @@ func listScripts(config Config) {
 	for _, script := range config.Scripts {
 		fmt.Printf("%s - %s \n", script.Name, script.Description)
 	}
+}
+
+// A little helper to convert anything to a pointer.
+func Ptr[T any](obj T) *T {
+	return &obj
 }

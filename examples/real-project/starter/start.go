@@ -5,6 +5,7 @@ import (
 	"os"
 	"real-project/database"
 
+	"github.com/Liphium/magic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -87,6 +88,17 @@ func Start() {
 		}
 
 		return c.JSON(post)
+	})
+
+	// Add a startup hook to notify Magic of the app start
+	app.Hooks().OnListen(func(listenData fiber.ListenData) error {
+		if fiber.IsChild() {
+			return nil
+		}
+
+		// Tell Magic the app has started: Makes sure tests start to run after this.
+		magic.AppStarted()
+		return nil
 	})
 
 	app.Listen(os.Getenv("LISTEN"))
