@@ -21,17 +21,11 @@ var magicTestRunner *mrunner.Runner = nil
 // comments if you should still have questions about what it does. You can adjust the timeout for exiting in the Magic
 // config.
 //
-// You can provide a profile to make sure you can run multiple tests in multiple packages in parallel. Magic will automatically
-// append test- to it, so don't worry about it colliding with profiles you set over the --profile (-p) flag.
-//
 // The handler will be called once everything is ready.
-func PrepareTesting(t *testing.M, profile string, config Config) {
-	if profile == "" {
-		profile = "default"
-	}
+func PrepareTesting(t *testing.M, config Config) {
 
 	// Start all the containers using Magic
-	factory, runner := prepare(config, profile)
+	factory, runner := prepare(config, "default") // TODO: Make the profile definable and make parallel tests possible
 	if factory == nil || runner == nil {
 		util.Log.Fatal("Couldn't prepare containers with Magic")
 		return
@@ -88,7 +82,10 @@ func PrepareTesting(t *testing.M, profile string, config Config) {
 // 10 seconds though, so if you're app takes longer than that to startup, you can modify the timeout in your Magic
 // config.
 func AppStarted() {
-	startSignalChan <- struct{}{}
+	select {
+	case startSignalChan <- struct{}{}:
+	default:
+	}
 }
 
 // Get the current runner active while testing.

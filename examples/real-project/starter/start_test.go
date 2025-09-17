@@ -14,7 +14,7 @@ import (
 
 // Let Magic start the app and needed containers right here so it runs before any tests can run.
 func TestMain(m *testing.M) {
-	magic.PrepareTesting(m, "main", starter.BuildMagicConfig())
+	magic.PrepareTesting(m, starter.BuildMagicConfig())
 }
 
 func TestApp(t *testing.T) {

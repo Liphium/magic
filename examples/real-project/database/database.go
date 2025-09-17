@@ -57,7 +57,9 @@ type Post struct {
 	// The ID of a post. The magic: ignore tag here makes sure this isn't asked for when we use the Post in scripts.
 	ID uuid.UUID `json:"id" gorm:"primaryKey,type:uuid;default:uuid_generate_v4()" magic:"ignore"`
 
-	// With the prompt: "" struct tag, we can tell Magic what it should ask for. Validate is supported as well.
+	// With the prompt: "" struct tag, we can tell Magic what it should ask for (try running go run . -r create-post c:).
+	//
+	// Magic additionally supports validation using the validator package. Refer to https://github.com/go-playground/validator for everything possible.
 	Author  string `json:"author" prompt:"Author name" validate:"required"`
 	Content string `json:"content" prompt:"Content of the post" validate:"required,max=256"`
 }

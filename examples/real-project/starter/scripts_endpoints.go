@@ -18,13 +18,13 @@ func GetPath() string {
 // Script for creating a post using the endpoint.
 //
 // You could go into the database and add it there, but we want to be able to call the endpoint using scripts.
-func createPost(_ *mrunner.Runner, post database.Post) error {
+func CreatePost(_ *mrunner.Runner, post database.Post) error {
 	_, err := util.Post[interface{}](GetPath()+"/posts", post, util.Headers{})
 	return err
 }
 
 // Script for printing all the posts using the endpoint.
-func printPosts(_ *mrunner.Runner, _ any) error {
+func PrintPosts(_ *mrunner.Runner, _ any) error {
 	posts, err := util.Get[[]database.Post](GetPath()+"/posts", util.Headers{})
 	if err != nil {
 		return err

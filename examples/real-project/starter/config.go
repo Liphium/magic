@@ -41,12 +41,12 @@ func BuildMagicConfig() magic.Config {
 		StartFunction: Start,
 		Scripts: []scripting.Script{
 			// Scripts to deal with the database, can always come in handy
-			scripting.CreateScript("db-reset", "Reset the database by dropping and recreating all tables", resetDatabase),
+			scripting.CreateScript("db-reset", "Reset the database by dropping and recreating all tables", ResetDatabase),
 			scripting.CreateScript("db-seed", "Seed the database with sample posts", SeedDatabase),
 
 			// Scripts to call endpoints, really useful for tests and development
-			scripting.CreateScript("create-post", "Create a post using the endpoint", createPost),
-			scripting.CreateScript("list-posts", "List posts using the endpoint", printPosts),
+			scripting.CreateScript("create-post", "Create a post using the endpoint", CreatePost),
+			scripting.CreateScript("list-posts", "List posts using the endpoint", PrintPosts),
 		},
 	}
 }
