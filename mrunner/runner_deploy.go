@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	_ "github.com/lib/pq"
 )
@@ -26,6 +27,12 @@ func (r *Runner) Deploy(deleteContainers bool) error {
 	if deleteContainers {
 		util.Log.Println("Clearing all state...")
 		r.Clear()
+	}
+
+	// Make sure the Docker connection is working
+	_, err := r.client.Info(context.Background())
+	if client.IsErrConnectionFailed(err) || client.IsErrNotFound(err) {
+		return fmt.Errorf("please make sure Docker is running, and that Magic (or the Go toolchain) has access to it. (%s)", err)
 	}
 
 	// Deploy the database containers
