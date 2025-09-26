@@ -2,23 +2,28 @@ package mrunner
 
 import (
 	"fmt"
-	"log"
 	"maps"
 
 	"github.com/Liphium/magic/integration"
 	"github.com/Liphium/magic/mconfig"
+	"github.com/Liphium/magic/util"
 )
 
+// Get the current plan (might not be set yet, call GeneratePlan first)
+func (r *Runner) Plan() *mconfig.Plan {
+	return r.plan
+}
+
 // Deploy the containers for the magic context
-func (r *Runner) GeneratePlan() string {
+func (r *Runner) GeneratePlan() *mconfig.Plan {
 	if r.ctx == nil {
-		log.Fatalln("no context set")
+		util.Log.Fatalln("no context set")
 	}
 
 	// Prepare database containers
 	types, err := r.prepareDatabases()
 	if err != nil {
-		log.Fatalln("couldn't start databases:", err)
+		util.Log.Fatalln("couldn't start databases:", err)
 	}
 
 	// Prepare all of the ports
@@ -30,7 +35,7 @@ func (r *Runner) GeneratePlan() string {
 			if integration.ScanPort(port) {
 				toAllocate, err = scanForOpenPort()
 				if err != nil {
-					log.Fatalln("Couldn't find open port for", port, ":", err)
+					util.Log.Fatalln("Couldn't find open port for", port, ":", err)
 				}
 			}
 
@@ -41,8 +46,7 @@ func (r *Runner) GeneratePlan() string {
 
 	// Load into plan
 	r.plan = &mconfig.Plan{
-		Module:         r.ctx.Module(),
-		Config:         r.ctx.Config(),
+		AppName:        r.ctx.AppName(),
 		Profile:        r.ctx.Profile(),
 		DatabaseTypes:  types,
 		AllocatedPorts: allocatedPorts,
@@ -55,13 +59,7 @@ func (r *Runner) GeneratePlan() string {
 		environment = r.Environment().Generate()
 	}
 	r.plan.Environment = environment
-
-	// Convert plan to printable string
-	printable, err := r.plan.ToPrintable()
-	if err != nil {
-		log.Fatalln("couldn't generate plan:", err)
-	}
-	return printable
+	return r.plan
 }
 
 func (r *Runner) prepareDatabases() ([]mconfig.PlannedDatabaseType, error) {
@@ -87,13 +85,12 @@ func (r *Runner) prepareDatabases() ([]mconfig.PlannedDatabaseType, error) {
 	for _, db := range r.ctx.Databases() {
 		dbType := types[db.Type()]
 		dbType.Databases = append(dbType.Databases, mconfig.PlannedDatabase{
-			ConfigName: db.Name(),
-			Name:       mconfig.DefaultDatabaseName(r.config, r.profile, db.Name()),
-			Username:   db.DefaultUsername(),
-			Password:   db.DefaultPassword(),
-			Hostname:   "127.0.0.1",
-			Type:       dbType.Type,
-			Port:       dbType.Port,
+			Name:     db.Name(),
+			Username: db.DefaultUsername(),
+			Password: db.DefaultPassword(),
+			Hostname: "127.0.0.1",
+			Type:     dbType.Type,
+			Port:     dbType.Port,
 		})
 		types[db.Type()] = dbType
 	}

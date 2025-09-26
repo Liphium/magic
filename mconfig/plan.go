@@ -1,7 +1,6 @@
 package mconfig
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,9 +9,8 @@ import (
 )
 
 type Plan struct {
-	Module         string                `json:"module"`  // Current module name
-	Config         string                `json:"config"`  // Current config that's being run
-	Profile        string                `json:"profile"` // Current profile that's being run
+	AppName        string                `json:"app_name"`
+	Profile        string                `json:"profile"`
 	Environment    map[string]string     `json:"environment"`
 	DatabaseTypes  []PlannedDatabaseType `json:"database_types"`
 	AllocatedPorts map[uint]uint         `json:"ports"`
@@ -25,17 +23,16 @@ type PlannedDatabaseType struct {
 }
 
 // Name for the database Docker container
-func (p *PlannedDatabaseType) ContainerName(modName string, config string, profile string) string {
-	modName = EverythingToSnakeCase(modName)
-	return fmt.Sprintf("mgc-%s-%s-%s-%d", modName, config, profile, p.Type)
+func (p *PlannedDatabaseType) ContainerName(appName string, profile string) string {
+	appName = EverythingToSnakeCase(appName)
+	return fmt.Sprintf("mgc-%s-%s-%d", appName, profile, p.Type)
 }
 
 type PlannedDatabase struct {
-	ConfigName string `json:"config_name"` // Name in the config
-	Name       string `json:"name"`
-	Username   string `json:"username"`
-	Password   string `json:"password"`
-	Hostname   string `json:"hostname"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Hostname string `json:"hostname"`
 
 	// Just for developers to access, not included in actual plan
 	Type DatabaseType `json:"-"`
@@ -44,21 +41,18 @@ type PlannedDatabase struct {
 
 // Turn the plan into printable form
 func (p *Plan) ToPrintable() (string, error) {
-	encoded, err := json.Marshal(p)
+	// Pretty-print the plan as JSON
+	encoded, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		return "", err
 	}
-	return base64.StdEncoding.EncodeToString(encoded), nil
+	return string(encoded), nil
 }
 
 // Convert back to a plan from printable form
 func FromPrintable(printable string) (*Plan, error) {
-	decoded, err := base64.StdEncoding.DecodeString(printable)
-	if err != nil {
-		return nil, err
-	}
 	plan := &Plan{}
-	err = json.Unmarshal(decoded, plan)
+	err := json.Unmarshal([]byte(printable), plan)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +65,7 @@ func (p *Plan) Database(name string) PlannedDatabase {
 	found := false
 	for _, t := range p.DatabaseTypes {
 		for _, db := range t.Databases {
-			if db.ConfigName == name {
+			if db.Name == name {
 				if found {
 					log.Fatalln("The database", name, "exists in the config more than once.")
 				}
