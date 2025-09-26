@@ -56,7 +56,7 @@ func TestApp(t *testing.T) {
 		magic.GetTestRunner().ClearDatabases()
 
 		// Yes, you can call scripts in here to make your life a little easier.
-		if err := starter.SeedDatabase(magic.GetTestRunner(), ""); err != nil {
+		if err := starter.SeedDatabase(); err != nil {
 			t.Fatal("Couldn't seed database:", err)
 		}
 

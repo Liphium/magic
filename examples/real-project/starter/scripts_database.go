@@ -11,7 +11,7 @@ import (
 // Script to reset the database by dropping and recreating all tables
 //
 // Here we just use any to ignore the argument. This can be useful for scripts such as this one.
-func ResetDatabase(runner *mrunner.Runner, _ any) error {
+func ResetDatabase(runner *mrunner.Runner) error {
 	log.Println("Resetting database...")
 
 	// Magic can clear all databases for you, don't worry, only data will be deleted meaning your schema is still all good :D
@@ -31,7 +31,7 @@ var SamplePosts = []database.Post{
 // Script to seed the database with sample posts
 //
 // Here we just use any to ignore the argument. This can be useful for scripts such as this one.
-func SeedDatabase(runner *mrunner.Runner, _ any) error {
+func SeedDatabase() error {
 	log.Println("Seeding database with sample posts...")
 
 	// Connect to the database
