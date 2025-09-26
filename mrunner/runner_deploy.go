@@ -10,28 +10,36 @@ import (
 	"time"
 
 	"github.com/Liphium/magic/mconfig"
+	"github.com/Liphium/magic/util"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	_ "github.com/lib/pq"
 )
 
 // Deploy all the containers nessecary for the application
-func (r *Runner) Deploy(deleteContainers bool) {
+func (r *Runner) Deploy(deleteContainers bool) error {
 
 	// Clear all state in case wanted
 	if deleteContainers {
-		log.Println("Clearing all state...")
+		util.Log.Println("Clearing all state...")
 		r.Clear()
+	}
+
+	// Make sure the Docker connection is working
+	_, err := r.client.Info(context.Background())
+	if client.IsErrConnectionFailed(err) || client.IsErrNotFound(err) {
+		return fmt.Errorf("please make sure Docker is running, and that Magic (or the Go toolchain) has access to it. (%s)", err)
 	}
 
 	// Deploy the database containers
 	for _, dbType := range r.plan.DatabaseTypes {
 		ctx := context.Background()
-		name := dbType.ContainerName(r.module, r.config, r.profile)
-		log.Println("Creating database container", name+"...")
+		name := dbType.ContainerName(r.appName, r.profile)
+		util.Log.Println("Creating database container", name+"...")
 
 		// Check if the container already exists
 		f := filters.NewArgs()
@@ -41,20 +49,20 @@ func (r *Runner) Deploy(deleteContainers bool) {
 			All:     true,
 		})
 		if err != nil {
-			log.Fatalln("couldn't list containers:", err)
+			return fmt.Errorf("couldn't list containers: %s", err)
 		}
 		containerId := ""
 		var containerMounts []mount.Mount = nil
 		for _, c := range summary {
 			for _, n := range c.Names {
 				if strings.Contains(n, name) {
-					log.Println("Found existing container...")
+					util.Log.Println("Found existing container...")
 					containerId = c.ID
 
 					// Inspect the cotainer to get the mounts
 					resp, err := r.client.ContainerInspect(ctx, c.ID)
 					if err != nil {
-						log.Fatalln("Couldn't inspect container:", err)
+						return fmt.Errorf("couldn't inspect container: %s", err)
 					}
 					containerMounts = resp.HostConfig.Mounts
 				}
@@ -67,22 +75,25 @@ func (r *Runner) Deploy(deleteContainers bool) {
 				RemoveVolumes: false,
 				Force:         true,
 			}); err != nil {
-				log.Fatalln("Couldn't delete database container:", err)
+				return fmt.Errorf("couldn't delete database container: %s", err)
 			}
 		}
 
 		// Create the new container with the volumes
-		log.Println("Creating new container...")
-		containerId = r.createDatabaseContainer(ctx, dbType, name, containerMounts)
+		util.Log.Println("Creating new container...")
+		containerId, err = r.createDatabaseContainer(ctx, dbType, name, containerMounts)
+		if err != nil {
+			return fmt.Errorf("couldn't create database container: %s", err)
+		}
 
 		// Start the container
-		log.Println("Trying to start container...")
+		util.Log.Println("Trying to start container...")
 		if err := r.client.ContainerStart(ctx, containerId, container.StartOptions{}); err != nil {
-			log.Fatalln("couldn't start postgres container:", err)
+			return fmt.Errorf("couldn't start postgres container: %s", err)
 		}
 
 		// Wait for the container to start (with pg_isready)
-		log.Println("Waiting for PostgreSQL to be ready...")
+		util.Log.Println("Waiting for PostgreSQL to be ready...")
 		readyCommand := "pg_isready -d postgres"
 		cmd := strings.Split(readyCommand, " ")
 		execConfig := container.ExecOptions{
@@ -93,15 +104,15 @@ func (r *Runner) Deploy(deleteContainers bool) {
 		for {
 			execIDResp, err := r.client.ContainerExecCreate(ctx, containerId, execConfig)
 			if err != nil {
-				log.Fatalln("couldn't create command for readiness of container:", err)
+				return fmt.Errorf("couldn't create command for readiness of container: %s", err)
 			}
 			execStartCheck := container.ExecStartOptions{Detach: false, Tty: false}
 			if err := r.client.ContainerExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
-				log.Fatalln("couldn't start command for readiness of container:", err)
+				return fmt.Errorf("couldn't start command for readiness of container: %s", err)
 			}
 			respInspect, err := r.client.ContainerExecInspect(ctx, execIDResp.ID)
 			if err != nil {
-				log.Fatalln("couldn't inspect command for readiness of container:", err)
+				return fmt.Errorf("couldn't inspect command for readiness of container: %s", err)
 			}
 			if respInspect.ExitCode == 0 {
 				break
@@ -112,29 +123,31 @@ func (r *Runner) Deploy(deleteContainers bool) {
 		time.Sleep(200 * time.Millisecond) // Some additional time, sometimes takes longer
 
 		// Create all of the databases
-		log.Println("Connecting to PostgreSQL...")
-		r.createDatabases(dbType)
-	}
-
-	// Load environment variables into current application
-	log.Println("Loading environment...")
-	for key, value := range r.plan.Environment {
-		if err := os.Setenv(key, value); err != nil {
-			log.Fatalln("couldn't set environment variable", key+":", err)
+		util.Log.Println("Connecting to PostgreSQL...")
+		if err := r.createDatabases(dbType); err != nil {
+			return err
 		}
 	}
 
-	log.Println("Deployment finished.")
-	log.Println(" ")
+	// Load environment variables into current application
+	util.Log.Println("Loading environment...")
+	for key, value := range r.plan.Environment {
+		if err := os.Setenv(key, value); err != nil {
+			return fmt.Errorf("couldn't set environment variable %s: %s", key, err)
+		}
+	}
+
+	util.Log.Println("Deployment finished.")
+	return nil
 }
 
 // Create a new container for a postgres database. Returns container id.
-func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.PlannedDatabaseType, name string, mounts []mount.Mount) string {
+func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.PlannedDatabaseType, name string, mounts []mount.Mount) (string, error) {
 
 	// Reserve the port for the container
 	port, err := nat.NewPort("tcp", "5432")
 	if err != nil {
-		log.Fatalln("couldn't create port for postgres container:", err)
+		return "", fmt.Errorf("couldn't create port for postgres container: %s", err)
 	}
 	exposedPorts := nat.PortSet{port: struct{}{}}
 
@@ -169,29 +182,30 @@ func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.Pla
 		ExposedPorts: exposedPorts,
 	}, networkConf, &network.NetworkingConfig{}, nil, name)
 	if err != nil {
-		log.Fatalln("couldn't create postgres container:", err)
+		return "", fmt.Errorf("couldn't create postgres container: %s", err)
 	}
-	return resp.ID
+	return resp.ID, nil
 }
 
 // Connect to postgres and create all the needed databases.
-func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) {
+func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) error {
 	connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=postgres sslmode=disable", dbType.Port)
 
 	// Connect to the database
 	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatalln("couldn't connect to postgres:", err)
+		return fmt.Errorf("couldn't connect to postgres: %s", err)
 	}
 	defer conn.Close()
 
 	for _, db := range dbType.Databases {
-		log.Println("Creating database", db.Name+"...")
+		util.Log.Println("Creating database", db.Name+"...")
 		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db.Name))
 		if err != nil && !strings.Contains(err.Error(), "already exists") {
-			log.Fatalln("couldn't create postgres database:", err)
+			return fmt.Errorf("couldn't create postgres database: %s", err)
 		}
 	}
+	return nil
 }
 
 // Delete all containers and reset all state
@@ -201,7 +215,7 @@ func (r *Runner) Clear() {
 
 		// Try to find the container for the type
 		f := filters.NewArgs()
-		name := dbType.ContainerName(r.module, r.config, r.profile)
+		name := dbType.ContainerName(r.appName, r.profile)
 		f.Add("name", name)
 		summary, err := r.client.ContainerList(ctx, container.ListOptions{
 			Filters: f,
@@ -224,12 +238,12 @@ func (r *Runner) Clear() {
 		}
 
 		// Delete the container
-		log.Println("Deleting container", name+"...")
+		util.Log.Println("Deleting container", name+"...")
 		if err := r.client.ContainerRemove(ctx, containerId, container.RemoveOptions{
 			RemoveVolumes: true,
 			Force:         true,
 		}); err != nil {
-			log.Fatalln("Couldn't delete database container:", err)
+			util.Log.Fatalln("Couldn't delete database container:", err)
 		}
 	}
 }
@@ -241,13 +255,13 @@ func (r *Runner) StopContainers() {
 
 		// Try to find the container for the type
 		f := filters.NewArgs()
-		name := dbType.ContainerName(r.module, r.config, r.profile)
+		name := dbType.ContainerName(r.appName, r.profile)
 		f.Add("name", name)
 		summary, err := r.client.ContainerList(ctx, container.ListOptions{
 			Filters: f,
 		})
 		if err != nil {
-			log.Fatalln("Couldn't list containers:", err)
+			util.Log.Fatalln("Couldn't list containers:", err)
 		}
 		containerId := ""
 		for _, c := range summary {
@@ -264,9 +278,9 @@ func (r *Runner) StopContainers() {
 		}
 
 		// Stop the container
-		log.Println("Stopping container", name+"...")
+		util.Log.Println("Stopping container", name+"...")
 		if err := r.client.ContainerStop(ctx, containerId, container.StopOptions{}); err != nil {
-			log.Fatalln("Couldn't stop database container:", err)
+			util.Log.Fatalln("Couldn't stop database container:", err)
 		}
 	}
 }
@@ -292,15 +306,13 @@ func (r *Runner) ClearDatabases() {
 			if err != nil {
 				log.Fatalln("couldn't get database tables:", err)
 			}
-			tryAgain := []string{}
 			for res.Next() {
 				var name string
 				if err := res.Scan(&name); err != nil {
-					log.Fatalln("couldn't get database table name:", err)
+					util.Log.Fatalln("couldn't get database table name:", err)
 				}
 				if _, err := conn.Exec(fmt.Sprintf("truncate %s CASCADE", name)); err != nil {
-					tryAgain = append(tryAgain, name)
-					log.Fatalln("couldn't delete from table", name+":", err)
+					util.Log.Fatalln("couldn't delete from table", name+":", err)
 				}
 			}
 		}
