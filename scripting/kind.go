@@ -25,14 +25,13 @@ var SupportedKinds = append([]reflect.Kind{
 }, numberKindsSupported...)
 
 // Create a function that can take a struct
-func CreateCollector[T any]() (func([]string) interface{}, error) {
+func CreateCollector(genType reflect.Type) (func([]string) interface{}, error) {
 
 	// Create the validator in case it's not there yet
 	if validate == nil {
 		validate = createValidator()
 	}
 
-	genType := reflect.TypeFor[T]()
 	if genType.Kind() != reflect.Struct {
 		if mconfig.VerboseLogging {
 			util.Log.Println("Ignoring script argument due to not being a struct...")
