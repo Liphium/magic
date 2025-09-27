@@ -11,6 +11,9 @@ import (
 	"github.com/gofrs/flock"
 )
 
+// The maximum amount of folders Magic tries to go back
+const maxRecursiveTries = 20
+
 var errProfileLocked = errors.New("profile is already locked by a different instance")
 
 type Factory struct {
@@ -25,7 +28,7 @@ func createFactory() (Factory, error) {
 		return Factory{}, err
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < maxRecursiveTries; i++ {
 		modPath := filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(modPath); err == nil {
 			return Factory{projectDir: dir}, nil
