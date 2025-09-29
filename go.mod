@@ -2,6 +2,10 @@ module github.com/Liphium/magic
 
 go 1.24.3
 
+retract (
+	[v1.0.0-rc1, v1.0.0-rc14] // This package used to be a executable, we wont the Go proxy to ignore all previous versions
+)
+
 require (
 	github.com/docker/docker v28.1.1+incompatible
 	github.com/docker/go-connections v0.5.0
