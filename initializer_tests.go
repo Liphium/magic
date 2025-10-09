@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Liphium/magic/mrunner"
-	"github.com/Liphium/magic/util"
+	"github.com/Liphium/magic/v2/mrunner"
+	"github.com/Liphium/magic/v2/util"
 )
 
 var startSignalChan = make(chan struct{})

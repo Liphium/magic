@@ -1,7 +1,7 @@
 package mrunner
 
 import (
-	"github.com/Liphium/magic/mconfig"
+	"github.com/Liphium/magic/v2/mconfig"
 	"github.com/docker/docker/client"
 )
 

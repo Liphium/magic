@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Liphium/magic/mconfig"
-	"github.com/Liphium/magic/util"
+	"github.com/Liphium/magic/v2/mconfig"
+	"github.com/Liphium/magic/v2/util"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"

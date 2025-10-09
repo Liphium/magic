@@ -3,7 +3,7 @@ package magic_scripts
 import (
 	"log"
 
-	"github.com/Liphium/magic/mrunner"
+	"github.com/Liphium/magic/v2/mrunner"
 )
 
 type SomeScriptOptions struct {

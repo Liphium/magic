@@ -5,9 +5,9 @@ import (
 	magic_scripts "scripts-example/scripts"
 	"time"
 
-	"github.com/Liphium/magic"
-	"github.com/Liphium/magic/mconfig"
-	"github.com/Liphium/magic/scripting"
+	"github.com/Liphium/magic/v2"
+	"github.com/Liphium/magic/v2/mconfig"
+	"github.com/Liphium/magic/v2/scripting"
 )
 
 // Our main function is wrapped using Magic, in a real app you should use go build tags to have two main functions, one for

@@ -3,9 +3,9 @@ package starter
 import (
 	"fmt"
 
-	"github.com/Liphium/magic"
-	"github.com/Liphium/magic/mconfig"
-	"github.com/Liphium/magic/scripting"
+	"github.com/Liphium/magic/v2"
+	"github.com/Liphium/magic/v2/mconfig"
+	"github.com/Liphium/magic/v2/scripting"
 )
 
 func BuildMagicConfig() magic.Config {

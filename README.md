@@ -37,7 +37,7 @@ Other services may be supported in the future.
 **1.** Add Magic to your project:
 
 ```sh
-go get -u github.com/Liphium/magic@latest
+go get -u github.com/Liphium/magic/v2@latest
 ```
 
 **2.** Wrap your main function with ``magic.Start`` (please take a look at the [real project example](https://github.com/Liphium/magic/tree/main/examples/real-project) for how to really to do this, this just serves as a showcase):

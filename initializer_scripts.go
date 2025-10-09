@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Liphium/magic/mconfig"
-	"github.com/Liphium/magic/mrunner"
-	"github.com/Liphium/magic/scripting"
-	"github.com/Liphium/magic/util"
+	"github.com/Liphium/magic/v2/mconfig"
+	"github.com/Liphium/magic/v2/mrunner"
+	"github.com/Liphium/magic/v2/scripting"
+	"github.com/Liphium/magic/v2/util"
 	"github.com/spf13/pflag"
 )
 

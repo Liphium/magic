@@ -5,7 +5,7 @@ import (
 	"log"
 	"real-project/database"
 
-	"github.com/Liphium/magic/mrunner"
+	"github.com/Liphium/magic/v2/mrunner"
 )
 
 // Script to reset the database by dropping and recreating all tables
