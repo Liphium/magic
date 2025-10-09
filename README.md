@@ -9,7 +9,7 @@ The goal of Liphium Magic is to built tools to make testing applications written
 **1.** Install Magic using the following command:
 
 ```sh
-go install github.com/Liphium/magic@latest
+go install github.com/Liphium/magic/v2@latest
 ```
 
 **2.** To use Magic go to any Go project of your chosing and run `magic init`. This will create a new directory in your project called `magic`. In there you can edit the `config.go` file to create databases. Here's an example:

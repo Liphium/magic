@@ -2,10 +2,10 @@ module real-project
 
 go 1.24.4
 
-replace github.com/Liphium/magic => ../../.
+replace github.com/Liphium/magic/v2 => ../../.
 
 require (
-	github.com/Liphium/magic v0.0.0-00010101000000-000000000000
+	github.com/Liphium/magic/v2 v2.0.0-00010101000000-000000000000
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/google/uuid v1.6.0
 	gorm.io/driver/postgres v1.6.0

@@ -8,7 +8,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/Liphium/magic"
+	"github.com/Liphium/magic/v2"
 	"github.com/google/uuid"
 )
 

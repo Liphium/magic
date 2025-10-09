@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"maps"
 
-	"github.com/Liphium/magic/integration"
-	"github.com/Liphium/magic/mconfig"
-	"github.com/Liphium/magic/util"
+	"github.com/Liphium/magic/v2/integration"
+	"github.com/Liphium/magic/v2/mconfig"
+	"github.com/Liphium/magic/v2/util"
 )
 
 // Get the current plan (might not be set yet, call GeneratePlan first)
