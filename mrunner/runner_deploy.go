@@ -171,12 +171,18 @@ func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.Pla
 		Mounts: mounts,
 	}
 
+	// Check if an environment variable is set for the postgres image
+	postgresImage := os.Getenv("MAGIC_POSTGRES_IMAGE")
+	if postgresImage == "" {
+		postgresImage = "postgres:latest"
+	}
+
 	// Create the container
 	resp, err := r.client.ContainerCreate(ctx, &container.Config{
-		Image: "postgres:latest",
+		Image: postgresImage,
 		Env: []string{
 			fmt.Sprintf("POSTGRES_PASSWORD=%s", mconfig.DefaultPassword(dbType.Type)),
-			fmt.Sprintf("POSTGRES_USERNAME=%s", mconfig.DefaultUsername(dbType.Type)),
+			fmt.Sprintf("POSTGRES_USER=%s", mconfig.DefaultUsername(dbType.Type)),
 			"POSTGRES_DATABASE=postgres",
 		},
 		ExposedPorts: exposedPorts,
