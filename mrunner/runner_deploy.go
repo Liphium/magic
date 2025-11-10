@@ -23,16 +23,16 @@ import (
 // Deploy all the containers nessecary for the application
 func (r *Runner) Deploy(deleteContainers bool) error {
 
-	// Clear all state in case wanted
-	if deleteContainers {
-		util.Log.Println("Clearing all state...")
-		r.Clear()
-	}
-
 	// Make sure the Docker connection is working
 	_, err := r.client.Info(context.Background())
 	if client.IsErrConnectionFailed(err) || client.IsErrNotFound(err) {
 		return fmt.Errorf("please make sure Docker is running, and that Magic (or the Go toolchain) has access to it. (%s)", err)
+	}
+
+	// Clear all state in case wanted
+	if deleteContainers {
+		util.Log.Println("Clearing all state...")
+		r.Clear()
 	}
 
 	// Deploy the database containers
@@ -219,6 +219,7 @@ func (r *Runner) Clear() {
 		f.Add("name", name)
 		summary, err := r.client.ContainerList(ctx, container.ListOptions{
 			Filters: f,
+			All:     true,
 		})
 		if err != nil {
 			log.Fatalln("Couldn't list containers:", err)
@@ -237,13 +238,35 @@ func (r *Runner) Clear() {
 			continue
 		}
 
+		// Get all the attached volumes to delete them manually
+		containerInfo, err := r.client.ContainerInspect(ctx, containerId)
+		if err != nil {
+			util.Log.Println("Warning: Couldn't inspect container:", err)
+		}
+		var volumeNames []string
+		if containerInfo.Mounts != nil {
+			for _, mnt := range containerInfo.Mounts {
+				if mnt.Type == mount.TypeVolume && mnt.Name != "" {
+					volumeNames = append(volumeNames, mnt.Name)
+				}
+			}
+		}
+
 		// Delete the container
 		util.Log.Println("Deleting container", name+"...")
 		if err := r.client.ContainerRemove(ctx, containerId, container.RemoveOptions{
-			RemoveVolumes: true,
+			RemoveVolumes: false,
 			Force:         true,
 		}); err != nil {
 			util.Log.Fatalln("Couldn't delete database container:", err)
+		}
+
+		// Delete all the attached volumes
+		for _, volumeName := range volumeNames {
+			util.Log.Println("Deleting volume", volumeName+"...")
+			if err := r.client.VolumeRemove(ctx, volumeName, true); err != nil {
+				util.Log.Println("Warning: Couldn't delete volume", volumeName+":", err)
+			}
 		}
 	}
 }
