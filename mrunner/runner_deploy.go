@@ -5,27 +5,26 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/netip"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/Liphium/magic/v2/mconfig"
 	"github.com/Liphium/magic/v2/util"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/client"
-	"github.com/docker/go-connections/nat"
 	_ "github.com/lib/pq"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 )
 
 // Deploy all the containers nessecary for the application
 func (r *Runner) Deploy(deleteContainers bool) error {
 
 	// Make sure the Docker connection is working
-	_, err := r.client.Info(context.Background())
-	if client.IsErrConnectionFailed(err) || client.IsErrNotFound(err) {
+	_, err := r.client.Info(context.Background(), client.InfoOptions{})
+	if client.IsErrConnectionFailed(err) {
 		return fmt.Errorf("please make sure Docker is running, and that Magic (or the Go toolchain) has access to it. (%s)", err)
 	}
 
@@ -42,9 +41,9 @@ func (r *Runner) Deploy(deleteContainers bool) error {
 		util.Log.Println("Creating database container", name+"...")
 
 		// Check if the container already exists
-		f := filters.NewArgs()
+		f := make(client.Filters)
 		f.Add("name", name)
-		summary, err := r.client.ContainerList(ctx, container.ListOptions{
+		summary, err := r.client.ContainerList(ctx, client.ContainerListOptions{
 			Filters: f,
 			All:     true,
 		})
@@ -53,25 +52,25 @@ func (r *Runner) Deploy(deleteContainers bool) error {
 		}
 		containerId := ""
 		var containerMounts []mount.Mount = nil
-		for _, c := range summary {
+		for _, c := range summary.Items {
 			for _, n := range c.Names {
 				if strings.Contains(n, name) {
 					util.Log.Println("Found existing container...")
 					containerId = c.ID
 
 					// Inspect the cotainer to get the mounts
-					resp, err := r.client.ContainerInspect(ctx, c.ID)
+					resp, err := r.client.ContainerInspect(ctx, c.ID, client.ContainerInspectOptions{})
 					if err != nil {
 						return fmt.Errorf("couldn't inspect container: %s", err)
 					}
-					containerMounts = resp.HostConfig.Mounts
+					containerMounts = resp.Container.HostConfig.Mounts
 				}
 			}
 		}
 
 		// Delete the container if it exists
 		if containerId != "" {
-			if err := r.client.ContainerRemove(ctx, containerId, container.RemoveOptions{
+			if _, err := r.client.ContainerRemove(ctx, containerId, client.ContainerRemoveOptions{
 				RemoveVolumes: false,
 				Force:         true,
 			}); err != nil {
@@ -88,7 +87,7 @@ func (r *Runner) Deploy(deleteContainers bool) error {
 
 		// Start the container
 		util.Log.Println("Trying to start container...")
-		if err := r.client.ContainerStart(ctx, containerId, container.StartOptions{}); err != nil {
+		if _, err := r.client.ContainerStart(ctx, containerId, client.ContainerStartOptions{}); err != nil {
 			return fmt.Errorf("couldn't start postgres container: %s", err)
 		}
 
@@ -96,21 +95,21 @@ func (r *Runner) Deploy(deleteContainers bool) error {
 		util.Log.Println("Waiting for PostgreSQL to be ready...")
 		readyCommand := "pg_isready -d postgres"
 		cmd := strings.Split(readyCommand, " ")
-		execConfig := container.ExecOptions{
+		execConfig := client.ExecCreateOptions{
 			Cmd:          cmd,
 			AttachStdout: true,
 			AttachStderr: true,
 		}
 		for {
-			execIDResp, err := r.client.ContainerExecCreate(ctx, containerId, execConfig)
+			execIDResp, err := r.client.ExecCreate(ctx, containerId, execConfig)
 			if err != nil {
 				return fmt.Errorf("couldn't create command for readiness of container: %s", err)
 			}
-			execStartCheck := container.ExecStartOptions{Detach: false, Tty: false}
-			if err := r.client.ContainerExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
+			execStartCheck := client.ExecStartOptions{Detach: false, TTY: false}
+			if _, err := r.client.ExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
 				return fmt.Errorf("couldn't start command for readiness of container: %s", err)
 			}
-			respInspect, err := r.client.ContainerExecInspect(ctx, execIDResp.ID)
+			respInspect, err := r.client.ExecInspect(ctx, execIDResp.ID, client.ExecInspectOptions{})
 			if err != nil {
 				return fmt.Errorf("couldn't inspect command for readiness of container: %s", err)
 			}
@@ -145,11 +144,11 @@ func (r *Runner) Deploy(deleteContainers bool) error {
 func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.PlannedDatabaseType, name string, mounts []mount.Mount) (string, error) {
 
 	// Reserve the port for the container
-	port, err := nat.NewPort("tcp", "5432")
+	port, err := network.ParsePort("5432/tcp")
 	if err != nil {
 		return "", fmt.Errorf("couldn't create port for postgres container: %s", err)
 	}
-	exposedPorts := nat.PortSet{port: struct{}{}}
+	exposedPorts := network.PortSet{port: struct{}{}}
 
 	// If no existing mounts, create a new volume for PostgreSQL data
 	if mounts == nil {
@@ -165,8 +164,8 @@ func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.Pla
 
 	// Create the network config for the container
 	networkConf := &container.HostConfig{
-		PortBindings: nat.PortMap{
-			port: []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%d", dbType.Port)}},
+		PortBindings: network.PortMap{
+			port: []network.PortBinding{{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: fmt.Sprintf("%d", dbType.Port)}},
 		},
 		Mounts: mounts,
 	}
@@ -178,15 +177,19 @@ func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.Pla
 	}
 
 	// Create the container
-	resp, err := r.client.ContainerCreate(ctx, &container.Config{
-		Image: postgresImage,
-		Env: []string{
-			fmt.Sprintf("POSTGRES_PASSWORD=%s", mconfig.DefaultPassword(dbType.Type)),
-			fmt.Sprintf("POSTGRES_USER=%s", mconfig.DefaultUsername(dbType.Type)),
-			"POSTGRES_DATABASE=postgres",
+	resp, err := r.client.ContainerCreate(ctx, client.ContainerCreateOptions{
+		Config: &container.Config{
+			Image: postgresImage,
+			Env: []string{
+				fmt.Sprintf("POSTGRES_PASSWORD=%s", mconfig.DefaultPassword(dbType.Type)),
+				fmt.Sprintf("POSTGRES_USER=%s", mconfig.DefaultUsername(dbType.Type)),
+				"POSTGRES_DATABASE=postgres",
+			},
+			ExposedPorts: exposedPorts,
 		},
-		ExposedPorts: exposedPorts,
-	}, networkConf, &network.NetworkingConfig{}, nil, name)
+		HostConfig: networkConf,
+		Name:       name,
+	})
 	if err != nil {
 		return "", fmt.Errorf("couldn't create postgres container: %s", err)
 	}
@@ -220,10 +223,10 @@ func (r *Runner) Clear() {
 	for _, dbType := range r.plan.DatabaseTypes {
 
 		// Try to find the container for the type
-		f := filters.NewArgs()
+		f := make(client.Filters)
 		name := dbType.ContainerName(r.appName, r.profile)
 		f.Add("name", name)
-		summary, err := r.client.ContainerList(ctx, container.ListOptions{
+		summary, err := r.client.ContainerList(ctx, client.ContainerListOptions{
 			Filters: f,
 			All:     true,
 		})
@@ -231,7 +234,7 @@ func (r *Runner) Clear() {
 			log.Fatalln("Couldn't list containers:", err)
 		}
 		containerId := ""
-		for _, c := range summary {
+		for _, c := range summary.Items {
 			for _, n := range c.Names {
 				if strings.Contains(n, name) {
 					containerId = c.ID
@@ -245,13 +248,13 @@ func (r *Runner) Clear() {
 		}
 
 		// Get all the attached volumes to delete them manually
-		containerInfo, err := r.client.ContainerInspect(ctx, containerId)
+		containerInfo, err := r.client.ContainerInspect(ctx, containerId, client.ContainerInspectOptions{})
 		if err != nil {
 			util.Log.Println("Warning: Couldn't inspect container:", err)
 		}
 		var volumeNames []string
-		if containerInfo.Mounts != nil {
-			for _, mnt := range containerInfo.Mounts {
+		if containerInfo.Container.Config.Volumes != nil {
+			for _, mnt := range containerInfo.Container.Mounts {
 				if mnt.Type == mount.TypeVolume && mnt.Name != "" {
 					volumeNames = append(volumeNames, mnt.Name)
 				}
@@ -260,7 +263,7 @@ func (r *Runner) Clear() {
 
 		// Delete the container
 		util.Log.Println("Deleting container", name+"...")
-		if err := r.client.ContainerRemove(ctx, containerId, container.RemoveOptions{
+		if _, err := r.client.ContainerRemove(ctx, containerId, client.ContainerRemoveOptions{
 			RemoveVolumes: false,
 			Force:         true,
 		}); err != nil {
@@ -270,7 +273,9 @@ func (r *Runner) Clear() {
 		// Delete all the attached volumes
 		for _, volumeName := range volumeNames {
 			util.Log.Println("Deleting volume", volumeName+"...")
-			if err := r.client.VolumeRemove(ctx, volumeName, true); err != nil {
+			if _, err := r.client.VolumeRemove(ctx, volumeName, client.VolumeRemoveOptions{
+				Force: true,
+			}); err != nil {
 				util.Log.Println("Warning: Couldn't delete volume", volumeName+":", err)
 			}
 		}
@@ -283,17 +288,17 @@ func (r *Runner) StopContainers() {
 	for _, dbType := range r.plan.DatabaseTypes {
 
 		// Try to find the container for the type
-		f := filters.NewArgs()
+		f := make(client.Filters)
 		name := dbType.ContainerName(r.appName, r.profile)
 		f.Add("name", name)
-		summary, err := r.client.ContainerList(ctx, container.ListOptions{
+		summary, err := r.client.ContainerList(ctx, client.ContainerListOptions{
 			Filters: f,
 		})
 		if err != nil {
 			util.Log.Fatalln("Couldn't list containers:", err)
 		}
 		containerId := ""
-		for _, c := range summary {
+		for _, c := range summary.Items {
 			for _, n := range c.Names {
 				if strings.Contains(n, name) {
 					containerId = c.ID
@@ -308,7 +313,7 @@ func (r *Runner) StopContainers() {
 
 		// Stop the container
 		util.Log.Println("Stopping container", name+"...")
-		if err := r.client.ContainerStop(ctx, containerId, container.StopOptions{}); err != nil {
+		if _, err := r.client.ContainerStop(ctx, containerId, client.ContainerStopOptions{}); err != nil {
 			util.Log.Fatalln("Couldn't stop database container:", err)
 		}
 	}
