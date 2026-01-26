@@ -58,7 +58,7 @@ func (r *Runner) Deploy(deleteContainers bool) error {
 					util.Log.Println("Found existing container...")
 					containerId = c.ID
 
-					// Inspect the cotainer to get the mounts
+					// Inspect the container to get the mounts
 					resp, err := r.client.ContainerInspect(ctx, c.ID, client.ContainerInspectOptions{})
 					if err != nil {
 						return fmt.Errorf("couldn't inspect container: %s", err)
