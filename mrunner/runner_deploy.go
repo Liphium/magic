@@ -253,7 +253,7 @@ func (r *Runner) Clear() {
 			util.Log.Println("Warning: Couldn't inspect container:", err)
 		}
 		var volumeNames []string
-		if containerInfo.Container.Config.Volumes != nil {
+		if containerInfo.Container.Mounts != nil {
 			for _, mnt := range containerInfo.Container.Mounts {
 				if mnt.Type == mount.TypeVolume && mnt.Name != "" {
 					volumeNames = append(volumeNames, mnt.Name)
