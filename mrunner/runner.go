@@ -2,7 +2,7 @@ package mrunner
 
 import (
 	"github.com/Liphium/magic/v2/mconfig"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 )
 
 const DefaultStartPort uint = 10000
