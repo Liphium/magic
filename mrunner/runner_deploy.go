@@ -23,7 +23,7 @@ import (
 func (r *Runner) Deploy(deleteContainers bool) error {
 
 	if os.Getenv("MAGIC_NO_DOCKER") == "true" {
-		util.Log.Println("MAGIC IS RUNNIGN WITHOUT DOCKER, THIS CAN CAUSE YOUR DATABASES NOT TO WORK!!!")
+		util.Log.Println("WARNING: Magic is running without Docker: This will cause databases or other services to not be started even when you specify them.")
 		return nil
 	}
 
