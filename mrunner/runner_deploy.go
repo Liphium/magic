@@ -22,6 +22,11 @@ import (
 // Deploy all the containers nessecary for the application
 func (r *Runner) Deploy(deleteContainers bool) error {
 
+	if os.Getenv("MAGIC_NO_DOCKER") == "true" {
+		util.Log.Println("MAGIC IS RUNNIGN WITHOUT DOCKER, THIS CAN CAUSE YOUR DATABASES NOT TO WORK!!!")
+		return nil
+	}
+
 	// Make sure the Docker connection is working
 	_, err := r.client.Info(context.Background(), client.InfoOptions{})
 	if client.IsErrConnectionFailed(err) {
