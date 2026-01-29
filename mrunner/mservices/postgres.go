@@ -1,4 +1,4 @@
-package mdatabase
+package mservices
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"net/netip"
 	"os"
 	"strings"
-	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/moby/moby/api/types/container"
@@ -23,7 +22,36 @@ const (
 
 var pgLog *log.Logger = log.New(os.Stdout, "pg-manager ", log.Default().Flags())
 
-type PostgresDriver struct{}
+type PostgresDriver struct {
+	image string
+
+	// Database credentials
+	username string
+	password string
+
+	databases []string
+}
+
+func NewPostgresDriver(image string) *PostgresDriver {
+	return &PostgresDriver{
+		image: image,
+	}
+}
+
+func (pd *PostgresDriver) WithUsername(name string) *PostgresDriver {
+	pd.username = name
+	return pd
+}
+
+func (pd *PostgresDriver) WithPassword(password string) *PostgresDriver {
+	pd.password = password
+	return pd
+}
+
+func (pd *PostgresDriver) NewDatabase(name string) *PostgresDriver {
+	pd.databases = append(pd.databases, name)
+	return pd
+}
 
 // A unique identifier for the database container
 func (pd *PostgresDriver) GetUniqueId() string {
@@ -31,7 +59,18 @@ func (pd *PostgresDriver) GetUniqueId() string {
 }
 
 // Should create a new container for the database or use the existing one (returns container id + error in case one happened)
-func (pd *PostgresDriver) StartContainer(ctx context.Context, a DatabaseContainerAllocation, c *client.Client) (string, error) {
+func (pd *PostgresDriver) StartContainer(ctx context.Context, c *client.Client, a ContainerAllocation) (string, error) {
+
+	// Set to default username and password when not set
+	if pd.username == "" {
+		pd.username = DefaultPostgresUsername
+	}
+	if pd.password == "" {
+		pd.password = DefaultPostgresPassword
+	}
+	if pd.image == "" {
+		pd.image = "postgres:latest"
+	}
 
 	// Check if the container already exists
 	f := make(client.Filters)
@@ -98,19 +137,21 @@ func (pd *PostgresDriver) StartContainer(ctx context.Context, a DatabaseContaine
 		Mounts: mounts,
 	}
 
-	// Check if an environment variable is set for the postgres image
-	postgresImage := os.Getenv("MAGIC_POSTGRES_IMAGE")
-	if postgresImage == "" {
-		postgresImage = "postgres:latest"
+	// Pull the image
+	pgLog.Println("Pulling image", pd.image, "...")
+	pullResponse, err := c.ImagePull(ctx, pd.image, client.ImagePullOptions{})
+	if err != nil {
+		return "", fmt.Errorf("couldn't pull image %s: %v", pd.image, err)
 	}
+	pullResponse.Wait(ctx)
 
 	// Create the container
 	resp, err := c.ContainerCreate(ctx, client.ContainerCreateOptions{
 		Config: &container.Config{
-			Image: postgresImage,
+			Image: pd.image,
 			Env: []string{
-				fmt.Sprintf("POSTGRES_PASSWORD=%s", DefaultPostgresPassword),
-				fmt.Sprintf("POSTGRES_USER=%s", DefaultPostgresUsername),
+				fmt.Sprintf("POSTGRES_PASSWORD=%s", pd.password),
+				fmt.Sprintf("POSTGRES_USER=%s", pd.username),
 				"POSTGRES_DATABASE=postgres",
 			},
 			ExposedPorts: exposedPorts,
@@ -128,8 +169,12 @@ func (pd *PostgresDriver) StartContainer(ctx context.Context, a DatabaseContaine
 		return "", fmt.Errorf("couldn't start postgres container: %s", err)
 	}
 
-	// Wait for the container to start (with pg_isready)
-	pgLog.Println("Waiting for PostgreSQL to be ready...")
+	pgLog.Println("Database container started.")
+	return resp.ID, nil
+}
+
+// Check for postgres health
+func (pd *PostgresDriver) IsHealthy(ctx context.Context, c *client.Client, id string) (bool, error) {
 	readyCommand := "pg_isready -d postgres"
 	cmd := strings.Split(readyCommand, " ")
 	execConfig := client.ExecCreateOptions{
@@ -137,27 +182,26 @@ func (pd *PostgresDriver) StartContainer(ctx context.Context, a DatabaseContaine
 		AttachStdout: true,
 		AttachStderr: true,
 	}
-	for {
-		execIDResp, err := c.ExecCreate(ctx, containerId, execConfig)
-		if err != nil {
-			return "", fmt.Errorf("couldn't create command for readiness of container: %s", err)
-		}
-		execStartCheck := client.ExecStartOptions{Detach: false, TTY: false}
-		if _, err := c.ExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
-			return "", fmt.Errorf("couldn't start command for readiness of container: %s", err)
-		}
-		respInspect, err := c.ExecInspect(ctx, execIDResp.ID, client.ExecInspectOptions{})
-		if err != nil {
-			return "", fmt.Errorf("couldn't inspect command for readiness of container: %s", err)
-		}
-		if respInspect.ExitCode == 0 {
-			break
-		}
 
-		time.Sleep(200 * time.Millisecond)
+	// Try to execute the command
+	execIDResp, err := c.ExecCreate(ctx, id, execConfig)
+	if err != nil {
+		return false, fmt.Errorf("couldn't create command for readiness of container: %s", err)
 	}
-	time.Sleep(200 * time.Millisecond) // Some additional time, sometimes takes longer
+	execStartCheck := client.ExecStartOptions{Detach: false, TTY: false}
+	if _, err := c.ExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
+		return false, fmt.Errorf("couldn't start command for readiness of container: %s", err)
+	}
+	respInspect, err := c.ExecInspect(ctx, execIDResp.ID, client.ExecInspectOptions{})
+	if err != nil {
+		return false, fmt.Errorf("couldn't inspect command for readiness of container: %s", err)
+	}
 
-	pgLog.Println("Database container started.")
-	return resp.ID, nil
+	return respInspect.ExitCode == 0, nil
+}
+
+// Initialize the internal container with a script (for example)
+func (pd *PostgresDriver) Initialize(ctx context.Context, c *client.Client, id string) error {
+	// TODO: Create
+	return nil
 }
