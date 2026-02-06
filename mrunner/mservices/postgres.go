@@ -2,6 +2,7 @@ package mservices
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/netip"
@@ -14,6 +15,9 @@ import (
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 )
+
+// Make sure the driver complies
+var _ ServiceDriver = &PostgresDriver{}
 
 const (
 	DefaultPostgresUsername = "postgres"
@@ -32,7 +36,28 @@ type PostgresDriver struct {
 	databases []string
 }
 
+// Create a new PostgreSQL service driver.
+//
+// It currently supports version 14-17.
+//
+// This driver will eventually be renamed into the legacy driver for people who still want to use PostgreSQL v17 or lower. Eventually it will be deprecated and fully removed (only once the v18 driver is available).
 func NewPostgresDriver(image string) *PostgresDriver {
+	imageVersion := strings.Split(image, ":")[1]
+
+	// Supported (confirmed and tested) major versions for this Postgres driver
+	var supportedPostgresVersions = []string{"14", "15", "16", "17"}
+
+	// Do a quick check to make sure the image version is actually supported
+	supported := false
+	for _, version := range supportedPostgresVersions {
+		if strings.HasPrefix(imageVersion, fmt.Sprintf("%s.", version)) {
+			supported = true
+		}
+	}
+	if !supported {
+		pgLog.Fatalln("ERROR: Version", imageVersion, "is currently not supported.")
+	}
+
 	return &PostgresDriver{
 		image: image,
 	}
@@ -55,11 +80,19 @@ func (pd *PostgresDriver) NewDatabase(name string) *PostgresDriver {
 
 // A unique identifier for the database container
 func (pd *PostgresDriver) GetUniqueId() string {
-	return "postgres"
+	return "postgres1417"
+}
+
+func (pd *PostgresDriver) GetRequiredPortAmount() int {
+	return 1
+}
+
+func (pd *PostgresDriver) GetImage() string {
+	return pd.image
 }
 
 // Should create a new container for the database or use the existing one (returns container id + error in case one happened)
-func (pd *PostgresDriver) StartContainer(ctx context.Context, c *client.Client, a ContainerAllocation) (string, error) {
+func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client, a ContainerAllocation) (string, error) {
 
 	// Set to default username and password when not set
 	if pd.username == "" {
@@ -132,7 +165,7 @@ func (pd *PostgresDriver) StartContainer(ctx context.Context, c *client.Client, 
 	// Create the network config for the container (exposes the container to the host)
 	networkConf := &container.HostConfig{
 		PortBindings: network.PortMap{
-			port: []network.PortBinding{{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: fmt.Sprintf("%d", a.Port)}},
+			port: []network.PortBinding{{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: fmt.Sprintf("%d", a.Ports[0])}},
 		},
 		Mounts: mounts,
 	}
@@ -174,7 +207,7 @@ func (pd *PostgresDriver) StartContainer(ctx context.Context, c *client.Client, 
 }
 
 // Check for postgres health
-func (pd *PostgresDriver) IsHealthy(ctx context.Context, c *client.Client, id string) (bool, error) {
+func (pd *PostgresDriver) IsHealthy(ctx context.Context, c *client.Client, container ContainerInformation) (bool, error) {
 	readyCommand := "pg_isready -d postgres"
 	cmd := strings.Split(readyCommand, " ")
 	execConfig := client.ExecCreateOptions{
@@ -184,7 +217,7 @@ func (pd *PostgresDriver) IsHealthy(ctx context.Context, c *client.Client, id st
 	}
 
 	// Try to execute the command
-	execIDResp, err := c.ExecCreate(ctx, id, execConfig)
+	execIDResp, err := c.ExecCreate(ctx, container.ID, execConfig)
 	if err != nil {
 		return false, fmt.Errorf("couldn't create command for readiness of container: %s", err)
 	}
@@ -201,7 +234,93 @@ func (pd *PostgresDriver) IsHealthy(ctx context.Context, c *client.Client, id st
 }
 
 // Initialize the internal container with a script (for example)
-func (pd *PostgresDriver) Initialize(ctx context.Context, c *client.Client, id string) error {
-	// TODO: Create
+func (pd *PostgresDriver) Initialize(ctx context.Context, c *client.Client, container ContainerInformation) error {
+	connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=postgres sslmode=disable", container.Ports[0])
+
+	// Connect to the database
+	conn, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return fmt.Errorf("couldn't connect to postgres: %s", err)
+	}
+	defer conn.Close()
+
+	for _, db := range pd.databases {
+		pgLog.Println("Creating database", db+"...")
+		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db))
+		if err != nil && !strings.Contains(err.Error(), "already exists") {
+			return fmt.Errorf("couldn't create postgres database: %s", err)
+		}
+	}
+
 	return nil
+}
+
+// Handles the instructions for PostgreSQL.
+//
+// Supports the following instructions currently:
+// - Clear tables
+// - Drop tables
+func (pd *PostgresDriver) HandleInstruction(ctx context.Context, c *client.Client, container ContainerInformation, instruction Instruction) error {
+	switch instruction {
+	case InstructionClearTables:
+		return pd.ClearTables(container)
+	case InstructionDropTables:
+		return pd.DropTables(container)
+	}
+	return nil
+}
+
+// iterateTablesFn is a function that processes each table in the database
+type iterateTablesFn func(tableName string, conn *sql.DB) error
+
+// iterateTables iterates through all tables in all databases and applies the given function
+func (pd *PostgresDriver) iterateTables(container ContainerInformation, fn iterateTablesFn) error {
+	// For all databases, connect and iterate tables
+	for _, db := range pd.databases {
+		connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=%s sslmode=disable", container.Ports[0], db)
+
+		// Connect to the database
+		conn, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return fmt.Errorf("couldn't connect to postgres: %v", err)
+		}
+		defer conn.Close()
+
+		// Get all of the tables
+		res, err := conn.Query("SELECT table_name FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema')")
+		if err != nil {
+			return fmt.Errorf("couldn't get database tables: %v", err)
+		}
+		for res.Next() {
+			var name string
+			if err := res.Scan(&name); err != nil {
+				return fmt.Errorf("couldn't get database table name: %v", err)
+			}
+			if err := fn(name, conn); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// Clear all tables in all databases (keeps table schema alive, just removes the content of all tables)
+func (pd *PostgresDriver) ClearTables(container ContainerInformation) error {
+	return pd.iterateTables(container, func(tableName string, conn *sql.DB) error {
+		if _, err := conn.Exec(fmt.Sprintf("truncate %s CASCADE", tableName)); err != nil {
+			return fmt.Errorf("couldn't truncate table %s: %v", tableName, err)
+		}
+		return nil
+	})
+}
+
+// Drop all tables in all databases (actually deletes all of your tables)
+func (pd *PostgresDriver) DropTables(container ContainerInformation) error {
+	return pd.iterateTables(container, func(tableName string, conn *sql.DB) error {
+		if _, err := conn.Exec(fmt.Sprintf("DROP TABLE %s CASCADE", tableName)); err != nil {
+			return fmt.Errorf("couldn't drop table table %s: %v", tableName, err)
+		}
+		return nil
+	})
 }
