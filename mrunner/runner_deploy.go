@@ -2,134 +2,48 @@ package mrunner
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"log"
-	"net/netip"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Liphium/magic/v2/mconfig"
 	"github.com/Liphium/magic/v2/util"
 	_ "github.com/lib/pq"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
-	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 )
 
 // Deploy all the containers nessecary for the application
 func (r *Runner) Deploy(deleteContainers bool) error {
+	ctx := context.Background()
 
 	// Make sure the Docker connection is working
-	_, err := r.client.Info(context.Background(), client.InfoOptions{})
+	_, err := r.client.Info(ctx, client.InfoOptions{})
 	if client.IsErrConnectionFailed(err) {
 		return fmt.Errorf("please make sure Docker is running, and that Magic (or the Go toolchain) has access to it. (%s)", err)
 	}
 
 	// Clear all state in case wanted
 	if deleteContainers {
-		util.Log.Println("Clearing all state...")
-		r.Clear()
+		util.Log.Println("Deleting all containers and volumes...")
+		if err := r.DeleteEverything(); err != nil {
+			return fmt.Errorf("couldn't clear state: %v", err)
+		}
 	}
 
-	// Deploy the database containers
-	for _, dbType := range r.plan.DatabaseTypes {
-		ctx := context.Background()
-		name := dbType.ContainerName(r.appName, r.profile)
-		util.Log.Println("Creating database container", name+"...")
+	// Pull all of the images in case they are not downloaded yet
+	if err := r.pullServiceImages(ctx); err != nil {
+		return err
+	}
 
-		// Check if the container already exists
-		f := make(client.Filters)
-		f.Add("name", name)
-		summary, err := r.client.ContainerList(ctx, client.ContainerListOptions{
-			Filters: f,
-			All:     true,
-		})
-		if err != nil {
-			return fmt.Errorf("couldn't list containers: %s", err)
-		}
-		containerId := ""
-		var containerMounts []mount.Mount = nil
-		for _, c := range summary.Items {
-			for _, n := range c.Names {
-				if strings.Contains(n, name) {
-					util.Log.Println("Found existing container...")
-					containerId = c.ID
-
-					// Inspect the container to get the mounts
-					resp, err := r.client.ContainerInspect(ctx, c.ID, client.ContainerInspectOptions{})
-					if err != nil {
-						return fmt.Errorf("couldn't inspect container: %s", err)
-					}
-					containerMounts = resp.Container.HostConfig.Mounts
-				}
-			}
-		}
-
-		// Delete the container if it exists
-		if containerId != "" {
-			if _, err := r.client.ContainerRemove(ctx, containerId, client.ContainerRemoveOptions{
-				RemoveVolumes: false,
-				Force:         true,
-			}); err != nil {
-				return fmt.Errorf("couldn't delete database container: %s", err)
-			}
-		}
-
-		// Create the new container with the volumes
-		util.Log.Println("Creating new container...")
-		containerId, err = r.createDatabaseContainer(ctx, dbType, name, containerMounts)
-		if err != nil {
-			return fmt.Errorf("couldn't create database container: %s", err)
-		}
-
-		// Start the container
-		util.Log.Println("Trying to start container...")
-		if _, err := r.client.ContainerStart(ctx, containerId, client.ContainerStartOptions{}); err != nil {
-			return fmt.Errorf("couldn't start postgres container: %s", err)
-		}
-
-		// Wait for the container to start (with pg_isready)
-		util.Log.Println("Waiting for PostgreSQL to be ready...")
-		readyCommand := "pg_isready -d postgres"
-		cmd := strings.Split(readyCommand, " ")
-		execConfig := client.ExecCreateOptions{
-			Cmd:          cmd,
-			AttachStdout: true,
-			AttachStderr: true,
-		}
-		for {
-			execIDResp, err := r.client.ExecCreate(ctx, containerId, execConfig)
-			if err != nil {
-				return fmt.Errorf("couldn't create command for readiness of container: %s", err)
-			}
-			execStartCheck := client.ExecStartOptions{Detach: false, TTY: false}
-			if _, err := r.client.ExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
-				return fmt.Errorf("couldn't start command for readiness of container: %s", err)
-			}
-			respInspect, err := r.client.ExecInspect(ctx, execIDResp.ID, client.ExecInspectOptions{})
-			if err != nil {
-				return fmt.Errorf("couldn't inspect command for readiness of container: %s", err)
-			}
-			if respInspect.ExitCode == 0 {
-				break
-			}
-
-			time.Sleep(200 * time.Millisecond)
-		}
-		time.Sleep(200 * time.Millisecond) // Some additional time, sometimes takes longer
-
-		// Create all of the databases
-		util.Log.Println("Connecting to PostgreSQL...")
-		if err := r.createDatabases(dbType); err != nil {
-			return err
-		}
+	// Start all of the service containers
+	if err := r.startServiceContainers(ctx); err != nil {
+		return err
 	}
 
 	// Load environment variables into current application
-	util.Log.Println("Loading environment...")
 	for key, value := range r.plan.Environment {
 		if err := os.Setenv(key, value); err != nil {
 			return fmt.Errorf("couldn't set environment variable %s: %s", key, err)
@@ -140,115 +54,192 @@ func (r *Runner) Deploy(deleteContainers bool) error {
 	return nil
 }
 
-// Create a new container for a postgres database. Returns container id.
-func (r *Runner) createDatabaseContainer(ctx context.Context, dbType mconfig.PlannedDatabaseType, name string, mounts []mount.Mount) (string, error) {
+// Pull all of the images for the services the runner has registered
+func (r *Runner) pullServiceImages(ctx context.Context) error {
+	for _, driver := range r.services {
+		image := driver.GetImage()
 
-	// Reserve the port for the container
-	port, err := network.ParsePort("5432/tcp")
-	if err != nil {
-		return "", fmt.Errorf("couldn't create port for postgres container: %s", err)
-	}
-	exposedPorts := network.PortSet{port: struct{}{}}
+		// Check if the image exists locally
+		_, err := r.client.ImageInspect(ctx, image)
+		if err != nil {
 
-	// If no existing mounts, create a new volume for PostgreSQL data
-	if mounts == nil {
-		volumeName := fmt.Sprintf("%s-postgres-data", name)
-		mounts = []mount.Mount{
-			{
-				Type:   mount.TypeVolume,
-				Source: volumeName,
-				Target: "/var/lib/postgresql/data",
-			},
+			// Image not found, need to pull it
+			util.Log.Println("Pulling image", image+"...")
+
+			reader, err := r.client.ImagePull(ctx, image, client.ImagePullOptions{})
+			if err != nil {
+				return fmt.Errorf("couldn't pull image %s: %s", image, err)
+			}
+			defer reader.Close()
+
+			// Track progress with updates every second
+			lastUpdate := time.Now()
+			buf := make([]byte, 1024)
+			for {
+				n, err := reader.Read(buf)
+				if err != nil {
+					if err.Error() == "EOF" {
+						break
+					}
+					return fmt.Errorf("error while pulling image %s: %s", image, err)
+				}
+
+				// Print progress update every second
+				if time.Since(lastUpdate) >= time.Second {
+					util.Log.Println("Downloading", image+"...")
+					lastUpdate = time.Now()
+				}
+
+				if n == 0 {
+					break
+				}
+			}
+
+			util.Log.Println("Successfully pulled image", image)
 		}
 	}
 
-	// Create the network config for the container
-	networkConf := &container.HostConfig{
-		PortBindings: network.PortMap{
-			port: []network.PortBinding{{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: fmt.Sprintf("%d", dbType.Port)}},
-		},
-		Mounts: mounts,
-	}
-
-	// Check if an environment variable is set for the postgres image
-	postgresImage := os.Getenv("MAGIC_POSTGRES_IMAGE")
-	if postgresImage == "" {
-		postgresImage = "postgres:latest"
-	}
-
-	// Create the container
-	resp, err := r.client.ContainerCreate(ctx, client.ContainerCreateOptions{
-		Config: &container.Config{
-			Image: postgresImage,
-			Env: []string{
-				fmt.Sprintf("POSTGRES_PASSWORD=%s", mconfig.DefaultPassword(dbType.Type)),
-				fmt.Sprintf("POSTGRES_USER=%s", mconfig.DefaultUsername(dbType.Type)),
-				"POSTGRES_DATABASE=postgres",
-			},
-			ExposedPorts: exposedPorts,
-		},
-		HostConfig: networkConf,
-		Name:       name,
-	})
-	if err != nil {
-		return "", fmt.Errorf("couldn't create postgres container: %s", err)
-	}
-	return resp.ID, nil
-}
-
-// Connect to postgres and create all the needed databases.
-func (r *Runner) createDatabases(dbType mconfig.PlannedDatabaseType) error {
-	connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=postgres sslmode=disable", dbType.Port)
-
-	// Connect to the database
-	conn, err := sql.Open("postgres", connStr)
-	if err != nil {
-		return fmt.Errorf("couldn't connect to postgres: %s", err)
-	}
-	defer conn.Close()
-
-	for _, db := range dbType.Databases {
-		util.Log.Println("Creating database", db.Name+"...")
-		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db.Name))
-		if err != nil && !strings.Contains(err.Error(), "already exists") {
-			return fmt.Errorf("couldn't create postgres database: %s", err)
-		}
-	}
 	return nil
 }
 
-// Delete all containers and reset all state
-func (r *Runner) Clear() {
-	ctx := context.Background()
-	for _, dbType := range r.plan.DatabaseTypes {
+// Create all the service containers and start them + wait until healthy and initialize
+func (r *Runner) startServiceContainers(ctx context.Context) error {
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(r.services))
+
+	// Deploy all service containers in parallel
+	for _, driver := range r.services {
+		wg.Add(1)
+		go func(driver mconfig.ServiceDriver) {
+			defer wg.Done()
+
+			name := r.plan.Containers[driver.GetUniqueId()].Name
+
+			// Generate a proper port list from the allocated ports of the plan
+			containerPorts := []uint{}
+			for _, port := range r.plan.Containers[driver.GetUniqueId()].Ports {
+				containerPorts = append(containerPorts, r.plan.AllocatedPorts[port])
+			}
+
+			// Create the container using the driver
+			containerID, err := driver.CreateContainer(ctx, r.client, mconfig.ContainerAllocation{
+				Name:  name,
+				Ports: containerPorts,
+			})
+			if err != nil {
+				errChan <- fmt.Errorf("couldn't create container for service %s: %s", driver.GetUniqueId(), err)
+				return
+			}
+
+			// Start the container
+			if _, err := r.client.ContainerStart(ctx, containerID, client.ContainerStartOptions{}); err != nil {
+				errChan <- fmt.Errorf("couldn't start container for service %s: %s", driver.GetUniqueId(), err)
+				return
+			}
+
+			// Monitor health until the container is ready
+			util.Log.Println("Waiting for", name, "to be healthy...")
+			containerInfo := mconfig.ContainerInformation{
+				ID:    containerID,
+				Name:  name,
+				Ports: r.plan.Containers[driver.GetUniqueId()].Ports,
+			}
+
+			for {
+				healthy, err := driver.IsHealthy(ctx, r.client, containerInfo)
+				if err != nil {
+					errChan <- fmt.Errorf("couldn't check health for service %s: %s", driver.GetUniqueId(), err)
+					return
+				}
+				if healthy {
+					break
+				}
+				time.Sleep(200 * time.Millisecond)
+			}
+			time.Sleep(200 * time.Millisecond) // Some extra time, some services are a little weird with healthy state
+
+			// Initialize the container
+			if err := driver.Initialize(ctx, r.client, containerInfo); err != nil {
+				errChan <- fmt.Errorf("couldn't initialize service %s: %s", driver.GetUniqueId(), err)
+				return
+			}
+
+			util.Log.Println("Service", name, "is ready")
+		}(driver)
+	}
+
+	// Wait for all services to complete
+	wg.Wait()
+	close(errChan)
+
+	// Check for any errors
+	for err := range errChan {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Helper function to iterate over containers and execute a callback for each found container
+func (r *Runner) forEachContainer(ctx context.Context, callback func(service string, containerID string, container mconfig.ContainerAllocation) error) error {
+	for service, container := range r.plan.Containers {
 
 		// Try to find the container for the type
 		f := make(client.Filters)
-		name := dbType.ContainerName(r.appName, r.profile)
-		f.Add("name", name)
+		f.Add("name", container.Name)
 		summary, err := r.client.ContainerList(ctx, client.ContainerListOptions{
 			Filters: f,
-			All:     true,
 		})
 		if err != nil {
-			log.Fatalln("Couldn't list containers:", err)
+			util.Log.Fatalln("Couldn't list containers:", err)
 		}
 		containerId := ""
 		for _, c := range summary.Items {
 			for _, n := range c.Names {
-				if strings.Contains(n, name) {
+				if strings.Contains(n, container.Name) {
 					containerId = c.ID
 				}
 			}
 		}
 
-		// If there is no container, nothing to delete
+		// If there is no container, nothing to do
 		if containerId == "" {
 			continue
 		}
 
+		// Execute the callback with the container ID, container info, and key
+		if err := callback(service, containerId, container); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Stop all containers
+func (r *Runner) StopContainers() error {
+	ctx := context.Background()
+	return r.forEachContainer(ctx, func(_, containerID string, container mconfig.ContainerAllocation) error {
+
+		// Stop the container
+		util.Log.Println("Stopping container", container.Name+"...")
+		if _, err := r.client.ContainerStop(ctx, containerID, client.ContainerStopOptions{}); err != nil {
+			return fmt.Errorf("Couldn't stop database container: %v", err)
+		}
+
+		return nil
+	})
+}
+
+// Delete all containers + their attached volumes and reset all state
+func (r *Runner) DeleteEverything() error {
+	ctx := context.Background()
+	return r.forEachContainer(ctx, func(_ string, containerID string, container mconfig.ContainerAllocation) error {
+
 		// Get all the attached volumes to delete them manually
-		containerInfo, err := r.client.ContainerInspect(ctx, containerId, client.ContainerInspectOptions{})
+		containerInfo, err := r.client.ContainerInspect(ctx, containerID, client.ContainerInspectOptions{})
 		if err != nil {
 			util.Log.Println("Warning: Couldn't inspect container:", err)
 		}
@@ -262,12 +253,12 @@ func (r *Runner) Clear() {
 		}
 
 		// Delete the container
-		util.Log.Println("Deleting container", name+"...")
-		if _, err := r.client.ContainerRemove(ctx, containerId, client.ContainerRemoveOptions{
+		util.Log.Println("Deleting container", container.Name+"...")
+		if _, err := r.client.ContainerRemove(ctx, containerID, client.ContainerRemoveOptions{
 			RemoveVolumes: false,
 			Force:         true,
 		}); err != nil {
-			util.Log.Fatalln("Couldn't delete database container:", err)
+			return fmt.Errorf("Couldn't delete database container: %v", err)
 		}
 
 		// Delete all the attached volumes
@@ -276,79 +267,64 @@ func (r *Runner) Clear() {
 			if _, err := r.client.VolumeRemove(ctx, volumeName, client.VolumeRemoveOptions{
 				Force: true,
 			}); err != nil {
-				util.Log.Println("Warning: Couldn't delete volume", volumeName+":", err)
+				return fmt.Errorf("Couldn't delete volume %s: %v", volumeName, err)
 			}
 		}
-	}
+
+		return nil
+	})
 }
 
-// Stop all containers
-func (r *Runner) StopContainers() {
+// Clear the content of all tables from databases, at runtime
+func (r *Runner) DropTables() error {
 	ctx := context.Background()
-	for _, dbType := range r.plan.DatabaseTypes {
-
-		// Try to find the container for the type
-		f := make(client.Filters)
-		name := dbType.ContainerName(r.appName, r.profile)
-		f.Add("name", name)
-		summary, err := r.client.ContainerList(ctx, client.ContainerListOptions{
-			Filters: f,
-		})
-		if err != nil {
-			util.Log.Fatalln("Couldn't list containers:", err)
-		}
-		containerId := ""
-		for _, c := range summary.Items {
-			for _, n := range c.Names {
-				if strings.Contains(n, name) {
-					containerId = c.ID
-				}
-			}
+	return r.forEachContainer(ctx, func(service, containerID string, container mconfig.ContainerAllocation) error {
+		driver, ok := mconfig.GetDriver(service)
+		if !ok {
+			return fmt.Errorf("couldn't find service driver for service type: %s", service)
 		}
 
-		// If there is no container, nothing to stop
-		if containerId == "" {
-			continue
+		// Convert the ports
+		containerPorts := []uint{}
+		for _, port := range container.Ports {
+			containerPorts = append(containerPorts, r.plan.AllocatedPorts[port])
 		}
 
-		// Stop the container
-		util.Log.Println("Stopping container", name+"...")
-		if _, err := r.client.ContainerStop(ctx, containerId, client.ContainerStopOptions{}); err != nil {
-			util.Log.Fatalln("Couldn't stop database container:", err)
+		if err := driver.HandleInstruction(ctx, r.client, mconfig.ContainerInformation{
+			ID:    containerID,
+			Name:  container.Name,
+			Ports: containerPorts,
+		}, mconfig.InstructionDropTables); err != nil {
+			return fmt.Errorf("couldn't drop tables: %v", err)
 		}
-	}
+
+		return nil
+	})
 }
 
-// Clear the databases, at runtime
-func (r *Runner) ClearDatabases() {
-
-	// Delete all the databases of every type
-	for _, dbType := range r.plan.DatabaseTypes {
-
-		for _, db := range dbType.Databases {
-			connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=%s sslmode=disable", dbType.Port, db.Name)
-
-			// Connect to the database
-			conn, err := sql.Open("postgres", connStr)
-			if err != nil {
-				log.Fatalln("couldn't connect to postgres:", err)
-			}
-			defer conn.Close()
-
-			// Clear all of the tables
-			res, err := conn.Query("SELECT table_name FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema')")
-			if err != nil {
-				log.Fatalln("couldn't get database tables:", err)
-			}
-			for res.Next() {
-				var name string
-				if err := res.Scan(&name); err != nil {
-					util.Log.Fatalln("couldn't get database table name:", err)
-				}
-				if _, err := conn.Exec(fmt.Sprintf("truncate %s CASCADE", name)); err != nil {
-					util.Log.Fatalln("couldn't delete from table", name+":", err)
-				}
-			}
+// Delete all database tables from databases, at runtime
+func (r *Runner) ClearTables() error {
+	ctx := context.Background()
+	return r.forEachContainer(ctx, func(service, containerID string, container mconfig.ContainerAllocation) error {
+		driver, ok := mconfig.GetDriver(service)
+		if !ok {
+			return fmt.Errorf("couldn't find service driver for service type: %s", service)
 		}
-	}
+
+		// Convert the ports
+		containerPorts := []uint{}
+		for _, port := range container.Ports {
+			containerPorts = append(containerPorts, r.plan.AllocatedPorts[port])
+		}
+
+		if err := driver.HandleInstruction(ctx, r.client, mconfig.ContainerInformation{
+			ID:    containerID,
+			Name:  container.Name,
+			Ports: containerPorts,
+		}, mconfig.InstructionClearTables); err != nil {
+			return fmt.Errorf("couldn't clear tables: %v", err)
+		}
+
+		return nil
+	})
 }

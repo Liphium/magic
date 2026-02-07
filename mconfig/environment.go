@@ -30,6 +30,10 @@ func ValueStatic(value string) EnvironmentValue {
 	}
 }
 
+func ValueFunction(get func() string) EnvironmentValue {
+	return EnvironmentValue{get}
+}
+
 // Create a new environment value based on other environment values.
 //
 // The index in the values array matches the output of the environment value.

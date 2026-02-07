@@ -1,7 +1,8 @@
-package mservices
+package mconfig
 
 import (
 	"context"
+	"sync"
 
 	"github.com/moby/moby/client"
 )
@@ -45,12 +46,31 @@ type ServiceDriver interface {
 
 // All things required to create a service container
 type ContainerAllocation struct {
-	Name  string
-	Ports []int
+	Name  string `json:"name"`
+	Ports []uint `json:"ports"`
 }
 
 type ContainerInformation struct {
-	ID    string
-	Name  string
-	Ports []int
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Ports []uint `json:"ports"`
+}
+
+// Service registry for making sure all of the services can be created from their unique IDs (important for instruction calling outside of the main process).
+//
+// Service (string) -> Service Driver
+var serviceRegistry *sync.Map = &sync.Map{}
+
+// Register a service driver for instruction calling (THIS IS NOT THE DRIVER ACTUALLY USED TO CREATE YOUR DATABASES, DO NOT USE OUTSIDE OF MAGIC INTERNALLY)
+func RegisterDriver(driver ServiceDriver) {
+	serviceRegistry.Store(driver.GetUniqueId(), driver)
+}
+
+// Get a service driver by its unique id (THIS IS NOT THE DRIVER ACTUALLY USED TO CREATE YOUR DATABASES, DO NOT USE OUTSIDE OF MAGIC INTERNALLY)
+func GetDriver(serviceId string) (ServiceDriver, bool) {
+	obj, ok := serviceRegistry.Load(serviceId)
+	if !ok {
+		return nil, false
+	}
+	return obj.(ServiceDriver), true
 }
