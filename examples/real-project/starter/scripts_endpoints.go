@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"real-project/database"
-	"real-project/util"
+
+	"github.com/gofiber/fiber/v2"
+	"resty.dev/v3"
 )
 
 // This method would ideally be created in a shared package between all the scripts.
@@ -17,14 +19,28 @@ func GetPath() string {
 //
 // You could go into the database and add it there, but we want to be able to call the endpoint using scripts.
 func CreatePost(post database.Post) error {
-	_, err := util.Post[interface{}](GetPath()+"/posts", post, util.Headers{})
+	client := resty.New()
+	defer client.Close()
+
+	_, err := client.R().
+		SetBody(post).
+		Post(GetPath() + "/posts")
 	return err
 }
 
 // Script for printing all the posts using the endpoint.
 func PrintPosts() error {
-	posts, err := util.Get[[]database.Post](GetPath()+"/posts", util.Headers{})
-	if err != nil {
+	client := resty.New()
+	defer client.Close()
+
+	res, err := client.R().
+		Get(GetPath() + "/posts")
+	if err != nil || res.StatusCode() != fiber.StatusOK {
+		return fmt.Errorf("couldn't get posts: %v", err)
+	}
+
+	var posts []database.Post
+	if err := json.Unmarshal(res.Bytes(), &posts); err != nil {
 		return err
 	}
 
