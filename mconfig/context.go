@@ -2,7 +2,6 @@ package mconfig
 
 import (
 	"fmt"
-	"log"
 	"maps"
 	"os"
 	"strings"
@@ -11,7 +10,7 @@ import (
 type Context struct {
 	appName     string       // Current app name
 	profile     string       // Current profile
-	directory   string       // Current working directory
+	projectDir  string       // Current project directory
 	environment *Environment // Environment for environment variables (can be nil)
 	services    []ServiceDriver
 	ports       []uint // All ports the user wants to allocate
@@ -38,6 +37,10 @@ func (c *Context) Environment() *Environment {
 
 func (c *Context) Ports() []uint {
 	return c.ports
+}
+
+func (c *Context) ProjectDirectory() string {
+	return c.projectDir
 }
 
 // Set the environment.
@@ -94,17 +97,12 @@ func (c *Context) Register(driver ServiceDriver) ServiceDriver {
 	return driver
 }
 
-func DefaultContext(appName string, profile string) *Context {
-	workDir, err := os.Getwd()
-	if err != nil {
-		log.Fatalln("couldn't get current working directory")
-	}
-
+func DefaultContext(appName string, profile string, projectDir string) *Context {
 	return &Context{
-		directory: workDir,
-		appName:   appName,
-		profile:   profile,
-		services:  []ServiceDriver{},
-		plan:      &Plan{},
+		projectDir: projectDir,
+		appName:    appName,
+		profile:    profile,
+		services:   []ServiceDriver{},
+		plan:       &Plan{},
 	}
 }

@@ -8,14 +8,31 @@ import (
 	"github.com/Liphium/magic/v2/mrunner"
 )
 
-// Script to reset the database by dropping and recreating all tables
+// Script to clear all database tables content, but not fully delete them.
+//
+// Here we just use any to ignore the argument. This can be useful for scripts such as this one.
+func ClearDatabases(runner *mrunner.Runner) error {
+	log.Println("Resetting database...")
+
+	// Magic can clear all databases for you, don't worry, only data will be deleted meaning your schema is still all good :D
+	if err := runner.ClearTables(); err != nil {
+		log.Fatalln("Couldn't clear database tables:", err)
+	}
+
+	log.Println("Database reset completed successfully!")
+	return nil
+}
+
+// Script to reset the database by dropping all tables.
 //
 // Here we just use any to ignore the argument. This can be useful for scripts such as this one.
 func ResetDatabase(runner *mrunner.Runner) error {
 	log.Println("Resetting database...")
 
-	// Magic can clear all databases for you, don't worry, only data will be deleted meaning your schema is still all good :D
-	runner.ClearDatabases()
+	// Magic can drop all databases for you as well, this means that all the tables are actually gone
+	if err := runner.DropTables(); err != nil {
+		log.Fatalln("Couldn't clear database tables:", err)
+	}
 
 	log.Println("Database reset completed successfully!")
 	return nil

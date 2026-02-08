@@ -22,7 +22,7 @@ const (
 	PostgresPassword = "postgres"
 )
 
-var pgLog *log.Logger = log.New(os.Stdout, "pg-manager ", log.Default().Flags())
+var pgLegacyLog *log.Logger = log.New(os.Stdout, "pg-legacy ", log.Default().Flags())
 
 type PostgresDriver struct {
 	image     string
@@ -43,12 +43,12 @@ func NewLegacyPostgresDriver(image string) *PostgresDriver {
 	// Do a quick check to make sure the image version is actually supported
 	supported := false
 	for _, version := range supportedPostgresVersions {
-		if strings.HasPrefix(imageVersion, fmt.Sprintf("%s.", version)) {
+		if strings.HasPrefix(imageVersion, fmt.Sprintf("%s.", version)) || imageVersion == version {
 			supported = true
 		}
 	}
 	if !supported {
-		pgLog.Fatalln("ERROR: Version", imageVersion, "is currently not supported.")
+		pgLegacyLog.Fatalln("ERROR: Version", imageVersion, "is currently not supported.")
 	}
 
 	return &PostgresDriver{
@@ -92,8 +92,8 @@ func (pd *PostgresDriver) Host(ctx *mconfig.Context) mconfig.EnvironmentValue {
 // Get the port of the database container created by the driver as a EnvironmentValue for your config.
 func (pd *PostgresDriver) Port(ctx *mconfig.Context) mconfig.EnvironmentValue {
 	return mconfig.ValueFunction(func() string {
-		for _, container := range ctx.Plan().Containers {
-			if container.Name == mconfig.PlannedContainerName(ctx.Plan(), pd) {
+		for id, container := range ctx.Plan().Containers {
+			if id == pd.GetUniqueId() {
 				return fmt.Sprintf("%d", ctx.Plan().AllocatedPorts[container.Ports[0]])
 			}
 		}

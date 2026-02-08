@@ -36,8 +36,8 @@ func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client,
 	var mounts []mount.Mount = nil
 	for _, container := range summary.Items {
 		for _, n := range container.Names {
-			if n == a.Name {
-				pgLog.Println("Found existing container...")
+			if strings.HasSuffix(n, a.Name) {
+				pgLegacyLog.Println("Found existing container...")
 				containerId = container.ID
 
 				// Inspect the container to get the mounts
@@ -52,6 +52,7 @@ func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client,
 
 	// Delete the container if it exists
 	if containerId != "" {
+		pgLegacyLog.Println("Deleting old container...")
 		if _, err := c.ContainerRemove(ctx, containerId, client.ContainerRemoveOptions{
 			RemoveVolumes: false,
 			Force:         true,
@@ -110,7 +111,7 @@ func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client,
 
 // Check for postgres health
 func (pd *PostgresDriver) IsHealthy(ctx context.Context, c *client.Client, container mconfig.ContainerInformation) (bool, error) {
-	readyCommand := "pg_isready -d postgres"
+	readyCommand := "pg_isready -d postgres -U postgres -t 0"
 	cmd := strings.Split(readyCommand, " ")
 	execConfig := client.ExecCreateOptions{
 		Cmd:          cmd,
@@ -132,6 +133,10 @@ func (pd *PostgresDriver) IsHealthy(ctx context.Context, c *client.Client, conta
 		return false, fmt.Errorf("couldn't inspect command for readiness of container: %s", err)
 	}
 
+	if mconfig.VerboseLogging {
+		pgLegacyLog.Println("Database health check response code:", respInspect.ExitCode)
+	}
+
 	return respInspect.ExitCode == 0, nil
 }
 
@@ -147,7 +152,7 @@ func (pd *PostgresDriver) Initialize(ctx context.Context, c *client.Client, cont
 	defer conn.Close()
 
 	for _, db := range pd.databases {
-		pgLog.Println("Creating database", db+"...")
+		pgLegacyLog.Println("Creating database", db+"...")
 		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db))
 		if err != nil && !strings.Contains(err.Error(), "already exists") {
 			return fmt.Errorf("couldn't create postgres database: %s", err)

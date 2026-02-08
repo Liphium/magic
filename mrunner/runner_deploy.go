@@ -89,6 +89,8 @@ func (r *Runner) pullServiceImages(ctx context.Context) error {
 					return fmt.Errorf("error while pulling image %s: %s", image, err)
 				}
 
+				util.Log.Println(string(buf[:n]))
+
 				// Print progress update every second
 				if time.Since(lastUpdate) >= time.Second {
 					util.Log.Println("Downloading", image+"...")
@@ -127,6 +129,7 @@ func (r *Runner) startServiceContainers(ctx context.Context) error {
 			}
 
 			// Create the container using the driver
+			util.Log.Println("Creating container for driver", driver.GetUniqueId()+"...")
 			containerID, err := driver.CreateContainer(ctx, r.client, mconfig.ContainerAllocation{
 				Name:  name,
 				Ports: containerPorts,
@@ -147,7 +150,7 @@ func (r *Runner) startServiceContainers(ctx context.Context) error {
 			containerInfo := mconfig.ContainerInformation{
 				ID:    containerID,
 				Name:  name,
-				Ports: r.plan.Containers[driver.GetUniqueId()].Ports,
+				Ports: containerPorts,
 			}
 
 			for {

@@ -1,10 +1,8 @@
 package mrunner
 
 import (
-	"fmt"
 	"slices"
 
-	"github.com/Liphium/magic/v2/integration"
 	"github.com/Liphium/magic/v2/mconfig"
 	"github.com/Liphium/magic/v2/util"
 )
@@ -20,9 +18,13 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 		util.Log.Fatalln("no context set")
 	}
 
+	// Set basic stuff
+	r.plan.AppName = r.ctx.AppName()
+	r.plan.Profile = r.ctx.Profile()
+
 	// Collect all the ports that should be allocated (also for the service drivers obv)
 	portsToAllocate := r.ctx.Ports()
-	startPort := DefaultStartPort
+	currentPort := DefaultStartPort
 	containerMap := map[string]mconfig.ContainerAllocation{}
 	for _, driver := range r.ctx.Services() {
 		if _, ok := containerMap[driver.GetUniqueId()]; ok {
@@ -37,13 +39,13 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 		for range driver.GetRequiredPortAmount() {
 
 			// Make sure we're not allocating a port that's already taken
-			for slices.Contains(portsToAllocate, startPort) {
-				startPort++
+			for slices.Contains(portsToAllocate, currentPort) && !util.ScanPort(currentPort) {
+				currentPort = util.RandomPort(DefaultStartPort, DefaultEndPort)
 			}
 
 			// Allocate one of the default ports for the container
-			portsToAllocate = append(portsToAllocate, startPort)
-			startPort++
+			portsToAllocate = append(portsToAllocate, currentPort)
+			alloc.Ports = append(alloc.Ports, currentPort)
 		}
 
 		containerMap[driver.GetUniqueId()] = alloc
@@ -56,12 +58,8 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 
 			// Generate a new port in case the current one is taken
 			toAllocate := port
-			if integration.ScanPort(port) {
-				var err error
-				toAllocate, err = scanForOpenPort()
-				if err != nil {
-					util.Log.Fatalln("Couldn't find open port for", port, ":", err)
-				}
+			for slices.Contains(portsToAllocate, port) && !util.ScanPort(toAllocate) {
+				toAllocate = util.RandomPort(DefaultStartPort, DefaultEndPort)
 			}
 
 			// Add the port to the plan
@@ -70,12 +68,8 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 	}
 
 	// Load into plan
-	r.plan = &mconfig.Plan{
-		AppName:        r.ctx.AppName(),
-		Profile:        r.ctx.Profile(),
-		Containers:     containerMap,
-		AllocatedPorts: allocatedPorts,
-	}
+	r.plan.Containers = containerMap
+	r.plan.AllocatedPorts = allocatedPorts
 
 	// Generate the environment variables and add to plan
 	environment := map[string]string{}
@@ -84,13 +78,4 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 	}
 	r.plan.Environment = environment
 	return r.plan
-}
-
-// Scan for an open port in the default range
-func scanForOpenPort() (uint, error) {
-	openPort, err := integration.ScanForOpenPort(DefaultStartPort, DefaultEndPort)
-	if err != nil {
-		return 0, fmt.Errorf("couldn't find open port: %e", err)
-	}
-	return openPort, err
 }
