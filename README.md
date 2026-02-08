@@ -1,12 +1,20 @@
 # Liphium Magic
 
-## This project is still experimental and in early stages. Feel free to test it out, but expect major changes, bugs and of course also new features.
+> [!WARNING]
+> This project is still experimental and in early stages. Feel free to test it out, but expect major changes, bugs and of course also new features.
 
 Liphium Magic is a suite of tools to help build tests and provide a better developer experience when developing web services in Golang. We made it because we felt like it the barrier of making a contribution to our own projects was too high. When working on applications in a team, it's important that everyone can easily start the project and also use the same tools everyone else is using. Like with dependencies, when you need a new database for something, you shouldn't have to tell everyone in your team to complete extra steps just for their app to run again. When someone first joins your project, they can ideally set everything up with one command. That's the vision of Magic, our all-in-one developer experience toolkit. For testing your app, both automatically and manually, as well as running it on your own machine without complex setup.
 
 The path to this goal is of course a long one, and we also know that, so for now Magic can only really help with PostgreSQL databases. It only supports this one simple database and not more. It's all we use in our apps and in the future, when also have the need for it, we will likely integrate more services into Magic or build a nice abstraction layer that makes it easy to integrate different services.
 
-We hope you'll enjoy this project, feel free to open an issue in case anything annoys you or you see potential for a new feature. Be nice and maybe we'll add it. We're working on this in our freetime though, so don't expect us to answer all. Before creating a pull request for something, please consult us in the issues. We're looking forward to having a discussion with you.
+## Documentation
+
+> [!NOTE]
+> The documentation is currently work in progress and might not always be up to date or contain mistakes.
+
+You can find the documentation over on [liphium.dev](https://liphium.dev/magic).
+
+If there is anything you would like us to explain better or anything that is still unanswered, feel free to request it over in https://github.com/Liphium/magic/issues/27. 
 
 ## System requirements
 
@@ -77,6 +85,15 @@ func Start() {
 
 Become a great wizard! If you want to be a real great one though, I would take a look at the [real project example](https://github.com/Liphium/magic/tree/main/examples/real-project) to actually see how it's done.
 
-## Documentation
+## Contributing
 
-Because this project is new, there is no real documentation yet. However, you can look into the `examples` folder. It should contain about everything you need for now.
+There are just a few simple rules we'd like you to follow:
+
+- Before creating a pull request, consult with us in issues
+- Use the default Go toolchain and the default formatter to format your code
+- Be nice and don't break GitHub's Terms of Service
+- Understand that we are all working on this in our freetime and don't have unlimited energy and time to review your stuff or answer your questions right away
+
+## Conclusion
+
+With that, we hope you'll enjoy this project. Maybe it'll make your Go developer experience just a little bit better.
