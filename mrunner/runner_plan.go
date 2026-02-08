@@ -53,7 +53,7 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 
 	// Prepare all of the ports
 	allocatedPorts := map[uint]uint{}
-	if len(portsToAllocate) >= 0 {
+	if len(portsToAllocate) > 0 {
 		for _, port := range portsToAllocate {
 
 			// Generate a new port in case the current one is taken
