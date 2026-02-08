@@ -30,6 +30,10 @@ func ValueStatic(value string) EnvironmentValue {
 	}
 }
 
+func ValueFunction(get func() string) EnvironmentValue {
+	return EnvironmentValue{get}
+}
+
 // Create a new environment value based on other environment values.
 //
 // The index in the values array matches the output of the environment value.
@@ -59,7 +63,7 @@ func (c *Context) ValuePort(preferredPort uint) EnvironmentValue {
 
 	// Make sure the port isn't already allocated
 	if slices.Contains(c.ports, preferredPort) {
-		log.Fatalln("port", preferredPort, "is already taken: taken ports: ", c.ports)
+		log.Fatalln("Port", preferredPort, "is already taken: taken ports: ", c.ports)
 	}
 	c.ports = append(c.ports, preferredPort)
 
