@@ -29,29 +29,35 @@ type iterateTablesFn func(tableName string, conn *sql.DB) error
 // iterateTables iterates through all tables in all databases and applies the given function
 func (pd *PostgresDriver) iterateTables(container mconfig.ContainerInformation, fn iterateTablesFn) error {
 	// For all databases, connect and iterate tables
-	for _, db := range pd.databases {
-		connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=%s sslmode=disable", container.Ports[0], db)
+	for _, db := range pd.Databases {
+		if err := func() error {
+			connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=postgres password=postgres dbname=%s sslmode=disable", container.Ports[0], db)
 
-		// Connect to the database
-		conn, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return fmt.Errorf("couldn't connect to postgres: %v", err)
-		}
-		defer conn.Close()
+			// Connect to the database
+			conn, err := sql.Open("postgres", connStr)
+			if err != nil {
+				return fmt.Errorf("couldn't connect to postgres: %v", err)
+			}
+			defer conn.Close()
 
-		// Get all of the tables
-		res, err := conn.Query("SELECT table_name FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema')")
-		if err != nil {
-			return fmt.Errorf("couldn't get database tables: %v", err)
-		}
-		for res.Next() {
-			var name string
-			if err := res.Scan(&name); err != nil {
-				return fmt.Errorf("couldn't get database table name: %v", err)
+			// Get all of the tables
+			res, err := conn.Query("SELECT table_name FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema')")
+			if err != nil {
+				return fmt.Errorf("couldn't get database tables: %v", err)
 			}
-			if err := fn(name, conn); err != nil {
-				return err
+			for res.Next() {
+				var name string
+				if err := res.Scan(&name); err != nil {
+					return fmt.Errorf("couldn't get database table name: %v", err)
+				}
+				if err := fn(name, conn); err != nil {
+					return err
+				}
 			}
+
+			return nil
+		}(); err != nil {
+			return err
 		}
 	}
 

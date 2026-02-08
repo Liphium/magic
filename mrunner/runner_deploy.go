@@ -190,6 +190,17 @@ func (r *Runner) startServiceContainers(ctx context.Context) error {
 	return nil
 }
 
+// Helper function to load a driver for a driver unique id
+func (r *Runner) loadDriver(id string) (mconfig.ServiceDriver, error) {
+	driver, ok := mconfig.GetDriver(id)
+	if !ok {
+		return nil, fmt.Errorf("couldn't find service driver for service type: %s", id)
+	}
+
+	// Create a new driver from the data in the services
+	return driver.Load(r.Plan().Services[id])
+}
+
 // Helper function to iterate over containers and execute a callback for each found container
 func (r *Runner) forEachContainer(ctx context.Context, callback func(service string, containerID string, container mconfig.ContainerAllocation) error) error {
 	for service, container := range r.plan.Containers {
@@ -201,7 +212,7 @@ func (r *Runner) forEachContainer(ctx context.Context, callback func(service str
 			Filters: f,
 		})
 		if err != nil {
-			util.Log.Fatalln("Couldn't list containers:", err)
+			return fmt.Errorf("Couldn't list containers: %v", err)
 		}
 		containerId := ""
 		for _, c := range summary.Items {
@@ -250,6 +261,7 @@ func (r *Runner) DeleteEverything() error {
 		containerInfo, err := r.client.ContainerInspect(ctx, containerID, client.ContainerInspectOptions{})
 		if err != nil {
 			util.Log.Println("Warning: Couldn't inspect container:", err)
+			return nil
 		}
 		var volumeNames []string
 		if containerInfo.Container.Mounts != nil {
@@ -287,9 +299,9 @@ func (r *Runner) DeleteEverything() error {
 func (r *Runner) DropTables() error {
 	ctx := context.Background()
 	return r.forEachContainer(ctx, func(service, containerID string, container mconfig.ContainerAllocation) error {
-		driver, ok := mconfig.GetDriver(service)
-		if !ok {
-			return fmt.Errorf("couldn't find service driver for service type: %s", service)
+		driver, err := r.loadDriver(service)
+		if err != nil {
+			return err
 		}
 
 		// Convert the ports
@@ -314,9 +326,9 @@ func (r *Runner) DropTables() error {
 func (r *Runner) ClearTables() error {
 	ctx := context.Background()
 	return r.forEachContainer(ctx, func(service, containerID string, container mconfig.ContainerAllocation) error {
-		driver, ok := mconfig.GetDriver(service)
-		if !ok {
-			return fmt.Errorf("couldn't find service driver for service type: %s", service)
+		driver, err := r.loadDriver(service)
+		if err != nil {
+			return err
 		}
 
 		// Convert the ports

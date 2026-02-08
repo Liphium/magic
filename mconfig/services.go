@@ -42,6 +42,12 @@ type ServiceDriver interface {
 	//
 	// When implementing, please look into the instructions you can support.
 	HandleInstruction(ctx context.Context, c *client.Client, container ContainerInformation, instruction Instruction) error
+
+	// For creating a new instance of the service driver with the loaded data
+	Load(data string) (ServiceDriver, error)
+
+	// Save the current data of the service driver into string form (will be persisted in the plan)
+	Save() (string, error)
 }
 
 // All things required to create a service container

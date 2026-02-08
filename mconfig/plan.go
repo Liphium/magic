@@ -18,7 +18,8 @@ type Plan struct {
 	Profile        string                         `json:"profile"`
 	Environment    map[string]string              `json:"environment"`
 	AllocatedPorts map[uint]uint                  `json:"ports"`
-	Containers     map[string]ContainerAllocation `json:"containers"` // Id -> Container allocation
+	Containers     map[string]ContainerAllocation `json:"containers"` // Service id -> Container allocation
+	Services       map[string]string              `json:"services"`   // Service id -> Data
 }
 
 // Name for a service container (get by plan)

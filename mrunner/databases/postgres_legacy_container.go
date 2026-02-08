@@ -18,7 +18,7 @@ import (
 func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client, a mconfig.ContainerAllocation) (string, error) {
 
 	// Set to default username and password when not set
-	if pd.image == "" {
+	if pd.Image == "" {
 		return "", fmt.Errorf("please specify a proper image")
 	}
 
@@ -91,7 +91,7 @@ func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client,
 	// Create the container
 	resp, err := c.ContainerCreate(ctx, client.ContainerCreateOptions{
 		Config: &container.Config{
-			Image: pd.image,
+			Image: pd.Image,
 			Env: []string{
 				fmt.Sprintf("POSTGRES_PASSWORD=%s", PostgresPassword),
 				fmt.Sprintf("POSTGRES_USER=%s", PostgresUsername),
@@ -151,7 +151,7 @@ func (pd *PostgresDriver) Initialize(ctx context.Context, c *client.Client, cont
 	}
 	defer conn.Close()
 
-	for _, db := range pd.databases {
+	for _, db := range pd.Databases {
 		pgLegacyLog.Println("Creating database", db+"...")
 		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db))
 		if err != nil && !strings.Contains(err.Error(), "already exists") {

@@ -24,7 +24,6 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 
 	// Collect all the ports that should be allocated (also for the service drivers obv)
 	portsToAllocate := r.ctx.Ports()
-	currentPort := DefaultStartPort
 	containerMap := map[string]mconfig.ContainerAllocation{}
 	for _, driver := range r.ctx.Services() {
 		if _, ok := containerMap[driver.GetUniqueId()]; ok {
@@ -39,6 +38,7 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 		for range driver.GetRequiredPortAmount() {
 
 			// Make sure we're not allocating a port that's already taken
+			currentPort := util.RandomPort(DefaultStartPort, DefaultEndPort)
 			for slices.Contains(portsToAllocate, currentPort) && !util.ScanPort(currentPort) {
 				currentPort = util.RandomPort(DefaultStartPort, DefaultEndPort)
 			}
@@ -58,7 +58,7 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 
 			// Generate a new port in case the current one is taken
 			toAllocate := port
-			for slices.Contains(portsToAllocate, port) && !util.ScanPort(toAllocate) {
+			for !util.ScanPort(toAllocate) && slices.Contains(portsToAllocate, toAllocate) {
 				toAllocate = util.RandomPort(DefaultStartPort, DefaultEndPort)
 			}
 
@@ -70,6 +70,16 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 	// Load into plan
 	r.plan.Containers = containerMap
 	r.plan.AllocatedPorts = allocatedPorts
+
+	// Add all the services to the plan
+	r.plan.Services = map[string]string{}
+	for _, driver := range r.ctx.Services() {
+		data, err := driver.Save()
+		if err != nil {
+			util.Log.Fatalln("couldn't persist service driver of type", driver.GetUniqueId()+":", err)
+		}
+		r.plan.Services[driver.GetUniqueId()] = data
+	}
 
 	// Generate the environment variables and add to plan
 	environment := map[string]string{}

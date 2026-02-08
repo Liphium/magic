@@ -1,6 +1,7 @@
 package databases
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -25,8 +26,8 @@ const (
 var pgLegacyLog *log.Logger = log.New(os.Stdout, "pg-legacy ", log.Default().Flags())
 
 type PostgresDriver struct {
-	image     string
-	databases []string
+	Image     string   `json:"image"`
+	Databases []string `json:"databases"`
 }
 
 // Create a new PostgreSQL legacy service driver.
@@ -52,12 +53,28 @@ func NewLegacyPostgresDriver(image string) *PostgresDriver {
 	}
 
 	return &PostgresDriver{
-		image: image,
+		Image: image,
 	}
 }
 
+func (pd *PostgresDriver) Load(data string) (mconfig.ServiceDriver, error) {
+	var driver PostgresDriver
+	if err := json.Unmarshal([]byte(data), &driver); err != nil {
+		return nil, err
+	}
+	return &driver, nil
+}
+
+func (pd *PostgresDriver) Save() (string, error) {
+	bytes, err := json.Marshal(pd)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
 func (pd *PostgresDriver) NewDatabase(name string) *PostgresDriver {
-	pd.databases = append(pd.databases, name)
+	pd.Databases = append(pd.Databases, name)
 	return pd
 }
 
@@ -71,7 +88,7 @@ func (pd *PostgresDriver) GetRequiredPortAmount() int {
 }
 
 func (pd *PostgresDriver) GetImage() string {
-	return pd.image
+	return pd.Image
 }
 
 // Get the username of the databases in this driver as a EnvironmentValue for your config.
