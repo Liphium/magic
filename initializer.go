@@ -60,13 +60,6 @@ func prepare(config Config, testProfile string) (*Factory, *mrunner.Runner) {
 	if isTestRunner {
 		currentProfile = "test-" + testProfile
 	}
-	ctx := mconfig.DefaultContext(config.AppName, currentProfile)
-
-	// Check if all scripts should be listed
-	if *scriptsFlag && !isTestRunner {
-		listScripts(config)
-		return nil, nil
-	}
 
 	// Create a factory for initializing everything
 	factory, err := createFactory()
@@ -78,6 +71,15 @@ func prepare(config Config, testProfile string) (*Factory, *mrunner.Runner) {
 		util.Log.Println("Using project directory:", factory.projectDir)
 	}
 	factory.WarnIfNotIgnored()
+
+	// Create the context for Magic config generation
+	ctx := mconfig.DefaultContext(config.AppName, currentProfile, factory.projectDir)
+
+	// Check if all scripts should be listed
+	if *scriptsFlag && !isTestRunner {
+		listScripts(config)
+		return nil, nil
+	}
 
 	// Check if a script should be run
 	script := *runFlag

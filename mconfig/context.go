@@ -2,7 +2,6 @@ package mconfig
 
 import (
 	"fmt"
-	"log"
 	"maps"
 	"os"
 	"strings"
@@ -11,11 +10,11 @@ import (
 type Context struct {
 	appName     string       // Current app name
 	profile     string       // Current profile
-	directory   string       // Current working directory
+	projectDir  string       // Current project directory
 	environment *Environment // Environment for environment variables (can be nil)
-	databases   []*Database
+	services    []ServiceDriver
 	ports       []uint // All ports the user wants to allocate
-	plan        **Plan // For later filling in with actual information
+	plan        *Plan  // For later filling in with actual information
 }
 
 // The app name you set in your config.
@@ -38,6 +37,10 @@ func (c *Context) Environment() *Environment {
 
 func (c *Context) Ports() []uint {
 	return c.ports
+}
+
+func (c *Context) ProjectDirectory() string {
+	return c.projectDir
 }
 
 // Set the environment.
@@ -78,47 +81,28 @@ func (c *Context) LoadSecretsToEnvironment(path string) error {
 	return nil
 }
 
-// Get the databases.
-func (c *Context) Databases() []*Database {
-	return c.databases
+// Get all services requested.
+func (c *Context) Services() []ServiceDriver {
+	return c.services
 }
 
 // Plan for later (DO NOT EXPECT THIS TO BE FILLED BEFORE DEPLOYMENT STEP)
 func (c *Context) Plan() *Plan {
-	return *c.plan
+	return c.plan
 }
 
-// Apply a plan for the environment in the config
-func (c *Context) ApplyPlan(plan *Plan) {
-	*c.plan = plan
+// Register a service driver for a service
+func (c *Context) Register(driver ServiceDriver) ServiceDriver {
+	c.services = append(c.services, driver)
+	return driver
 }
 
-func (c *Context) NewPostgresDatabase(name string) *Database {
-	database := &Database{
-		dbType: DatabasePostgres,
-		name:   name,
-	}
-	c.databases = append(c.databases, database)
-	return database
-}
-
-// Add a new database.
-func (c *Context) AddDatabase(database *Database) {
-	c.databases = append(c.databases, database)
-}
-
-func DefaultContext(appName string, profile string) *Context {
-	workDir, err := os.Getwd()
-	if err != nil {
-		log.Fatalln("couldn't get current working directory")
-	}
-
-	plan := &Plan{}
+func DefaultContext(appName string, profile string, projectDir string) *Context {
 	return &Context{
-		directory: workDir,
-		appName:   appName,
-		profile:   profile,
-		databases: []*Database{},
-		plan:      &plan,
+		projectDir: projectDir,
+		appName:    appName,
+		profile:    profile,
+		services:   []ServiceDriver{},
+		plan:       &Plan{},
 	}
 }

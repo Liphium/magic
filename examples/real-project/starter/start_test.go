@@ -56,7 +56,7 @@ func TestApp(t *testing.T) {
 		defer client.Close()
 
 		// You can clear databases here, but if you don't rely on an empty database for a test, just not doing it is fine, too.
-		magic.GetTestRunner().ClearDatabases()
+		assert.Nil(t, magic.GetTestRunner().ClearTables())
 
 		// Yes, you can call scripts in here to make your life a little easier.
 		if err := starter.SeedDatabase(); err != nil {

@@ -28,7 +28,7 @@ func createFactory() (Factory, error) {
 		return Factory{}, err
 	}
 
-	for i := 0; i < maxRecursiveTries; i++ {
+	for range maxRecursiveTries {
 		modPath := filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(modPath); err == nil {
 			return Factory{projectDir: dir}, nil
@@ -68,7 +68,7 @@ func (f *Factory) LockFile(profile string) string {
 
 // Get the location of the plan file for a profile
 func (f *Factory) PlanFile(profile string) string {
-	return filepath.Join(f.MagicDirectory(), fmt.Sprintf("%s.mplan", profile))
+	return filepath.Join(f.MagicDirectory(), fmt.Sprintf("%s.json", profile))
 }
 
 // Check if a profile is locked (a magic instance is running)

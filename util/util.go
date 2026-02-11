@@ -1,8 +1,10 @@
 package util
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
+	"net"
 	"os"
 	"time"
 )
@@ -17,4 +19,19 @@ func RandomString(length int) string {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+// Generate a random port
+func RandomPort(start, end uint) uint {
+	return start + uint(rand.Intn(int(end-start+1)))
+}
+
+// Scan an individual port. Returns true when the creation of the listener succeeds.
+func ScanPort(port uint) bool {
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err == nil {
+		listener.Close()
+		return true
+	}
+	return false
 }
