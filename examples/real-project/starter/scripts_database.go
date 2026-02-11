@@ -12,14 +12,14 @@ import (
 //
 // Here we just use any to ignore the argument. This can be useful for scripts such as this one.
 func ClearDatabases(runner *mrunner.Runner) error {
-	log.Println("Resetting database...")
+	log.Println("Clearing database...")
 
 	// Magic can clear all databases for you, don't worry, only data will be deleted meaning your schema is still all good :D
 	if err := runner.ClearTables(); err != nil {
 		log.Fatalln("Couldn't clear database tables:", err)
 	}
 
-	log.Println("Database reset completed successfully!")
+	log.Println("Database clear completed successfully!")
 	return nil
 }
 
@@ -31,7 +31,7 @@ func ResetDatabase(runner *mrunner.Runner) error {
 
 	// Magic can drop all databases for you as well, this means that all the tables are actually gone
 	if err := runner.DropTables(); err != nil {
-		log.Fatalln("Couldn't clear database tables:", err)
+		log.Fatalln("Couldn't reset database tables:", err)
 	}
 
 	log.Println("Database reset completed successfully!")
