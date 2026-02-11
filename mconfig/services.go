@@ -26,7 +26,7 @@ type ServiceDriver interface {
 	// Should return the amount of ports required to start the container.
 	GetRequiredPortAmount() int
 
-	// Should return the image. Magic will
+	// Should return the image. Magic will pull it automatically.
 	GetImage() string
 
 	// Create a new container for this type of service

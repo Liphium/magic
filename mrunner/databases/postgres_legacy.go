@@ -78,9 +78,9 @@ func (pd *PostgresDriver) NewDatabase(name string) *PostgresDriver {
 	return pd
 }
 
-// A unique identifier for the database container
+// A unique identifier for the database driver. This is appended to the container name to make sure we know it's the container from the driver.
 func (pd *PostgresDriver) GetUniqueId() string {
-	return "postgres1417"
+	return "postgres1417" // Context for this: Since this driver supports PostgreSQL v14-v17 this just makes it easier to know when seeing the container in "docker ps" or sth
 }
 
 func (pd *PostgresDriver) GetRequiredPortAmount() int {
