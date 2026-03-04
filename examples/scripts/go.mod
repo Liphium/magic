@@ -1,6 +1,6 @@
 module scripts-example
 
-go 1.24.4
+go 1.25.7
 
 replace github.com/Liphium/magic/v2 => ../../.
 

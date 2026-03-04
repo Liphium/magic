@@ -1,4 +1,4 @@
-package databases
+package postgres_legacy
 
 import (
 	"encoding/json"
@@ -35,7 +35,7 @@ type PostgresDriver struct {
 // It currently supports version PostgreSQL v14-17. Use NewPostgresDriver for v18 and beyond.
 //
 // This driver will eventually be deprecated and replaced by the one for v18 and above.
-func NewLegacyPostgresDriver(image string) *PostgresDriver {
+func NewDriver(image string) *PostgresDriver {
 	imageVersion := strings.Split(image, ":")[1]
 
 	// Supported (confirmed and tested) major versions for this Postgres driver

@@ -1,11 +1,14 @@
 module real-project
 
-go 1.24.4
+go 1.25.7
 
 replace github.com/Liphium/magic/v2 => ../../.
 
+replace github.com/Liphium/magic/v2/pkg/databases/postgres-legacy => ../../pkg/databases/postgres-legacy
+
 require (
-	github.com/Liphium/magic/v2 v2.0.0-00010101000000-000000000000
+	github.com/Liphium/magic/v2 v2.0.4
+	github.com/Liphium/magic/v2/pkg/databases/postgres-legacy v0.0.0-00010101000000-000000000000
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1
@@ -57,7 +60,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/lib/pq v1.10.9 // indirect
+	github.com/lib/pq v1.11.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -65,8 +68,8 @@ require (
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
-	github.com/moby/moby/api v1.52.0 // indirect
-	github.com/moby/moby/client v0.2.1 // indirect
+	github.com/moby/moby/api v1.53.0 // indirect
+	github.com/moby/moby/client v0.2.2 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect

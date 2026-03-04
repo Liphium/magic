@@ -5,7 +5,7 @@ import (
 
 	"github.com/Liphium/magic/v2"
 	"github.com/Liphium/magic/v2/mconfig"
-	"github.com/Liphium/magic/v2/mrunner/databases"
+	postgres_legacy "github.com/Liphium/magic/v2/pkg/databases/postgres-legacy"
 	"github.com/Liphium/magic/v2/scripting"
 )
 
@@ -15,7 +15,7 @@ func BuildMagicConfig() magic.Config {
 		PlanDeployment: func(ctx *mconfig.Context) {
 
 			// Create a new driver for PostgreSQL databases
-			driver := databases.NewLegacyPostgresDriver("postgres:17").
+			driver := postgres_legacy.NewDriver("postgres:17").
 				// Create a PostgreSQL database for the posts service (the driver supports a builder pattern with this method)
 				NewDatabase("posts")
 

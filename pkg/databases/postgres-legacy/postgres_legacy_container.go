@@ -1,4 +1,4 @@
-package databases
+package postgres_legacy
 
 import (
 	"context"
