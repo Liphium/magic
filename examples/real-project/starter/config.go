@@ -3,10 +3,10 @@ package starter
 import (
 	"fmt"
 
-	"github.com/Liphium/magic/v2"
-	"github.com/Liphium/magic/v2/mconfig"
-	postgres_legacy "github.com/Liphium/magic/v2/pkg/databases/postgres-legacy"
-	"github.com/Liphium/magic/v2/scripting"
+	"github.com/Liphium/magic/v3"
+	"github.com/Liphium/magic/v3/mconfig"
+	postgres_legacy "github.com/Liphium/magic/v3/pkg/databases/postgres-legacy"
+	"github.com/Liphium/magic/v3/scripting"
 )
 
 func BuildMagicConfig() magic.Config {

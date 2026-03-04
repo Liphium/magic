@@ -4,7 +4,7 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/Liphium/magic/v2/mrunner"
+	"github.com/Liphium/magic/v3/mrunner"
 )
 
 type Script struct {

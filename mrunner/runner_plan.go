@@ -3,8 +3,8 @@ package mrunner
 import (
 	"slices"
 
-	"github.com/Liphium/magic/v2/mconfig"
-	"github.com/Liphium/magic/v2/util"
+	"github.com/Liphium/magic/v3/mconfig"
+	"github.com/Liphium/magic/v3/util"
 )
 
 // Get the current plan (might not be set yet, call GeneratePlan first)

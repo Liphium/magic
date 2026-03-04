@@ -2,13 +2,13 @@ module real-project
 
 go 1.25.7
 
-replace github.com/Liphium/magic/v2 => ../../.
+replace github.com/Liphium/magic/v3 => ../../.
 
-replace github.com/Liphium/magic/v2/pkg/databases/postgres-legacy => ../../pkg/databases/postgres-legacy
+replace github.com/Liphium/magic/v3/pkg/databases/postgres-legacy => ../../pkg/databases/postgres-legacy
 
 require (
-	github.com/Liphium/magic/v2 v2.0.4
-	github.com/Liphium/magic/v2/pkg/databases/postgres-legacy v0.0.0-00010101000000-000000000000
+	github.com/Liphium/magic/v3 v3.0.0-00010101000000-000000000000
+	github.com/Liphium/magic/v3/pkg/databases/postgres-legacy v0.0.0-00010101000000-000000000000
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1

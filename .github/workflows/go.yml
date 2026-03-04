@@ -5,9 +5,7 @@ name: Go
 
 on:
   push:
-    branches: ["main"]
   pull_request:
-    branches: ["main"]
 
 jobs:
   build:
@@ -23,5 +21,12 @@ jobs:
       - name: Build
         run: go build
 
+      - name: Check for proper formatting
+        run: go vet
+
       - name: Test all modules
         run: go test ./...
+
+      - name: Test real-project example
+        working-directory: examples
+        run: go test ./real-project/...

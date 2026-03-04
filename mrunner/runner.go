@@ -1,7 +1,7 @@
 package mrunner
 
 import (
-	"github.com/Liphium/magic/v2/mconfig"
+	"github.com/Liphium/magic/v3/mconfig"
 	"github.com/moby/moby/client"
 )
 

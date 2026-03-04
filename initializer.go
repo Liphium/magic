@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Liphium/magic/v2/mconfig"
-	"github.com/Liphium/magic/v2/mrunner"
-	"github.com/Liphium/magic/v2/scripting"
-	"github.com/Liphium/magic/v2/util"
+	"github.com/Liphium/magic/v3/mconfig"
+	"github.com/Liphium/magic/v3/mrunner"
+	"github.com/Liphium/magic/v3/scripting"
+	"github.com/Liphium/magic/v3/util"
 	"github.com/spf13/pflag"
 )
 

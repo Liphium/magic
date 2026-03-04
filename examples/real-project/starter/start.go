@@ -5,7 +5,7 @@ import (
 	"os"
 	"real-project/database"
 
-	"github.com/Liphium/magic/v2"
+	"github.com/Liphium/magic/v3"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"

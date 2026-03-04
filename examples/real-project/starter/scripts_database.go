@@ -5,7 +5,7 @@ import (
 	"log"
 	"real-project/database"
 
-	"github.com/Liphium/magic/v2/mrunner"
+	"github.com/Liphium/magic/v3/mrunner"
 )
 
 // Script to clear all database tables content, but not fully delete them.

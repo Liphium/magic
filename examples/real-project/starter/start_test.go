@@ -6,7 +6,7 @@ import (
 	"real-project/starter"
 	"testing"
 
-	"github.com/Liphium/magic/v2"
+	"github.com/Liphium/magic/v3"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"resty.dev/v3"

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Liphium/magic/v2/util"
+	"github.com/Liphium/magic/v3/util"
 	"github.com/gofrs/flock"
 )
 

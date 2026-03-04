@@ -2,9 +2,9 @@ module scripts-example
 
 go 1.25.7
 
-replace github.com/Liphium/magic/v2 => ../../.
+replace github.com/Liphium/magic/v3 => ../../.
 
-require github.com/Liphium/magic/v2 v2.0.0-00010101000000-000000000000
+require github.com/Liphium/magic/v3 v3.0.0-00010101000000-000000000000
 
 require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
