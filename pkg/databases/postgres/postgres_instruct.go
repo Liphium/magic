@@ -78,7 +78,7 @@ func (pd *PostgresDriver) ClearTables(container mconfig.ContainerInformation) er
 func (pd *PostgresDriver) DropTables(container mconfig.ContainerInformation) error {
 	return pd.iterateTables(container, func(tableName string, conn *sql.DB) error {
 		if _, err := conn.Exec(fmt.Sprintf("DROP TABLE %s CASCADE", tableName)); err != nil {
-			return fmt.Errorf("couldn't drop table table %s: %v", tableName, err)
+			return fmt.Errorf("couldn't drop table %s: %v", tableName, err)
 		}
 		return nil
 	})
