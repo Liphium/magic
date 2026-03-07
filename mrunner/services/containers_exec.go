@@ -15,11 +15,11 @@ func ExecuteCommand(ctx context.Context, c *client.Client, id string, cmd []stri
 		AttachStderr: true,
 	})
 	if err != nil {
-		return client.ExecInspectResult{}, fmt.Errorf("couldn't create command for readiness of container: %s", err)
+		return client.ExecInspectResult{}, fmt.Errorf("couldn't create exec: %s", err)
 	}
 	execStartCheck := client.ExecStartOptions{Detach: false, TTY: false}
 	if _, err := c.ExecStart(ctx, execIDResp.ID, execStartCheck); err != nil {
-		return client.ExecInspectResult{}, fmt.Errorf("couldn't start command for readiness of container: %s", err)
+		return client.ExecInspectResult{}, fmt.Errorf("couldn't start exec: %s", err)
 	}
 	return c.ExecInspect(ctx, execIDResp.ID, client.ExecInspectOptions{})
 }
