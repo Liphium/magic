@@ -162,7 +162,7 @@ func buildMounts(a mconfig.ContainerAllocation, volumes []ContainerVolume, exist
 	return mounts, nil
 }
 
-// buildPortBindings converts the the ports to what Docker actually needs.
+// buildPortBindings converts the ports to what Docker actually needs.
 func buildPortBindings(a mconfig.ContainerAllocation, ports []string) (network.PortSet, network.PortMap, error) {
 	exposedPorts := network.PortSet{}
 	portBindings := network.PortMap{}
