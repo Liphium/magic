@@ -22,7 +22,7 @@ func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client,
 		Env: []string{
 			fmt.Sprintf("POSTGRES_PASSWORD=%s", PostgresPassword),
 			fmt.Sprintf("POSTGRES_USER=%s", PostgresUsername),
-			"POSTGRES_DATABASE=postgres",
+			"POSTGRES_DB=postgres",
 		},
 		Ports: []string{
 			"5432/tcp",
