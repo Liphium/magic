@@ -1,4 +1,4 @@
-module github.com/Liphium/magic/pkg/databases/postgres_legacy
+module github.com/Liphium/magic/v3/pkg/databases/postgres_legacy
 
 go 1.25.7
 
