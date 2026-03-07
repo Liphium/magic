@@ -67,7 +67,7 @@ func (pd *PostgresDriver) iterateTables(container mconfig.ContainerInformation, 
 // Clear all tables in all databases (keeps table schema alive, just removes the content of all tables)
 func (pd *PostgresDriver) ClearTables(container mconfig.ContainerInformation) error {
 	return pd.iterateTables(container, func(tableName string, conn *sql.DB) error {
-		if _, err := conn.Exec(fmt.Sprintf("truncate %s CASCADE", tableName)); err != nil {
+		if _, err := conn.Exec(fmt.Sprintf("truncate \"%s\" CASCADE", tableName)); err != nil {
 			return fmt.Errorf("couldn't truncate table %s: %v", tableName, err)
 		}
 		return nil
@@ -77,8 +77,8 @@ func (pd *PostgresDriver) ClearTables(container mconfig.ContainerInformation) er
 // Drop all tables in all databases (actually deletes all of your tables)
 func (pd *PostgresDriver) DropTables(container mconfig.ContainerInformation) error {
 	return pd.iterateTables(container, func(tableName string, conn *sql.DB) error {
-		if _, err := conn.Exec(fmt.Sprintf("DROP TABLE %s CASCADE", tableName)); err != nil {
-			return fmt.Errorf("couldn't drop table table %s: %v", tableName, err)
+		if _, err := conn.Exec(fmt.Sprintf("DROP TABLE \"%s\" CASCADE", tableName)); err != nil {
+			return fmt.Errorf("couldn't drop table %s: %v", tableName, err)
 		}
 		return nil
 	})
