@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Liphium/magic/v3/mconfig"
+	_ "github.com/lib/pq"
 	"github.com/moby/moby/client"
 )
 
