@@ -1,4 +1,4 @@
-package postgres_legacy
+package postgres
 
 import (
 	"encoding/json"
@@ -9,7 +9,6 @@ import (
 
 	"github.com/Liphium/magic/v3/mconfig"
 	"github.com/Liphium/magic/v3/util"
-	_ "github.com/lib/pq"
 )
 
 // Make sure the driver complies
@@ -23,23 +22,26 @@ const (
 	PostgresPassword = "postgres"
 )
 
-var pgLegacyLog *log.Logger = log.New(os.Stdout, "pg-legacy ", log.Default().Flags())
+var pgLog *log.Logger = log.New(os.Stdout, "postgres ", log.Default().Flags())
 
 type PostgresDriver struct {
 	Image     string   `json:"image"`
 	Databases []string `json:"databases"`
 }
 
-// Create a new PostgreSQL legacy service driver.
+// Make sure to register the driver
+func init() {
+	mconfig.RegisterDriver(&PostgresDriver{})
+}
+
+// Create a new PostgreSQL service driver.
 //
-// It currently supports version PostgreSQL 14-17, older versions have not been tested. Use the new postgres driver for PostgreSQL 18 and beyond.
-//
-// This driver is deprecated and will be removed when PostgreSQL 20 comes out.
+// It currently supports PostgreSQL 18.
 func NewDriver(image string) *PostgresDriver {
 	imageVersion := strings.Split(image, ":")[1]
 
 	// Supported (confirmed and tested) major versions for this Postgres driver
-	var supportedPostgresVersions = []string{"14", "15", "16", "17"}
+	var supportedPostgresVersions = []string{"18"}
 
 	// Do a quick check to make sure the image version is actually supported
 	supported := false
@@ -49,7 +51,7 @@ func NewDriver(image string) *PostgresDriver {
 		}
 	}
 	if !supported {
-		pgLegacyLog.Fatalln("ERROR: Version", imageVersion, "is currently not supported.")
+		pgLog.Fatalln("ERROR: Version", imageVersion, "is currently not supported.")
 	}
 
 	return &PostgresDriver{
@@ -80,7 +82,7 @@ func (pd *PostgresDriver) NewDatabase(name string) *PostgresDriver {
 
 // A unique identifier for the database driver. This is appended to the container name to make sure we know it's the container from the driver.
 func (pd *PostgresDriver) GetUniqueId() string {
-	return "postgres1417" // Context for this: Since this driver supports PostgreSQL v14-v17 this just makes it easier to know when seeing the container in "docker ps" or sth
+	return "postgres"
 }
 
 func (pd *PostgresDriver) GetRequiredPortAmount() int {
@@ -115,7 +117,7 @@ func (pd *PostgresDriver) Port(ctx *mconfig.Context) mconfig.EnvironmentValue {
 			}
 		}
 
-		util.Log.Fatalln("ERROR: Couldn't find port for PostgreSQL container in plan!")
+		util.Log.Fatalln("ERROR: Couldn't find port for Postgres container in plan!")
 		return "not found"
 	})
 }

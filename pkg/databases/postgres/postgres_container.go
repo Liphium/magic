@@ -1,4 +1,4 @@
-package postgres_legacy
+package postgres
 
 import (
 	"context"
@@ -17,7 +17,7 @@ func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client,
 		return "", fmt.Errorf("please specify a proper image")
 	}
 
-	return mservices.CreateContainer(ctx, pgLegacyLog, c, a, mservices.ManagedContainerOptions{
+	return mservices.CreateContainer(ctx, pgLog, c, a, mservices.ManagedContainerOptions{
 		Image: pd.Image,
 		Env: []string{
 			fmt.Sprintf("POSTGRES_PASSWORD=%s", PostgresPassword),
@@ -28,7 +28,7 @@ func (pd *PostgresDriver) CreateContainer(ctx context.Context, c *client.Client,
 			"5432/tcp",
 		},
 		Volumes: []mservices.ContainerVolume{
-			{NameSuffix: "data", Target: "/var/lib/postgresql/data"},
+			{NameSuffix: "data", Target: "/var/lib/postgresql"},
 		},
 	})
 }
@@ -45,7 +45,7 @@ func (pd *PostgresDriver) IsHealthy(ctx context.Context, c *client.Client, conta
 	}
 
 	if mconfig.VerboseLogging {
-		pgLegacyLog.Println("Database health check response code:", respInspect.ExitCode)
+		pgLog.Println("Database health check response code:", respInspect.ExitCode)
 	}
 
 	return respInspect.ExitCode == 0, nil
@@ -63,7 +63,7 @@ func (pd *PostgresDriver) Initialize(ctx context.Context, c *client.Client, cont
 	defer conn.Close()
 
 	for _, db := range pd.Databases {
-		pgLegacyLog.Println("Creating database", db+"...")
+		pgLog.Println("Creating database", db+"...")
 		_, err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", db))
 		if err != nil && !strings.Contains(err.Error(), "already exists") {
 			return fmt.Errorf("couldn't create postgres database: %s", err)

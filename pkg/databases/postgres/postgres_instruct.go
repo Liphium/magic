@@ -1,4 +1,4 @@
-package postgres_legacy
+package postgres
 
 import (
 	"context"
@@ -46,6 +46,7 @@ func (pd *PostgresDriver) iterateTables(container mconfig.ContainerInformation, 
 			if err != nil {
 				return fmt.Errorf("couldn't get database tables: %v", err)
 			}
+			defer res.Close()
 			for res.Next() {
 				var name string
 				if err := res.Scan(&name); err != nil {
