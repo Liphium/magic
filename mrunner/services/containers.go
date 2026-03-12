@@ -114,7 +114,9 @@ func removeExistingContainer(ctx context.Context, log *log.Logger, c *client.Cli
 			// Check if the old container is using an image of a different image
 			majorCurrent := GetImageMajorVersion(image)
 			majorNew := GetImageMajorVersion(opts.Image)
-			if majorCurrent != majorNew {
+			if majorCurrent == -1 || majorNew == -1 {
+				log.Printf("Skipping major version check: unable to parse image versions (%s -> %s)", image, opts.Image)
+			} else if majorCurrent != majorNew {
 				return nil, fmt.Errorf("major version mismatch for %s: please upgrade or delete your old container before starting the app (%d -> %d)", opts.Image, majorCurrent, majorNew)
 			}
 
