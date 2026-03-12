@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Liphium/magic/v3/mconfig"
+	mservices "github.com/Liphium/magic/v3/mrunner/services"
 	"github.com/Liphium/magic/v3/util"
 	_ "github.com/lib/pq"
 )
@@ -39,12 +40,13 @@ func NewDriver(image string) *PostgresDriver {
 	imageVersion := strings.Split(image, ":")[1]
 
 	// Supported (confirmed and tested) major versions for this Postgres driver
-	var supportedPostgresVersions = []string{"14", "15", "16", "17"}
+	var supportedPostgresVersions = []int{14, 15, 16, 17}
 
 	// Do a quick check to make sure the image version is actually supported
 	supported := false
+	imageMajor := mservices.GetImageMajorVersion(image)
 	for _, version := range supportedPostgresVersions {
-		if strings.HasPrefix(imageVersion, fmt.Sprintf("%s.", version)) || imageVersion == version {
+		if imageMajor == version {
 			supported = true
 		}
 	}

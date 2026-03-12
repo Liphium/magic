@@ -40,7 +40,6 @@ require (
 	github.com/go-playground/validator/v10 v10.29.0 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/lib/pq v1.10.9 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
