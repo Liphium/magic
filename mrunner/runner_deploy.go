@@ -97,7 +97,7 @@ func (r *Runner) pullServiceImages(ctx context.Context) error {
 				}
 			}
 
-			util.Log.Printf("Successfully pulled image %s \n!", image)
+			util.Log.Printf("Successfully pulled image %s! \n", image)
 		}
 	}
 
