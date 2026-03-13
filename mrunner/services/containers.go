@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/netip"
+	"strconv"
 	"strings"
 
 	"github.com/Liphium/magic/v3/mconfig"
@@ -105,8 +106,18 @@ func removeExistingContainer(ctx context.Context, log *log.Logger, c *client.Cli
 			}
 
 			log.Println("Found existing container, recovering mounts...")
-			if err := recoverMounts(ctx, c, ct.ID, opts.Volumes, existingMounts); err != nil {
+			image, err := recoverMounts(ctx, c, ct.ID, opts.Volumes, existingMounts)
+			if err != nil {
 				return nil, err
+			}
+
+			// Check if the old container is using an image of a different image
+			majorCurrent := GetImageMajorVersion(image)
+			majorNew := GetImageMajorVersion(opts.Image)
+			if majorCurrent == -1 || majorNew == -1 {
+				log.Printf("Skipping major version check: unable to parse image versions (%s -> %s)", image, opts.Image)
+			} else if majorCurrent != majorNew {
+				return nil, fmt.Errorf("major version mismatch for %s: please upgrade or delete your old container before starting the app (%d -> %d)", opts.Image, majorCurrent, majorNew)
 			}
 
 			log.Println("Removing old container...")
@@ -124,10 +135,11 @@ func removeExistingContainer(ctx context.Context, log *log.Logger, c *client.Cli
 
 // recoverMounts inspects a container and indexes its mounts by the matching
 // ContainerVolume.NameSuffix into the provided map.
-func recoverMounts(ctx context.Context, c *client.Client, containerID string, volumes []ContainerVolume, out map[string]mount.Mount) error {
+// also returns the name of the image of the container for convenience.
+func recoverMounts(ctx context.Context, c *client.Client, containerID string, volumes []ContainerVolume, out map[string]mount.Mount) (string, error) {
 	resp, err := c.ContainerInspect(ctx, containerID, client.ContainerInspectOptions{})
 	if err != nil {
-		return fmt.Errorf("couldn't inspect container: %s", err)
+		return "", fmt.Errorf("couldn't inspect container: %s", err)
 	}
 
 	for _, m := range resp.Container.HostConfig.Mounts {
@@ -138,7 +150,7 @@ func recoverMounts(ctx context.Context, c *client.Client, containerID string, vo
 		}
 	}
 
-	return nil
+	return resp.Container.Config.Image, nil
 }
 
 // buildMounts constructs the mount list for the new container. Any volume whose
@@ -188,4 +200,44 @@ func buildPortBindings(a mconfig.ContainerAllocation, ports []string) (network.P
 	}
 
 	return exposedPorts, portBindings, nil
+}
+
+// GetImageMajorVersion extracts the major version number from a Docker image
+// tag. It searches for the first sequence of digits in the tag portion of the
+// image name (after the colon) and returns it as an integer. For example:
+//   - "postgres:17"      -> 17
+//   - "node:v20.1.0"     -> 20
+//   - "nginx:1.25-alpine" -> 1
+//
+// Returns -1 if no version number can be found.
+func GetImageMajorVersion(image string) int {
+	// Use only the tag portion if a colon is present.
+	tag := image
+	if idx := strings.LastIndex(image, ":"); idx != -1 {
+		tag = image[idx+1:]
+	}
+
+	// Find the first run of digits in the tag.
+	start := -1
+	for i, ch := range tag {
+		if ch >= '0' && ch <= '9' {
+			if start == -1 {
+				start = i
+			}
+		} else {
+			if start != -1 {
+				// We have reached the end of the first digit sequence.
+				v, _ := strconv.Atoi(tag[start:i])
+				return v
+			}
+		}
+	}
+
+	// Handle the case where the tag ends with digits.
+	if start != -1 {
+		v, _ := strconv.Atoi(tag[start:])
+		return v
+	}
+
+	return -1
 }

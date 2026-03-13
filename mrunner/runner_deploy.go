@@ -88,20 +88,16 @@ func (r *Runner) pullServiceImages(ctx context.Context) error {
 					return fmt.Errorf("error while pulling image %s: %s", image, err)
 				}
 
-				util.Log.Println(string(buf[:n]))
-
-				// Print progress update every second
 				if time.Since(lastUpdate) >= time.Second {
-					util.Log.Println("Downloading", image+"...")
+					util.Log.Printf("Downloading %s...\n", image)
 					lastUpdate = time.Now()
 				}
-
 				if n == 0 {
 					break
 				}
 			}
 
-			util.Log.Println("Successfully pulled image", image)
+			util.Log.Printf("Successfully pulled image %s! \n", image)
 		}
 	}
 
