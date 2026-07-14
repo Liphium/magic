@@ -3,9 +3,9 @@ package starter
 import (
 	"fmt"
 
+	"github.com/Liphium/magic/pkg/databases/postgres"
 	"github.com/Liphium/magic/v3"
 	"github.com/Liphium/magic/v3/mconfig"
-	"github.com/Liphium/magic/v3/pkg/databases/postgres"
 	"github.com/Liphium/magic/v3/scripting"
 )
 
