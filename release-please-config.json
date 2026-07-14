@@ -9,10 +9,12 @@
 		},
 		"pkg/databases/postgres": {
 			"release-type": "go",
+			"component": "pkg/databases/postgres",
 			"include-v-in-tag": true
 		},
 		"pkg/databases/postgres-legacy": {
 			"release-type": "go",
+			"component": "pkg/databases/postgres-legacy",
 			"include-v-in-tag": true
 		}
 	}
