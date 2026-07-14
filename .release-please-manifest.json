@@ -1,5 +1,5 @@
 {
 	".": "3.1.0",
-	"pkg/databases/postgres": "1.1.0",
-	"pkg/databases/postgres-legacy": "1.1.0"
+	"pkg/databases/postgres": "1.2.0",
+	"pkg/databases/postgres-legacy": "1.2.0"
 }
