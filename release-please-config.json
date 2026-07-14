@@ -1,0 +1,19 @@
+{
+	"bump-minor-pre-major": true,
+	"tag-separator": "/",
+	"packages": {
+		".": {
+			"release-type": "go",
+			"include-v-in-tag": true,
+			"exclude-paths": ["pkg", "examples"]
+		},
+		"pkg/databases/postgres": {
+			"release-type": "go",
+			"include-v-in-tag": true
+		},
+		"pkg/databases/postgres-legacy": {
+			"release-type": "go",
+			"include-v-in-tag": true
+		}
+	}
+}

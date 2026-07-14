@@ -25,8 +25,5 @@ jobs:
         run: go vet
 
       - name: Test all modules
-        run: go test ./...
-
-      - name: Test real-project example
-        working-directory: examples
-        run: go test ./real-project/...
+        run: |
+          find . -name "go.mod" -print0 | xargs -0 -I {} bash -c 'dir=$(dirname "{}"); echo "Testing $dir..."; cd "$dir" && go test ./...'
