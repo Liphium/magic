@@ -1,0 +1,19 @@
+# Changelog
+
+## [1.1.0](https://github.com/Liphium/magic/compare/v1.0.0...v1.1.0) (2026-07-14)
+
+
+### Features
+
+* Add PostgreSQL 18 driver + driver refactor ([9872fae](https://github.com/Liphium/magic/commit/9872fae22cb60577570da655616cb852be42f7d0))
+* Add PostgreSQL 18 driver + upgrade real project example ([5f00260](https://github.com/Liphium/magic/commit/5f00260cbe3253a918e388131829f420015ef927))
+* add release please + dependency updates ([627c615](https://github.com/Liphium/magic/commit/627c61551bbc3dfbfc7e0e21bc0f7e644f37458f))
+* Detect broken container images before collisions ([204688a](https://github.com/Liphium/magic/commit/204688a532ea5ecf2fd4e25671c2df7bfc4c5cce))
+* Make sure major version upgrades are detected and starting of ([863ca22](https://github.com/Liphium/magic/commit/863ca224e1e8d8f5ce65399f98f18a8b220ed808))
+
+
+### Bug Fixes
+
+* Make sure tables are properly truncated / dropped ([f10f886](https://github.com/Liphium/magic/commit/f10f8863256f7e704f919aa9be84a2900b2d7f1e))
+* Name the default database properly ([a4c4edc](https://github.com/Liphium/magic/commit/a4c4edc84e09db42b2ee408a9843cb1bba45e357))
+* Only use postgres connection in drivers ([1d6abc8](https://github.com/Liphium/magic/commit/1d6abc88df395a1a061beffab0f527db73ce7ce8))
