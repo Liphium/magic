@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/Liphium/magic/compare/v3.1.0...v3.2.0) (2026-07-17)
+
+
+### Features
+
+* redis driver ([2a8ebdb](https://github.com/Liphium/magic/commit/2a8ebdbe7716b7935bfa10ed2020d0c6062cb708))
+
 ## [3.1.0](https://github.com/Liphium/magic/compare/v3.0.0...v3.1.0) (2026-07-14)
 
 
