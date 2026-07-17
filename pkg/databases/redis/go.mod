@@ -1,4 +1,4 @@
-module github.com/Liphium/magic/pkg/redis
+module github.com/Liphium/magic/pkg/databases/redis
 
 go 1.26
 
