@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/Liphium/magic/compare/pkg/databases/redis/v1.1.1...pkg/databases/redis/v1.1.2) (2026-07-17)
+
+
+### Bug Fixes
+
+* Change path to proper one (pkg/databases/redis) ([7d99fb6](https://github.com/Liphium/magic/commit/7d99fb68dcce8c2362e52fe0edb7677b609f2149))
+
 ## [1.1.1](https://github.com/Liphium/magic/compare/pkg/databases/redis/v1.1.0...pkg/databases/redis/v1.1.1) (2026-07-17)
 
 
