@@ -10,27 +10,25 @@ import (
 	"github.com/moby/moby/client"
 )
 
+// For all clear instructions, flush everything away. Similar to other databases, but since we don't have schemas we flush everything.
 func (rd *RedisDriver) HandleInstruction(ctx context.Context, c *client.Client, container mconfig.ContainerInformation, instruction mconfig.Instruction) error {
 	switch instruction {
-	case mconfig.InstructionClearTables:
-		return rd.FlushDB(ctx, c, container)
-	case mconfig.InstructionDropTables:
-		return rd.FlushDB(ctx, c, container)
+	case mconfig.InstructionDropTables, mconfig.InstructionClearTables:
+		return rd.FlushAll(ctx, c, container)
 	}
 	return nil
 }
 
-func (rd *RedisDriver) FlushDB(ctx context.Context, c *client.Client, container mconfig.ContainerInformation) error {
-	redisLog.Println("Flushing Redis database...")
-	cmd := strings.Split("redis-cli flushall", " ")
+// FlushAll executes FLUSHALL with async to clear all Redis data.
+func (rd *RedisDriver) FlushAll(ctx context.Context, c *client.Client, container mconfig.ContainerInformation) error {
+	cmd := strings.Split("redis-cli -a "+RedisPassword+" flushall async", " ")
 
-	respInspect, err := mservices.ExecuteCommand(ctx, c, container.ID, cmd)
+	resp, err := mservices.ExecuteCommand(ctx, c, container.ID, cmd)
 	if err != nil {
-		return fmt.Errorf("couldn't execute flushall: %s", err)
+		return fmt.Errorf("couldn't flush redis: %s", err)
 	}
-
-	if respInspect.ExitCode != 0 {
-		return fmt.Errorf("flushall failed with exit code %d", respInspect.ExitCode)
+	if resp.ExitCode != 0 {
+		return fmt.Errorf("redis flush failed with exit code %d", resp.ExitCode)
 	}
 
 	return nil

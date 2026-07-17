@@ -12,7 +12,12 @@ import (
 	"github.com/Liphium/magic/v3/util"
 )
 
+// Compile-time interface compliance check.
 var _ mconfig.ServiceDriver = &RedisDriver{}
+
+const (
+	RedisPassword = "redis"
+)
 
 var redisLog *log.Logger = log.New(os.Stdout, "redis ", log.Default().Flags())
 
@@ -24,9 +29,11 @@ func init() {
 	mconfig.RegisterDriver(&RedisDriver{})
 }
 
+// NewDriver creates a new Redis service driver.
 func NewDriver(image string) *RedisDriver {
 	imageVersion := strings.Split(image, ":")[1]
 
+	// Confirmed and supported versions for the Redis driver
 	var supportedRedisVersions = []int{7, 8}
 
 	supported := false
@@ -73,10 +80,17 @@ func (rd *RedisDriver) GetImage() string {
 	return rd.Image
 }
 
+// Password returns Redis password as static env value.
+func (rd *RedisDriver) Password() mconfig.EnvironmentValue {
+	return mconfig.ValueStatic(RedisPassword)
+}
+
+// Host returns Redis host as static env value.
 func (rd *RedisDriver) Host(ctx *mconfig.Context) mconfig.EnvironmentValue {
 	return mconfig.ValueStatic("127.0.0.1")
 }
 
+// Port returns allocated Redis port as env value.
 func (rd *RedisDriver) Port(ctx *mconfig.Context) mconfig.EnvironmentValue {
 	return mconfig.ValueFunction(func() string {
 		for id, container := range ctx.Plan().Containers {

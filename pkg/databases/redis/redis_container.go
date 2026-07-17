@@ -10,6 +10,7 @@ import (
 	"github.com/moby/moby/client"
 )
 
+// CreateContainer creates Redis container with password auth.
 func (rd *RedisDriver) CreateContainer(ctx context.Context, c *client.Client, a mconfig.ContainerAllocation) (string, error) {
 	if rd.Image == "" {
 		return "", fmt.Errorf("please specify a proper image")
@@ -17,6 +18,9 @@ func (rd *RedisDriver) CreateContainer(ctx context.Context, c *client.Client, a 
 
 	return mservices.CreateContainer(ctx, redisLog, c, a, mservices.ManagedContainerOptions{
 		Image: rd.Image,
+		Env: []string{
+			fmt.Sprintf("REDIS_PASSWORD=%s", RedisPassword),
+		},
 		Ports: []string{
 			"6379/tcp",
 		},
@@ -26,18 +30,24 @@ func (rd *RedisDriver) CreateContainer(ctx context.Context, c *client.Client, a 
 	})
 }
 
+// IsHealthy checks Redis readiness via redis-cli ping.
 func (rd *RedisDriver) IsHealthy(ctx context.Context, c *client.Client, container mconfig.ContainerInformation) (bool, error) {
-	readyCommand := "redis-cli ping"
-	cmd := strings.Split(readyCommand, " ")
+	readyCmd := "redis-cli -a " + RedisPassword + " ping"
+	cmd := strings.Split(readyCmd, " ")
 
-	respInspect, err := mservices.ExecuteCommand(ctx, c, container.ID, cmd)
+	resp, err := mservices.ExecuteCommand(ctx, c, container.ID, cmd)
 	if err != nil {
 		return false, fmt.Errorf("couldn't execute command for readiness of container: %s", err)
 	}
 
-	return respInspect.ExitCode == 0, nil
+	if mconfig.VerboseLogging {
+		redisLog.Println("Redis health check response code:", resp.ExitCode)
+	}
+
+	return resp.ExitCode == 0, nil
 }
 
+// Initialize does nothing. Redis needs no schema setup / create databases.
 func (rd *RedisDriver) Initialize(ctx context.Context, c *client.Client, container mconfig.ContainerInformation) error {
 	return nil
 }
