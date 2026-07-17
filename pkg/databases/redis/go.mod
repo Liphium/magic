@@ -1,6 +1,6 @@
 module github.com/Liphium/magic/pkg/redis
 
-go 1.26.4
+go 1.26
 
 replace github.com/Liphium/magic => ../../.
 
