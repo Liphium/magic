@@ -16,6 +16,11 @@
 			"release-type": "go",
 			"component": "pkg/databases/postgres-legacy",
 			"include-v-in-tag": true
+		},
+		"pkg/databases/redis": {
+			"release-type": "go",
+			"component": "pkg/databases/redis",
+			"include-v-in-tag": true
 		}
 	}
 }
