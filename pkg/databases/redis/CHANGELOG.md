@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/Liphium/magic/compare/pkg/databases/redis/v1.1.0...pkg/databases/redis/v1.1.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* Decrease Go version for Redis driver ([f6128ae](https://github.com/Liphium/magic/commit/f6128ae4fe6fdaac6f5bd3b8cf7e9f17816b8536))
+
 ## [1.1.0](https://github.com/Liphium/magic/compare/pkg/databases/redis/v1.0.0...pkg/databases/redis/v1.1.0) (2026-07-17)
 
 
