@@ -13,8 +13,14 @@ import (
 type Instruction string
 
 const (
-	InstructionDropTables  Instruction = "database:drop_tables"
+	// InstructionDropTables drops all tables in all databases (e.g. PostgreSQL, Redis) leaving nothing behind.
+	InstructionDropTables Instruction = "database:drop_tables"
+
+	// InstructionClearTables clears all tables in all databases (e.g. PostgreSQL, Redis) while leaving the schema in tact (for Redis the instruction completely deletes everything since there is no schema).
 	InstructionClearTables Instruction = "database:clear_tables"
+
+	// InstructionClearFiles clears only file/object storage on a service (e.g. S3-accessible buckets), leaving databases and caches untouched.
+	InstructionClearFiles Instruction = "files:clear"
 )
 
 // A service driver is a manager for containers running a particular service image.

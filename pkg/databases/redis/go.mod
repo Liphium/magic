@@ -2,7 +2,7 @@ module github.com/Liphium/magic/pkg/databases/redis
 
 go 1.26
 
-replace github.com/Liphium/magic => ../../.
+replace github.com/Liphium/magic/v3 => ../../../.
 
 require (
 	github.com/Liphium/magic/v3 v3.1.0

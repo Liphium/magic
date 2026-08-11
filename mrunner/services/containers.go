@@ -37,6 +37,8 @@ type ManagedContainerOptions struct {
 	Ports []string
 	// Named volumes to attach. Existing mounts are reused across re-creations.
 	Volumes []ContainerVolume
+	// Commands to run in the container (overrides the image's default CMD).
+	Cmd []string
 }
 
 // CreateContainer finds and removes any existing container with the
@@ -68,6 +70,7 @@ func CreateContainer(ctx context.Context, log *log.Logger, c *client.Client, a m
 		Config: &container.Config{
 			Image:        opts.Image,
 			Env:          opts.Env,
+			Cmd:          opts.Cmd,
 			ExposedPorts: exposedPorts,
 		},
 		HostConfig: &container.HostConfig{
