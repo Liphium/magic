@@ -330,5 +330,3 @@ func (r *Runner) RunInstruction(instruction mconfig.Instruction) error {
 		return nil
 	})
 }
-
-func (r *Runner) RunInstructionFor(service string)
