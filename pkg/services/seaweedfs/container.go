@@ -20,18 +20,14 @@ func (sd *SeaweedFSDriver) CreateContainer(ctx context.Context, c *client.Client
 		return "", fmt.Errorf("please specify a proper image")
 	}
 
-	// `weed server -s3` starts master, volume, filer and the S3 gateway in a
-	// single container, which is perfect for local development.
 	return mservices.CreateContainer(ctx, seaweedLog, c, a, mservices.ManagedContainerOptions{
 		Image: sd.Image,
 		Env: []string{
 			fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", SeaweedFSS3AccessKey),
 			fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", SeaweedFSS3SecretKey),
 		},
-		Ports: []string{
-			"8333/tcp",
-		},
-		Cmd: []string{"server", "-s3"},
+		Ports: RequiredPorts,
+		Cmd:   []string{"server", "-s3"},
 		Volumes: []mservices.ContainerVolume{
 			{NameSuffix: "data", Target: "/data"},
 		},

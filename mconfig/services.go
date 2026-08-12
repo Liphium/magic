@@ -29,8 +29,8 @@ const (
 type ServiceDriver interface {
 	GetUniqueId() string
 
-	// Should return the amount of ports required to start the container.
-	GetRequiredPortAmount() int
+	// Should return the ports required to be exposed to the host (e.g. 5432/tcp).
+	GetRequiredPorts() []string
 
 	// Should return the image. Magic will pull it automatically.
 	GetImage() string

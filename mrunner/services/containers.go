@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/netip"
+	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -41,22 +43,55 @@ type ManagedContainerOptions struct {
 	Cmd []string
 }
 
-// CreateContainer finds and removes any existing container with the
-// given name, then creates a fresh one from the provided options.
+// CreateContainer looks for an existing container with the given name and reuses it when its configuration still matches the requested options.
 //
-// Existing Docker volumes are always preserved so that data survives a
-// container re-creation. Returns the ID of the newly created container.
+// When the configuration differs (image, env, command, ports, volumes), it removes the old container and creates a fresh one from the provided options.
+//
+// Existing Docker volumes are always preserved so that data survives a container re-creation. Returns the ID of the currently running/reusable or freshly created container.
 func CreateContainer(ctx context.Context, log *log.Logger, c *client.Client, a mconfig.ContainerAllocation, opts ManagedContainerOptions) (string, error) {
 	if opts.Image == "" {
 		return "", fmt.Errorf("please specify a proper image")
 	}
 
-	existingMounts, err := removeExistingContainer(ctx, log, c, a, opts)
+	// Look for an existing container first. If it exists and its configuration still matches, we can reuse it without recreating.
+	existing, err := FindContainer(ctx, c, a.Name)
 	if err != nil {
 		return "", err
 	}
 
-	mounts, err := buildMounts(a, opts.Volumes, existingMounts)
+	if existing != nil {
+		existingID := existing.ID
+
+		difference := configMatches(existing, a, opts)
+		if difference == "" {
+			log.Printf("Reusing existing container %q, configuration unchanged", a.Name)
+			return existingID, nil
+		}
+
+		log.Printf("Existing container %q configuration changed, recreating...", a.Name)
+		if mconfig.VerboseLogging {
+			log.Println("Difference:", difference)
+		}
+
+		// Version guard before destroying anything
+		majorCurrent := GetImageMajorVersion(existing.Config.Image)
+		majorNew := GetImageMajorVersion(opts.Image)
+		if majorCurrent == -1 || majorNew == -1 {
+			log.Printf("Skipping major version check: unable to parse image versions (%s -> %s)", existing.Config.Image, opts.Image)
+		} else if majorCurrent != majorNew {
+			return "", fmt.Errorf("major version mismatch for %s: please upgrade or delete your old container before starting the app (%d -> %d)", opts.Image, majorCurrent, majorNew)
+		}
+
+		log.Println("Removing old container...")
+		if _, err := c.ContainerRemove(ctx, existingID, client.ContainerRemoveOptions{
+			RemoveVolumes: false,
+			Force:         true,
+		}); err != nil {
+			return "", fmt.Errorf("couldn't remove existing container: %s", err)
+		}
+	}
+
+	mounts, err := buildMounts(a, opts.Volumes)
 	if err != nil {
 		return "", err
 	}
@@ -86,12 +121,10 @@ func CreateContainer(ctx context.Context, log *log.Logger, c *client.Client, a m
 	return resp.ID, nil
 }
 
-// removeExistingContainer looks for an existing container with the allocation's
-// name, recovers its mounts, and removes it. Returns a map of volume NameSuffix
-// -> mount so the new container can reuse the same volumes.
-func removeExistingContainer(ctx context.Context, log *log.Logger, c *client.Client, a mconfig.ContainerAllocation, opts ManagedContainerOptions) (map[string]mount.Mount, error) {
+// FindContainer looks for a container with the given name and returns its inspect data. Returns nil when no container matches.
+func FindContainer(ctx context.Context, c *client.Client, name string) (*container.InspectResponse, error) {
 	f := make(client.Filters)
-	f.Add("name", a.Name)
+	f.Add("name", name)
 	summary, err := c.ContainerList(ctx, client.ContainerListOptions{
 		Filters: f,
 		All:     true,
@@ -100,78 +133,125 @@ func removeExistingContainer(ctx context.Context, log *log.Logger, c *client.Cli
 		return nil, fmt.Errorf("couldn't list containers: %s", err)
 	}
 
-	existingMounts := map[string]mount.Mount{}
-
 	for _, ct := range summary.Items {
 		for _, n := range ct.Names {
-			if !strings.HasSuffix(n, a.Name) {
+			if !strings.HasSuffix(n, name) {
 				continue
 			}
 
-			log.Println("Found existing container, recovering mounts...")
-			image, err := recoverMounts(ctx, c, ct.ID, opts.Volumes, existingMounts)
+			resp, err := c.ContainerInspect(ctx, ct.ID, client.ContainerInspectOptions{})
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("couldn't inspect container %q: %s", name, err)
 			}
-
-			// Check if the old container is using an image of a different image
-			majorCurrent := GetImageMajorVersion(image)
-			majorNew := GetImageMajorVersion(opts.Image)
-			if majorCurrent == -1 || majorNew == -1 {
-				log.Printf("Skipping major version check: unable to parse image versions (%s -> %s)", image, opts.Image)
-			} else if majorCurrent != majorNew {
-				return nil, fmt.Errorf("major version mismatch for %s: please upgrade or delete your old container before starting the app (%d -> %d)", opts.Image, majorCurrent, majorNew)
-			}
-
-			log.Println("Removing old container...")
-			if _, err := c.ContainerRemove(ctx, ct.ID, client.ContainerRemoveOptions{
-				RemoveVolumes: false,
-				Force:         true,
-			}); err != nil {
-				return nil, fmt.Errorf("couldn't remove existing container: %s", err)
-			}
+			return &resp.Container, nil
 		}
 	}
 
-	return existingMounts, nil
+	return nil, nil
 }
 
-// recoverMounts inspects a container and indexes its mounts by the matching
-// ContainerVolume.NameSuffix into the provided map.
-// also returns the name of the image of the container for convenience.
-func recoverMounts(ctx context.Context, c *client.Client, containerID string, volumes []ContainerVolume, out map[string]mount.Mount) (string, error) {
-	resp, err := c.ContainerInspect(ctx, containerID, client.ContainerInspectOptions{})
+// configMatches reports whether a found container can be reused as-is for the given options. It compares the fields Magic controls: image, env, command, exposed container ports, host port bindings and the managed volume mounts.
+//
+// Returns "" if there is no conflict.
+func configMatches(existing *container.InspectResponse, a mconfig.ContainerAllocation, opts ManagedContainerOptions) string {
+	if existing.Config == nil || existing.HostConfig == nil {
+		return "existing container config is nil"
+	}
+
+	// Image
+	if existing.Config.Image != opts.Image {
+		return "image is different"
+	}
+
+	// Environment (order independent)
+	if !envEqual(existing.Config.Env, opts.Env) {
+		return "environment variables are different"
+	}
+
+	// Command
+	if !reflect.DeepEqual(existing.Config.Cmd, opts.Cmd) {
+		return "start command is different"
+	}
+
+	// Ports: both the exposed container port set and the host bindings. A re-rolled host port relative to a reused container means the allocation no longer matches the actual binding, so recreate.
+	_, expectedBindings, err := buildPortBindings(a, opts.Ports)
 	if err != nil {
-		return "", fmt.Errorf("couldn't inspect container: %s", err)
+		return "couldn't build port bindings"
 	}
-
-	for _, m := range resp.Container.HostConfig.Mounts {
-		for _, vol := range volumes {
-			if m.Target == vol.Target {
-				out[vol.NameSuffix] = m
+	if len(existing.HostConfig.PortBindings) != len(expectedBindings) {
+		return "expected host port bindings have different length compared to current ones"
+	}
+	for port, bindings := range expectedBindings {
+		existingBindings, ok := existing.HostConfig.PortBindings[port]
+		if !ok {
+			return "couldn't find host binding of existing port"
+		}
+		if len(existingBindings) != len(bindings) {
+			return "length of existing bindings isn't equal to expected one"
+		}
+		for i, b := range bindings {
+			if existingBindings[i] != b {
+				return "existing binding is different from existing one"
 			}
 		}
 	}
 
-	return resp.Container.Config.Image, nil
+	// Managed volume mounts
+	if !volumesMatch(existing, a, opts.Volumes) {
+		return "volumes don't match"
+	}
+
+	return ""
 }
 
-// buildMounts constructs the mount list for the new container. Any volume whose
-// target was found in existingMounts is reused as-is; otherwise a fresh named
-// volume is created using "<containerName>-<nameSuffix>".
-func buildMounts(a mconfig.ContainerAllocation, volumes []ContainerVolume, existingMounts map[string]mount.Mount) ([]mount.Mount, error) {
+// envEqual compares two environment variable slices regardless of order.
+func envEqual(current, expected []string) bool {
+
+	// We can ignore other environment variables (Docker for example adds PATH, which we don't care about)
+	for _, ex := range expected {
+		if !slices.Contains(current, ex) {
+			return false
+		}
+	}
+	return true
+}
+
+// volumesMatch verifies that every managed volume is mounted at the requested target with the expected named-volume source.
+func volumesMatch(existing *container.InspectResponse, a mconfig.ContainerAllocation, volumes []ContainerVolume) bool {
+	// Index the existing mounts by their target for lookup
+	byTarget := map[string]mount.Mount{}
+	for _, m := range existing.HostConfig.Mounts {
+		byTarget[m.Target] = m
+	}
+
+	for _, vol := range volumes {
+		m, ok := byTarget[vol.Target]
+		if !ok {
+			return false
+		}
+		// Only compare the pieces we control; bind mounts created by Docker
+		// internals (e.g. resolv.conf) are irrelevant here.
+		if m.Type != mount.TypeVolume {
+			return false
+		}
+		if m.Source != fmt.Sprintf("%s-%s", a.Name, vol.NameSuffix) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// buildMounts constructs the mount list for the new container.
+func buildMounts(a mconfig.ContainerAllocation, volumes []ContainerVolume) ([]mount.Mount, error) {
 	mounts := make([]mount.Mount, 0, len(volumes))
 
 	for _, vol := range volumes {
-		if existing, ok := existingMounts[vol.NameSuffix]; ok {
-			mounts = append(mounts, existing)
-		} else {
-			mounts = append(mounts, mount.Mount{
-				Type:   mount.TypeVolume,
-				Source: fmt.Sprintf("%s-%s", a.Name, vol.NameSuffix),
-				Target: vol.Target,
-			})
-		}
+		mounts = append(mounts, mount.Mount{
+			Type:   mount.TypeVolume,
+			Source: fmt.Sprintf("%s-%s", a.Name, vol.NameSuffix),
+			Target: vol.Target,
+		})
 	}
 
 	return mounts, nil

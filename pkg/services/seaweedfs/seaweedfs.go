@@ -16,9 +16,13 @@ var _ mconfig.ServiceDriver = &SeaweedFSDriver{}
 
 const (
 	ServiceName          = "seaweedfs"
-	SeaweedFSS3AccessKey = "access_key"
+	SeaweedFSS3AccessKey = "admin"
 	SeaweedFSS3SecretKey = "secret"
 )
+
+var RequiredPorts = []string{
+	"8333/tcp",
+}
 
 var seaweedLog *log.Logger = log.New(os.Stdout, "seaweedfs ", log.Default().Flags())
 
@@ -84,8 +88,8 @@ func (sd *SeaweedFSDriver) GetUniqueId() string {
 	return ServiceName
 }
 
-func (sd *SeaweedFSDriver) GetRequiredPortAmount() int {
-	return 1
+func (sd *SeaweedFSDriver) GetRequiredPorts() []string {
+	return RequiredPorts
 }
 
 func (sd *SeaweedFSDriver) GetImage() string {

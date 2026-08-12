@@ -6,6 +6,7 @@ require (
 	github.com/charmbracelet/huh v1.0.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/gofrs/flock v0.13.0
+	github.com/jinzhu/copier v0.4.0
 	github.com/moby/moby/api v1.55.0
 	github.com/moby/moby/client v0.5.0
 	github.com/spf13/pflag v1.0.10
