@@ -19,6 +19,10 @@ const (
 	RedisPassword = "redis"
 )
 
+var RequiredPorts = []string{
+	"6379/tcp",
+}
+
 var redisLog *log.Logger = log.New(os.Stdout, "redis ", log.Default().Flags())
 
 type RedisDriver struct {
@@ -72,8 +76,8 @@ func (rd *RedisDriver) GetUniqueId() string {
 	return "redis"
 }
 
-func (rd *RedisDriver) GetRequiredPortAmount() int {
-	return 1
+func (rd *RedisDriver) GetRequiredPorts() []string {
+	return RequiredPorts
 }
 
 func (rd *RedisDriver) GetImage() string {

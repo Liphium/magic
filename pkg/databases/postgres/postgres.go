@@ -23,6 +23,10 @@ const (
 	PostgresPassword = "postgres"
 )
 
+var RequiredPorts = []string{
+	"5432/tcp",
+}
+
 var pgLog *log.Logger = log.New(os.Stdout, "postgres ", log.Default().Flags())
 
 type PostgresDriver struct {
@@ -87,8 +91,8 @@ func (pd *PostgresDriver) GetUniqueId() string {
 	return "postgres"
 }
 
-func (pd *PostgresDriver) GetRequiredPortAmount() int {
-	return 1
+func (pd *PostgresDriver) GetRequiredPorts() []string {
+	return RequiredPorts
 }
 
 func (pd *PostgresDriver) GetImage() string {

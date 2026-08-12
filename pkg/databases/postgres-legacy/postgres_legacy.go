@@ -24,6 +24,10 @@ const (
 	PostgresPassword = "postgres"
 )
 
+var RequiredPorts = []string{
+	"5432/tcp",
+}
+
 var pgLegacyLog *log.Logger = log.New(os.Stdout, "pg-legacy ", log.Default().Flags())
 
 type PostgresDriver struct {
@@ -85,8 +89,8 @@ func (pd *PostgresDriver) GetUniqueId() string {
 	return "postgres1417" // Context for this: Since this driver supports PostgreSQL v14-v17 this just makes it easier to know when seeing the container in "docker ps" or sth
 }
 
-func (pd *PostgresDriver) GetRequiredPortAmount() int {
-	return 1
+func (pd *PostgresDriver) GetRequiredPorts() []string {
+	return RequiredPorts
 }
 
 func (pd *PostgresDriver) GetImage() string {

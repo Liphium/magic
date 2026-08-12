@@ -21,9 +21,7 @@ func (rd *RedisDriver) CreateContainer(ctx context.Context, c *client.Client, a 
 		Env: []string{
 			fmt.Sprintf("REDIS_PASSWORD=%s", RedisPassword),
 		},
-		Ports: []string{
-			"6379/tcp",
-		},
+		Ports: RequiredPorts,
 		Volumes: []mservices.ContainerVolume{
 			{NameSuffix: "data", Target: "/data"},
 		},
