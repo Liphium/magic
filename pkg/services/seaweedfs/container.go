@@ -31,6 +31,7 @@ func (sd *SeaweedFSDriver) CreateContainer(ctx context.Context, c *client.Client
 		Ports: []string{
 			"8333/tcp",
 		},
+		Cmd: []string{"server", "-s3"},
 		Volumes: []mservices.ContainerVolume{
 			{NameSuffix: "data", Target: "/data"},
 		},
@@ -39,6 +40,10 @@ func (sd *SeaweedFSDriver) CreateContainer(ctx context.Context, c *client.Client
 
 // Check SeaweedFS health by listing the buckets inside the service (with limit of 1).
 func (sd *SeaweedFSDriver) IsHealthy(ctx context.Context, c *client.Client, container mconfig.ContainerInformation) (bool, error) {
+	if mconfig.VerboseLogging {
+		seaweedLog.Println("checking health...")
+	}
+
 	client, err := sd.getS3Client(container.Ports[0])
 	if err != nil {
 		return false, fmt.Errorf("s3: %w", err)
@@ -48,7 +53,10 @@ func (sd *SeaweedFSDriver) IsHealthy(ctx context.Context, c *client.Client, cont
 	_, err = client.ListBuckets(context.Background(), &s3.ListBucketsInput{
 		MaxBuckets: aws.Int32(1),
 	})
-	return err != nil, nil
+	if mconfig.VerboseLogging {
+		seaweedLog.Printf("health check result: %v (error: %v)", err == nil, err)
+	}
+	return err == nil, nil
 }
 
 // getS3Client creates a new S3 client for the bucket, this is for internal use within the driver to create buckets, etc.
@@ -57,6 +65,7 @@ func (sd *SeaweedFSDriver) getS3Client(port uint) (*s3.Client, error) {
 	// Build base config with static credentials
 	cfg, err := awsconfig.LoadDefaultConfig(context.Background(),
 		awsconfig.WithRegion("us-east-1"),
+		awsconfig.WithRetryMaxAttempts(0),
 		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(SeaweedFSS3AccessKey, SeaweedFSS3SecretKey, "")),
 	)
 	if err != nil {
