@@ -6,6 +6,7 @@ import (
 	"github.com/Liphium/magic/pkg/services/seaweedfs"
 	"github.com/Liphium/magic/v3"
 	"github.com/Liphium/magic/v3/mconfig"
+	"github.com/Liphium/magic/v3/scripting"
 )
 
 // The config for Magic is defined in this file.
@@ -42,5 +43,12 @@ func GetConfig() magic.Config {
 			})
 		},
 		StartFunction: Start,
+
+		// Scripts for uploading and downloading files
+		// TODO: One to clear S3
+		Scripts: []scripting.Script{
+			scripting.CreateScript("upload", "Upload a file to the service", UploadFile),
+			scripting.CreateScript("download", "Download a file from the service", DownloadFile),
+		},
 	}
 }
