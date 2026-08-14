@@ -21,6 +21,11 @@
 			"release-type": "go",
 			"component": "pkg/databases/redis",
 			"include-v-in-tag": true
+		},
+		"pkg/services/seaweedfs": {
+			"release-type": "go",
+			"component": "pkg/services/seaweedfs",
+			"include-v-in-tag": true
 		}
 	}
 }
