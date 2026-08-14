@@ -16,7 +16,7 @@ const (
 	// InstructionDropTables drops all tables in all databases (e.g. PostgreSQL, Redis) leaving nothing behind.
 	InstructionDropTables Instruction = "database:drop_tables"
 
-	// InstructionClearTables clears all tables in all databases (e.g. PostgreSQL, Redis) while leaving the schema in tact (for Redis the instruction completely deletes everything since there is no schema).
+	// InstructionClearTables clears all tables in all databases (e.g. PostgreSQL, Redis) while leaving the schema intact (for Redis the instruction completely deletes everything since there is no schema).
 	InstructionClearTables Instruction = "database:clear_tables"
 
 	// InstructionClearFiles clears only file/object storage on a service (e.g. S3-accessible buckets), leaving databases and caches untouched.

@@ -47,8 +47,7 @@ func GetConfig() magic.Config {
 		},
 		StartFunction: Start,
 
-		// Scripts for uploading and downloading files
-		// TODO: One to clear S3
+		// Scripts for uploading, downloading, and clearing files
 		Scripts: []scripting.Script{
 			scripting.CreateScript("upload", "Upload a file to the service", UploadFile),
 			scripting.CreateScript("download", "Download a file from the service", DownloadFile),

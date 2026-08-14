@@ -299,7 +299,7 @@ func (r *Runner) DropTables() error {
 
 // Delete all database tables from databases, at runtime.
 //
-// Deprecated: Use RunInstruction directly (wiht mconfig.InstructionClearTables).
+// Deprecated: Use RunInstruction directly (with mconfig.InstructionClearTables).
 func (r *Runner) ClearTables() error {
 	return r.RunInstruction(mconfig.InstructionClearTables)
 }

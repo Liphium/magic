@@ -92,7 +92,7 @@ func (sd *SeaweedFSDriver) Initialize(ctx context.Context, c *client.Client, con
 				Bucket: aws.String(bucket),
 			})
 			if makeErr != nil {
-				return fmt.Errorf("create bucket %s: %w", bucket, err)
+				return fmt.Errorf("create bucket %s: %w", bucket, makeErr)
 			}
 		}
 	}

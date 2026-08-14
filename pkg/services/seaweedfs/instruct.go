@@ -33,7 +33,7 @@ func (sd *SeaweedFSDriver) clearFiles(container mconfig.ContainerInformation) er
 			Bucket: aws.String(bucket),
 		})
 		if err != nil {
-			fmt.Errorf("couldn't delete bucket %s: %w", bucket, err)
+			return fmt.Errorf("couldn't delete bucket %s: %w", bucket, err)
 		}
 	}
 

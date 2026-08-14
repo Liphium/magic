@@ -38,7 +38,7 @@ func init() {
 
 // Create a new SeaweedFS service driver.
 //
-// It currently supports SeaweedFS major version 3 (which provides the S3 gateway).
+// It currently supports SeaweedFS major version 4 (which provides the S3 gateway).
 func NewDriver(image string) *SeaweedFSDriver {
 
 	// Supported (confirmed and tested) major versions for this SeaweedFS driver
