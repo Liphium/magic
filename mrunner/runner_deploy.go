@@ -290,35 +290,22 @@ func (r *Runner) DeleteEverything() error {
 	})
 }
 
-// Clear the content of all tables from databases, at runtime
+// Clear the content of all tables from databases, at runtime.
+//
+// Deprecated: Use RunInstruction directly (with mconfig.InstructionDropTables).
 func (r *Runner) DropTables() error {
-	ctx := context.Background()
-	return r.forEachContainer(ctx, func(service, containerID string, container mconfig.ContainerAllocation) error {
-		driver, err := r.loadDriver(service)
-		if err != nil {
-			return err
-		}
-
-		// Convert the ports
-		containerPorts := []uint{}
-		for _, port := range container.Ports {
-			containerPorts = append(containerPorts, r.plan.AllocatedPorts[port])
-		}
-
-		if err := driver.HandleInstruction(ctx, r.client, mconfig.ContainerInformation{
-			ID:    containerID,
-			Name:  container.Name,
-			Ports: containerPorts,
-		}, mconfig.InstructionDropTables); err != nil {
-			return fmt.Errorf("couldn't drop tables: %v", err)
-		}
-
-		return nil
-	})
+	return r.RunInstruction(mconfig.InstructionDropTables)
 }
 
-// Delete all database tables from databases, at runtime
+// Delete all database tables from databases, at runtime.
+//
+// Deprecated: Use RunInstruction directly (with mconfig.InstructionClearTables).
 func (r *Runner) ClearTables() error {
+	return r.RunInstruction(mconfig.InstructionClearTables)
+}
+
+// RunInstruction dispatches a single instruction to every service container.
+func (r *Runner) RunInstruction(instruction mconfig.Instruction) error {
 	ctx := context.Background()
 	return r.forEachContainer(ctx, func(service, containerID string, container mconfig.ContainerAllocation) error {
 		driver, err := r.loadDriver(service)
@@ -336,8 +323,8 @@ func (r *Runner) ClearTables() error {
 			ID:    containerID,
 			Name:  container.Name,
 			Ports: containerPorts,
-		}, mconfig.InstructionClearTables); err != nil {
-			return fmt.Errorf("couldn't clear tables: %v", err)
+		}, instruction); err != nil {
+			return fmt.Errorf("executing %s failed: %v", instruction, err)
 		}
 
 		return nil

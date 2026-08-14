@@ -14,12 +14,16 @@ That's the vision of Magic, our **all-in-one developer experience toolkit**. For
 
 ## Application limitations
 
-Magic only supports specific services, and while we do plan on increasing the amount of supported services, for now we only support the services listed below. If your application needs anything else, you're currently not the target audience for Magic. You can still implement your own custom drivers, but we don't have any documentation on that, *yet*.
+Magic only officially supports a limited list of services, but you can easily integrate your own services using a custom driver. If you don't find a service you like to use in the list below, writing a custom driver for it [using our documentation](https://liphium.dev/magic/documentation/custom-drivers) should not be so difficult. As long as that service can run inside of a Docker container.
 
 ### Supported databases
 
-- PostgreSQL v18
-- Redis v8
+- [PostgreSQL](https://liphium.dev/magic/databases/postgresql/) v18
+- [Redis](https://liphium.dev/magic/databases/redis/) v7-8
+
+### Supported S3 Storage
+
+- [SeaweedFS](https://liphium.dev/magic/services/seaweedfs) v4
 
 ### Deprecated
 
@@ -27,15 +31,17 @@ Magic only supports specific services, and while we do plan on increasing the am
 
 Other services may be supported in the future. We fix the major versions supported by drivers to specific releases that we know work and tested ourselves. This helps us make sure a new image coming out doesn't break anything for you.
 
-It might take us some time to update Magic to the new major versions of any supported images. We're doing this in our free time and we hope you understand that.
+It might take us some time to update Magic to the new major versions of any supported services. We're doing this in our free time and we hope you understand that.
 
 ## Features
 
 - Make your app runnable with one command on any machine that meets the System requirements
-- Develop scripts that interact with your application or the database
+- Develop [scripts](https://liphium.dev/magic/documentation/magic-scripts/) that interact with your application or the database
   - Allows sharing of tools you're using for testing
-- Test your application using integration tests (they can also call your scripts)
+- Test your application using [integration tests](https://liphium.dev/magic/documentation/integration-tests/) (they can also call your scripts)
   - Test with a real database using a real connection
+- [CI/CD Support](https://liphium.dev/magic/documentation/ci-cd/)
+- Run any dockerized services along with your app using [custom drivers](https://liphium.dev/magic/documentation/custom-drivers/)
 
 ## Usage
 
