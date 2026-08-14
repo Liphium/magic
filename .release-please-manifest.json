@@ -1,6 +1,7 @@
 {
-	".": "3.2.0",
-	"pkg/databases/postgres": "1.0.0",
-	"pkg/databases/postgres-legacy": "1.0.0",
-	"pkg/databases/redis": "1.1.2"
+	".": "4.0.0",
+	"pkg/databases/postgres": "1.1.0",
+	"pkg/databases/postgres-legacy": "1.1.0",
+	"pkg/databases/redis": "1.2.0",
+	"pkg/services/seaweedfs": "1.0.0"
 }
