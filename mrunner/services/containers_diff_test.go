@@ -6,7 +6,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/Liphium/magic/v3/mconfig"
+	"github.com/Liphium/magic/v4/mconfig"
 	"github.com/jinzhu/copier"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"

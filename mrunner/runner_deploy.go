@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Liphium/magic/v3/mconfig"
-	"github.com/Liphium/magic/v3/util"
+	"github.com/Liphium/magic/v4/mconfig"
+	"github.com/Liphium/magic/v4/util"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/client"
 )

@@ -2,10 +2,10 @@ module github.com/Liphium/magic/pkg/databases/redis
 
 go 1.26
 
-replace github.com/Liphium/magic/v3 => ../../../.
+replace github.com/Liphium/magic/v4 => ../../../.
 
 require (
-	github.com/Liphium/magic/v3 v3.1.0
+	github.com/Liphium/magic/v4 v3.1.0
 	github.com/moby/moby/client v0.5.0
 )
 

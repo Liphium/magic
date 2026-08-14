@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Liphium/magic/v3/util"
+	"github.com/Liphium/magic/v4/util"
 	"github.com/spf13/pflag"
 )
 

@@ -50,7 +50,7 @@ It might take us some time to update Magic to the new major versions of any supp
 **1.** Add Magic to your project:
 
 ```sh
-go get -u github.com/Liphium/magic/v3@latest
+go get -u github.com/Liphium/magic/v4@latest
 ```
 
 **2.** Wrap your main function with `magic.Start` (please take a look at the [real project example](https://github.com/Liphium/magic/tree/main/examples/real-project) for how to really to do this, this just serves as a showcase):

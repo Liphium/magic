@@ -2,13 +2,13 @@ module file-sharing
 
 go 1.26.5
 
-replace github.com/Liphium/magic/v3 => ../..
+replace github.com/Liphium/magic/v4 => ../..
 
 replace github.com/Liphium/magic/pkg/services/seaweedfs => ../../pkg/services/seaweedfs
 
 require (
 	github.com/Liphium/magic/pkg/services/seaweedfs v0.0.0-00010101000000-000000000000
-	github.com/Liphium/magic/v3 v3.2.0
+	github.com/Liphium/magic/v4 v3.2.0
 	github.com/aws/aws-sdk-go-v2 v1.43.5
 	github.com/aws/aws-sdk-go-v2/config v1.32.36
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.35

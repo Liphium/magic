@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Liphium/magic/v3/mconfig"
-	mservices "github.com/Liphium/magic/v3/mrunner/services"
+	"github.com/Liphium/magic/v4/mconfig"
+	mservices "github.com/Liphium/magic/v4/mrunner/services"
 	"github.com/moby/moby/client"
 )
 

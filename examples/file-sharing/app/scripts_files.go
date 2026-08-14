@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Liphium/magic/v3/mconfig"
-	"github.com/Liphium/magic/v3/mrunner"
+	"github.com/Liphium/magic/v4/mconfig"
+	"github.com/Liphium/magic/v4/mrunner"
 	"resty.dev/v3"
 )
 

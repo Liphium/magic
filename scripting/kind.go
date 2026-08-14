@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/Liphium/magic/v3/mconfig"
-	"github.com/Liphium/magic/v3/util"
+	"github.com/Liphium/magic/v4/mconfig"
+	"github.com/Liphium/magic/v4/util"
 	"github.com/charmbracelet/huh"
 	"github.com/go-playground/validator/v10"
 )

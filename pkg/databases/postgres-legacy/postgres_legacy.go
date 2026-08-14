@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Liphium/magic/v3/mconfig"
-	mservices "github.com/Liphium/magic/v3/mrunner/services"
-	"github.com/Liphium/magic/v3/util"
+	"github.com/Liphium/magic/v4/mconfig"
+	mservices "github.com/Liphium/magic/v4/mrunner/services"
+	"github.com/Liphium/magic/v4/util"
 	_ "github.com/lib/pq"
 )
 

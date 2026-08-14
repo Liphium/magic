@@ -2,10 +2,10 @@ module github.com/Liphium/magic/pkg/services/seaweedfs
 
 go 1.26
 
-replace github.com/Liphium/magic/v3 => ../../../.
+replace github.com/Liphium/magic/v4 => ../../../.
 
 require (
-	github.com/Liphium/magic/v3 v3.0.0-rc.1
+	github.com/Liphium/magic/v4 v3.0.0-rc.1
 	github.com/aws/aws-sdk-go-v2 v1.43.5
 	github.com/aws/aws-sdk-go-v2/config v1.32.36
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.35

@@ -5,7 +5,7 @@ package main
 import (
 	"real-project/starter"
 
-	"github.com/Liphium/magic/v3"
+	"github.com/Liphium/magic/v4"
 )
 
 func main() {

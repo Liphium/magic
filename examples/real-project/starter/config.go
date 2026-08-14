@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/Liphium/magic/pkg/databases/postgres"
-	"github.com/Liphium/magic/v3"
-	"github.com/Liphium/magic/v3/mconfig"
-	"github.com/Liphium/magic/v3/scripting"
+	"github.com/Liphium/magic/v4"
+	"github.com/Liphium/magic/v4/mconfig"
+	"github.com/Liphium/magic/v4/scripting"
 )
 
 func BuildMagicConfig() magic.Config {

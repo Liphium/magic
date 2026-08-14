@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/Liphium/magic/pkg/services/seaweedfs"
-	"github.com/Liphium/magic/v3"
-	"github.com/Liphium/magic/v3/mconfig"
-	"github.com/Liphium/magic/v3/scripting"
+	"github.com/Liphium/magic/v4"
+	"github.com/Liphium/magic/v4/mconfig"
+	"github.com/Liphium/magic/v4/scripting"
 )
 
 // The config for Magic is defined in this file.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Liphium/magic/v3/mconfig"
+	"github.com/Liphium/magic/v4/mconfig"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/moby/moby/client"

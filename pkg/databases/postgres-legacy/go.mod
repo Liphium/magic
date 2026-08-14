@@ -2,10 +2,10 @@ module github.com/Liphium/magic/pkg/databases/postgres_legacy
 
 go 1.26
 
-replace github.com/Liphium/magic/v3 => ../../../.
+replace github.com/Liphium/magic/v4 => ../../../.
 
 require (
-	github.com/Liphium/magic/v3 v3.0.0-rc.1
+	github.com/Liphium/magic/v4 v3.0.0-rc.1
 	github.com/lib/pq v1.12.3
 	github.com/moby/moby/client v0.5.0
 )

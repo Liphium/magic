@@ -3,7 +3,7 @@ package mservices_test
 import (
 	"testing"
 
-	mservices "github.com/Liphium/magic/v3/mrunner/services"
+	mservices "github.com/Liphium/magic/v4/mrunner/services"
 )
 
 func TestMajorVersionGetting(t *testing.T) {
