@@ -18,13 +18,16 @@ Magic only supports specific services, and while we do plan on increasing the am
 
 ### Supported databases
 
-- PostgreSQL v18 or above
+- PostgreSQL v18
+- Redis v8
 
 ### Deprecated
 
 - PostgreSQL v14-17
 
-Other services may be supported in the future.
+Other services may be supported in the future. We fix the major versions supported by drivers to specific releases that we know work and tested ourselves. This helps us make sure a new image coming out doesn't break anything for you.
+
+It might take us some time to update Magic to the new major versions of any supported images. We're doing this in our free time and we hope you understand that.
 
 ## Features
 
