@@ -10,7 +10,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/Liphium/magic/v3"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -31,6 +33,13 @@ func Start() {
 	}
 
 	log.Printf("file sharing service listening on %s", listen)
+
+	// Call Magic's start hook (in one second the server should have definitely started)
+	go func() {
+		time.Sleep(time.Second)
+		magic.AppStarted()
+	}()
+
 	log.Fatal(http.ListenAndServe(listen, mux))
 }
 

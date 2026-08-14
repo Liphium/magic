@@ -1,0 +1,2 @@
+# We use a .testing folder for the file upload and download test, make sure it doesn't get pushed to Git
+*.testing

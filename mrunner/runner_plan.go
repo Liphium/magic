@@ -42,7 +42,7 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 
 		// See if there is already a container (if yes, try find the previously allocated ports and reuse)
 		inspect, err := mservices.FindContainer(context.Background(), r.client, alloc.Name)
-		if err == nil {
+		if err == nil && inspect != nil && inspect.Config != nil && inspect.HostConfig != nil {
 			currentPorts := make([]uint, len(requiredPorts))
 
 			// Append all of the existing port bindings to the list, they can then be re-used (order does not matter as we're talking about the ports on the host)

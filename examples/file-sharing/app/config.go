@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Liphium/magic/pkg/services/seaweedfs"
 	"github.com/Liphium/magic/v3"
@@ -12,6 +13,8 @@ import (
 // The config for Magic is defined in this file.
 
 func GetConfig() magic.Config {
+	timeout := 2 * time.Minute
+
 	return magic.Config{
 		AppName: "magic-example-file-sharing",
 		PlanDeployment: func(ctx *mconfig.Context) {
@@ -49,6 +52,10 @@ func GetConfig() magic.Config {
 		Scripts: []scripting.Script{
 			scripting.CreateScript("upload", "Upload a file to the service", UploadFile),
 			scripting.CreateScript("download", "Download a file from the service", DownloadFile),
+			scripting.CreateScript("clear", "Clear all files.", ClearFiles),
 		},
+
+		// We need a little longer cause SeaweedFS takes pretty long to start up (currently 2 minutes, look at the variable above)
+		TestAppTimeout: &timeout,
 	}
 }
