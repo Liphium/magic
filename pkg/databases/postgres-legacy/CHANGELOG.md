@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0](https://github.com/Liphium/magic/compare/pkg/databases/postgres-legacy/v1.0.0...pkg/databases/postgres-legacy/v1.1.0) (2026-08-14)
+
+
+### Features
+
+* Add SeaweedFS driver to Magic ([7c69d54](https://github.com/Liphium/magic/commit/7c69d547a22608181419a84e48dced49f21463a6))
+* **drivers:** Port database drivers to new interface ([4177797](https://github.com/Liphium/magic/commit/4177797b676c6377ec7dfb99a267d2b533bf9b4c))
+* Upgrade to v4 + dependency upgrade ([648cba4](https://github.com/Liphium/magic/commit/648cba427910ccdac7f197fb9994587eb07a5e46))
+
 ## 1.0.0 (2026-07-14)
 
 
