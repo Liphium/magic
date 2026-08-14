@@ -2,87 +2,47 @@
 
 This example is a simple example showing you how to use the SeaweedFS driver to set up a little file sharing backend using the Go standard library and the official AWS S3 SDK Golang SDK.
 
-The project structure here is not particularly good, please look at the `real-project` example for that (it's one folder up).
+The project structure here is not how your's should look in actual software that's not just for example purposes. Please look at the `real-project` example for a proper structure (it's one folder up).
 
-## Starting the example
+## Commands
 
-The magic about Magic is that, well, all you need is Golang and Docker installed. And then everything will just work with this little command:
+As with all Magic examples, just use the default `go` CLI to start the example:
 
-```bash
+```sh
 go run .
 ```
 
-Yes, that's the default run command for your Go app. That's because Magic integrates directly into your project. And if you want to build your project without it, you can use build tags:
+If you run the test we have, you can do (I recommend `-v` because SeaweedFS takes long to start up):
 
-```bash
-go run -tags release .
-```
-
-The same thing works for `go build` as well. You can look at `main_magic.go` and `main.go` for how we implemented this or look up what Go's build tags are if you've never seen them before. Which I honestly won't blame you for, since I've also learned about them while trying to work out how to properly structure an app with Magic xd
-
-## Project structure
-
-Now that you've run the project and seen the magic of Magic, maybe you want to explore the example a little better. Everything is nicely commented to guide you a little bit, but here's an overview of all the files in this project anyway:
-
-```
-real-project/
-├── main.go              # Production entry point (build tag: release)
-├── main_magic.go        # Development entry point with Magic integration
-├── ...
-├── database/
-│   └── database.go    # Database connection and Post model
-├── starter/
-│   ├── config.go              # Magic configuration and setup
-│   ├── start.go               # Web server with Fiber endpoints
-│   ├── start_test.go          # Integration tests leveraging Magic's test runner
-│   ├── scripts_database.go    # Database management scripts
-│   └── scripts_endpoints.go   # API testing scripts
-└── util/
-    └── requests.go     # HTTP utility functions
+```sh
+go test ./... -v
 ```
 
 ## The app in this example
 
-This app just contains a really small posts service that can create new posts and list all posts or individual posts using a PostgreSQL database.
+This app just contains a really small HTTP file sharing service that uses SeaweedFS as the storage backend.
 
-- `POST /posts` - Create post
-- `GET /posts` - List posts
-- `GET /posts/:id` - Get post
+- `POST :path` - Upload a file
+- `GET :path` - Download a file
 
-While you now could go and get out your API client, Magic has something better: Scripts. Read below to see how you can use them.
+If you want to try out this service, I would recommend using the scripts in this repository. Find more info below.
 
 ## Scripts
 
-Before worrying about anything and looking into their code, just try using them and understanding them after. That might honestly be a better way, since it will teach you how easy it can be for new people to go into a codebase they've never seen before. In fact, why don't you let Magic tell you which scripts there are instead of me wasting time explaining them here:
+There are various [scripts](https://liphium.dev/magic/documentation/magic-scripts/) available in this example. You can run the app and then upload, download or clear all the files using just scripts. Feel free to try it out. For usage of scripts, please refer to the [documentation](https://liphium.dev/magic/documentation/magic-scripts/).
 
-```bash
-go run . --scripts
+## Project structure
+
+And finally, to give you another look over what's in this example, here is a quick explanation of all of the files:
+
 ```
-
-You can then run the scripts using:
-
-```bash
-go run . -r script [arguments]
+file-sharing/
+├── main.go              # Entrypoint for the program
+├── app/
+│  ├── app.go            # Main app where the HTTP server is
+│  ├── app_test.go       # Simple test for the app's functionality
+│  ├── config.go         # Config for Magic
+│  ├── scripts_files.go  # Scripts for uploading / downloading files
+│  └── storage.go        # Connection to SeaweedFS using the S3 SDK
+└── main.go              # Entrypoint for the program
 ```
-
-You can pass arguments in by either typing them in the CLI, which might be easier for new people, or you can just provide them as arguments behind (in order of the fields in the struct). Magic will also tell you if you mess up.
-
-## Testing
-
-Well to the next magical thing Magic can do for you: Testing. Imagine just being able to start your app with one line of code and then being able to just throw requests at it, and even be able to check the database. Wouldn't that be awesome?
-
-Well, with Magic you can just do this:
-
-```go
-func TestMain(m *testing.M) {
-    magic.PrepareTesting(m, starter.BuildMagicConfig())
-}
-```
-
-And you're done. Look into `start_test.go` for how we do it in this little example. Point is, even in this example you just downloaded, you can just do:
-
-```bash
-go test ./...
-```
-
-And all of the tests will just run by themselves. They can _currently_ not run in parallel, but we're working on a solution for it that should come out in some future update.
