@@ -19,7 +19,7 @@ Magic only officially supports a limited list of services, but you can easily in
 ### Supported databases
 
 - [PostgreSQL](https://liphium.dev/magic/databases/postgresql/) v18
-- [Redis](https://liphium.dev/magic/databases/redis/) v8
+- [Redis](https://liphium.dev/magic/databases/redis/) v7-8
 
 ### Supported S3 Storage
 
