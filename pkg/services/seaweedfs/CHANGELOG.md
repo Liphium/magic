@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/Liphium/magic/compare/pkg/services/seaweedfs/v1.0.0...pkg/services/seaweedfs/v1.0.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* Driver imports pointed to wrong Magic version ([0cf5cf9](https://github.com/Liphium/magic/commit/0cf5cf9f013399085532110ebb677545f73fb968))
+
 ## 1.0.0 (2026-08-14)
 
 

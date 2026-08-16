@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/Liphium/magic/compare/pkg/databases/redis/v1.2.0...pkg/databases/redis/v1.2.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* Driver imports pointed to wrong Magic version ([0cf5cf9](https://github.com/Liphium/magic/commit/0cf5cf9f013399085532110ebb677545f73fb968))
+
 ## [1.2.0](https://github.com/Liphium/magic/compare/pkg/databases/redis/v1.1.2...pkg/databases/redis/v1.2.0) (2026-08-14)
 
 
