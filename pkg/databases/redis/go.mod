@@ -5,7 +5,7 @@ go 1.26
 replace github.com/Liphium/magic/v4 => ../../../.
 
 require (
-	github.com/Liphium/magic/v4 v4.0.0-00010101000000-000000000000
+	github.com/Liphium/magic/v4 v4.0.0
 	github.com/moby/moby/client v0.5.1
 )
 
