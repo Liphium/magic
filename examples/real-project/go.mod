@@ -8,7 +8,7 @@ replace github.com/Liphium/magic/pkg/databases/postgres => ../../pkg/databases/p
 
 require (
 	github.com/Liphium/magic/pkg/databases/postgres v0.0.0-00010101000000-000000000000
-	github.com/Liphium/magic/v4 v4.0.0-00010101000000-000000000000
+	github.com/Liphium/magic/v4 v4.0.0
 	github.com/gofiber/fiber/v2 v2.52.14
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1
