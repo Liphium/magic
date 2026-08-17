@@ -2,6 +2,7 @@ package mrunner
 
 import (
 	"context"
+	"maps"
 	"slices"
 	"strconv"
 
@@ -127,7 +128,8 @@ func (r *Runner) GeneratePlan() *mconfig.Plan {
 
 			// Generate a new port in case the current one is taken
 			toAllocate := port
-			for !util.ScanPort(toAllocate) || slices.Contains(portsToAllocate, toAllocate) || slices.Contains(reusedPorts, toAllocate) {
+			allocated := slices.Collect(maps.Values(allocatedPorts))
+			for !util.ScanPort(toAllocate) || slices.Contains(allocated, toAllocate) || slices.Contains(reusedPorts, toAllocate) {
 				toAllocate = util.RandomPort(DefaultStartPort, DefaultEndPort)
 			}
 
