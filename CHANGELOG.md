@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.1](https://github.com/Liphium/magic/compare/v4.0.0...v4.0.1) (2026-08-17)
+
+
+### Bug Fixes
+
+* Make sure wanted ports are used ([cde51ff](https://github.com/Liphium/magic/commit/cde51ff3ae842acd633a4a02bcb6024b656e7952))
+
 ## [4.0.0](https://github.com/Liphium/magic/compare/v3.2.0...v4.0.0) (2026-08-14)
 
 
