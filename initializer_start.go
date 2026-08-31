@@ -22,12 +22,6 @@ func Start(config Config) {
 	util.Log.Println("Successfully prepared everything!")
 	fmt.Println()
 
-	// Make sure to unlock the lock filecin case the app crashes
-	defer func() {
-		recover() // Make sure the file is always unlocked, even if the function below panics
-		factory.Unlock()
-	}()
-
 	// Start the app
 	config.StartFunction()
 
