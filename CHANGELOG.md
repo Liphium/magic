@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.2](https://github.com/Liphium/magic/compare/v4.0.1...v4.0.2) (2026-08-31)
+
+
+### Bug Fixes
+
+* Don't recover in Magic's start (causes panics to be eaten) ([62e3ac5](https://github.com/Liphium/magic/commit/62e3ac5c79bf947300ab07e21c4d3abbff0ad94b))
+
 ## [4.0.1](https://github.com/Liphium/magic/compare/v4.0.0...v4.0.1) (2026-08-17)
 
 
