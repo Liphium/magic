@@ -59,7 +59,7 @@ func ClearDatabases(runner *mrunner.Runner) error {
 
 	// Magic can clear all databases for you, don't worry, only data will be deleted meaning your schema is still all good :D
 	if err := runner.RunInstruction(mconfig.InstructionClearTables); err != nil {
-		log.Fatalln("Couldn't clear database tables:", err)
+		return fmt.Errorf("couldn't clear database tables: %w", err)
 	}
 
 	log.Println("Database clear completed successfully!")
