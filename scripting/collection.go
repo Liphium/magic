@@ -24,11 +24,13 @@ func useArgumentCollector(genType reflect.Type, arguments []string) (interface{}
 	// Check if the number of arguments matches the number of struct fields
 	if len(arguments) != numFields {
 
-		// Build error message with field information
+		// Build error message with field information (only for fields that aren't ignored)
 		var fieldInfo []string
-		for i := 0; i < numFields; i++ {
-			field := genType.Field(i)
-			fieldInfo = append(fieldInfo, fmt.Sprintf("%d. %s (%s) \n", i+1, field.Name, field.Type.Kind().String()))
+		for field := range genType.Fields() {
+			if field.Tag.Get("magic") == "ignore" {
+				continue
+			}
+			fieldInfo = append(fieldInfo, fmt.Sprintf("%d. %s (%s) \n", len(fieldInfo)+1, field.Name, field.Type.Kind().String()))
 		}
 
 		if len(arguments) < numFields {
@@ -43,8 +45,9 @@ func useArgumentCollector(genType reflect.Type, arguments []string) (interface{}
 	// Create a new instance of the struct
 	value := reflect.New(genType).Elem()
 
-	// Parse and set each argument to the corresponding field
-	for i, arg := range arguments {
+	// Parse and set each argument to the corresponding field (fields with the magic: ignore tag are skipped without consuming an argument)
+	argIndex := 0
+	for i := 0; i < genType.NumField(); i++ {
 		field := genType.Field(i)
 		fieldValue := value.Field(i)
 
@@ -52,6 +55,9 @@ func useArgumentCollector(genType reflect.Type, arguments []string) (interface{}
 		if field.Tag.Get("magic") == "ignore" {
 			continue
 		}
+
+		arg := arguments[argIndex]
+		argIndex++
 
 		// Handle different field types
 		if field.Type.Kind() == reflect.String {

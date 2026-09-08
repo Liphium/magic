@@ -34,7 +34,7 @@ func (sd *SurrealDriver) CreateContainer(ctx context.Context, c *client.Client, 
 
 // Check for SurrealDB health using the built-in is-ready command
 func (sd *SurrealDriver) IsHealthy(ctx context.Context, c *client.Client, container mconfig.ContainerInformation) (bool, error) {
-	cmd := []string{"surreal", "is-ready"}
+	cmd := []string{"/surreal", "is-ready"}
 
 	// Try to execute the command
 	respInspect, err := mservices.ExecuteCommand(ctx, c, container.ID, cmd)
