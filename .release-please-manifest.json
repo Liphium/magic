@@ -3,5 +3,6 @@
 	"pkg/databases/postgres": "1.1.1",
 	"pkg/databases/postgres-legacy": "1.1.1",
 	"pkg/databases/redis": "1.2.1",
-	"pkg/services/seaweedfs": "1.0.1"
+	"pkg/services/seaweedfs": "1.0.1",
+	"pkg/databases/surrealdb": "1.0.0"
 }
