@@ -45,15 +45,19 @@ func (p dbPost) toPost() (Post, error) {
 
 // createPost saves a new post in the database and returns it with its generated ID.
 func createPost(post Post) (Post, error) {
-	created, err := surrealdb.Create[dbPost](context.Background(), Surreal, models.Table("posts"), map[string]any{
+	// SurrealDB returns an array for CREATE on a table (since the ID is generated), so decode into []dbPost.
+	created, err := surrealdb.Create[[]dbPost](context.Background(), Surreal, models.Table("posts"), map[string]any{
 		"author":  post.Author,
 		"content": post.Content,
 	})
 	if err != nil {
 		return Post{}, fmt.Errorf("couldn't create post: %w", err)
 	}
+	if created == nil || len(*created) != 1 {
+		return Post{}, fmt.Errorf("unexpected result creating post: %d records", len(*created))
+	}
 
-	return created.toPost()
+	return (*created)[0].toPost()
 }
 
 // getPosts retrieves all posts from the database.
