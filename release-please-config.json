@@ -23,6 +23,11 @@
 			"component": "pkg/databases/redis",
 			"include-v-in-tag": true
 		},
+		"pkg/databases/surrealdb": {
+			"release-type": "go",
+			"component": "pkg/databases/surrealdb",
+			"include-v-in-tag": true
+		},
 		"pkg/services/seaweedfs": {
 			"release-type": "go",
 			"component": "pkg/services/seaweedfs",
