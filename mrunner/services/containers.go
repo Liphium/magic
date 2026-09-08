@@ -168,8 +168,8 @@ func configMatches(existing *container.InspectResponse, a mconfig.ContainerAlloc
 		return "environment variables are different"
 	}
 
-	// Command
-	if !reflect.DeepEqual(existing.Config.Cmd, opts.Cmd) {
+	// Command (only check when cmd actually set)
+	if opts.Cmd != nil && !reflect.DeepEqual(existing.Config.Cmd, opts.Cmd) {
 		return "start command is different"
 	}
 

@@ -1,4 +1,5 @@
 {
+	"separate-pull-requests": true,
 	"bump-minor-pre-major": true,
 	"tag-separator": "/",
 	"packages": {

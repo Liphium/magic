@@ -1,8 +1,6 @@
 package mservices
 
 import (
-	"fmt"
-	"net/netip"
 	"slices"
 	"testing"
 
@@ -33,6 +31,7 @@ func TestConfigMatches(t *testing.T) {
 			Image:        "postgres:17",
 			Env:          []string{"POSTGRES_USER=y", "POSTGRES_PASSWORD=x"}, // unsorted on purpose
 			ExposedPorts: exposed,
+			Cmd:          []string{"some", "start", "command"},
 		},
 		HostConfig: &container.HostConfig{
 			PortBindings: expectedBindings,
@@ -52,6 +51,23 @@ func TestConfigMatches(t *testing.T) {
 			name:   "image changed",
 			mutate: func(o *ManagedContainerOptions, _ *container.InspectResponse) { o.Image = "postgres:18" },
 			want:   false,
+		},
+		{
+			name: "command changed",
+			mutate: func(o *ManagedContainerOptions, e *container.InspectResponse) {
+				o.Cmd = []string{
+					"some", "other", "command",
+				}
+			},
+			want: false,
+		},
+		{
+			name: "command changed by container image",
+			mutate: func(o *ManagedContainerOptions, e *container.InspectResponse) {
+				o.Cmd = nil
+				e.Config.Cmd = []string{"some", "other", "command"}
+			},
+			want: true, // The driver should ignore this as no command specified
 		},
 		{
 			name: "env changed",
@@ -156,24 +172,6 @@ func mustPortBindings(t *testing.T, a mconfig.ContainerAllocation, ports []strin
 	_, bindings, err := buildPortBindings(a, ports)
 	if err != nil {
 		t.Fatal(err)
-	}
-	return bindings
-}
-
-// bindingsWithHostPort builds a PortMap for the given container ports but pins
-// every host port to the provided value, simulating a reused container whose
-// binding no longer matches the (re-rolled) allocation.
-func bindingsWithHostPort(t *testing.T, ports []string, hostPort uint) network.PortMap {
-	t.Helper()
-	bindings := network.PortMap{}
-	for _, portStr := range ports {
-		p, err := network.ParsePort(portStr)
-		if err != nil {
-			t.Fatal(err)
-		}
-		bindings[p] = []network.PortBinding{
-			{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: fmt.Sprintf("%d", hostPort)},
-		}
 	}
 	return bindings
 }

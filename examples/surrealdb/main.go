@@ -1,0 +1,5 @@
+package surrealdb
+
+func main() {
+
+}
