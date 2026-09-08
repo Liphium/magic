@@ -1,5 +1,5 @@
 {
-	".": "4.0.2",
+	".": "4.1.0",
 	"pkg/databases/postgres": "1.1.1",
 	"pkg/databases/postgres-legacy": "1.1.1",
 	"pkg/databases/redis": "1.2.1",
